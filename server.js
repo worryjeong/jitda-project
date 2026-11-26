@@ -482,7 +482,7 @@ function validateInput(input) {
         text: requirement.text.trim().slice(0, 2000),
         category: ["function", "screen", "schedule", "other"].includes(requirement.category) ? requirement.category : "other",
         needsConfirmation: Boolean(requirement.needsConfirmation),
-        changeType: ["new", "updated", "unchanged"].includes(requirement.changeType) ? requirement.changeType : "unchanged",
+        changeType: ["new", "updated", "unchanged", "conflict"].includes(requirement.changeType) ? requirement.changeType : "unchanged",
         previousText: typeof requirement.previousText === "string" ? requirement.previousText.slice(0, 2000) : "",
         roundIds: Array.isArray(requirement.roundIds) ? requirement.roundIds.filter((value) => typeof value === "string").slice(0, 100) : [],
         evidence: Array.isArray(requirement.evidence) ? requirement.evidence.slice(0, 30).map((evidence) => ({
@@ -491,7 +491,7 @@ function validateInput(input) {
           roundId: typeof evidence?.roundId === "string" ? evidence.roundId.slice(0, 180) : "",
           roundNumber: Number.isInteger(evidence?.roundNumber) ? evidence.roundNumber : null,
           sourceDocumentId: typeof evidence?.sourceDocumentId === "string" ? evidence.sourceDocumentId.slice(0, 180) : "",
-          sourceKind: evidence?.sourceKind === "transcript" ? "transcript" : "meeting",
+          sourceKind: ["meeting", "transcript", "spec"].includes(evidence?.sourceKind) ? evidence.sourceKind : "meeting",
         })) : [],
       }];
     })
@@ -562,7 +562,7 @@ function buildMessages(input) {
 11. 최종 기획서가 있는 경우 최신 회의 요구사항 각각을 기획서와 비교합니다. status는 reflected(의미상 반영), missing(찾을 수 없음), conflict(반대 내용), pending(판단 불가) 중 하나입니다. spec_evidence에는 실제 기획서의 짧은 원문을 넣고, 없는 경우 빈 문자열을 사용합니다. 기획서가 없으면 모두 pending으로 반환합니다.
 12. 문서에 없는 정보는 만들지 말고, 결과만 아래 JSON 스키마로 반환하세요. 마크다운이나 코드 울타리는 쓰지 마세요.
 
-{"meeting_requirements":[{"text":"한 문장 요구사항","category":"function|screen|schedule|other","needs_confirmation":false,"updated":false,"change_type":"new|updated|unchanged","previous_id":"이전 ID 또는 null","previous_text":"변경 전 문장 또는 null","evidence":[{"meeting_index":0,"date":"YYYY-MM-DD","document_name":"회의록 이름","source_document_id":"문서 ID 또는 null","round_id":"회차 ID 또는 null","round_number":1,"source_kind":"meeting|transcript","text":"원문 근거"}]}],"spec_requirements":[{"text":"한 문장 요구사항","category":"function|screen|schedule|other","needs_confirmation":false,"evidence":[{"meeting_index":0,"date":null,"document_name":"최종 기획서","source_document_id":null,"round_id":null,"round_number":null,"source_kind":"spec","text":"기획서 원문"}]}],"spec_draft":"기획서가 없으면 템플릿 기반 검토용 초안, 있으면 빈 문자열","spec_update":"기획서가 있을 때 업데이트안, 없으면 빈 문자열","comparison":[{"meeting_requirement_index":0,"status":"reflected|missing|conflict|pending","spec_evidence":"기획서 원문 또는 빈 문자열","reason":"짧은 판단 근거"}]}`;
+{"meeting_requirements":[{"text":"한 문장 요구사항","category":"function|screen|schedule|other","needs_confirmation":false,"updated":false,"change_type":"new|updated|unchanged|conflict","previous_id":"이전 ID 또는 null","previous_text":"변경 전 문장 또는 null","evidence":[{"meeting_index":0,"date":"YYYY-MM-DD","document_name":"회의록 이름","source_document_id":"문서 ID 또는 null","round_id":"회차 ID 또는 null","round_number":1,"source_kind":"meeting|transcript","text":"원문 근거"}]}],"spec_requirements":[{"text":"한 문장 요구사항","category":"function|screen|schedule|other","needs_confirmation":false,"evidence":[{"meeting_index":0,"date":null,"document_name":"최종 기획서","source_document_id":null,"round_id":null,"round_number":null,"source_kind":"spec","text":"기획서 원문"}]}],"spec_draft":"기획서가 없으면 템플릿 기반 검토용 초안, 있으면 빈 문자열","spec_update":"기획서가 있을 때 업데이트안, 없으면 빈 문자열","comparison":[{"meeting_requirement_index":0,"status":"reflected|missing|conflict|pending","spec_evidence":"기획서 원문 또는 빈 문자열","reason":"짧은 판단 근거"}]}`;
 
   const user = JSON.stringify({
     project: input.project,
@@ -757,10 +757,76 @@ function cleanCategory(category, text = "") {
   return "other";
 }
 
+function normalizedRequirementForMatch(text) {
+  return String(text || "").toLocaleLowerCase("ko-KR").replace(/[\s.,!?。！？·]/gu, "");
+}
+
+function priorEvidenceMatch(previousRequirement, candidateText) {
+  const evidence = Array.isArray(previousRequirement?.evidence) ? previousRequirement.evidence : [];
+  for (const entry of evidence) {
+    const exact = verbatimEvidenceFromSource(entry?.text, candidateText);
+    if (!exact) continue;
+    return {
+      text: entry.text,
+      date: entry.date || "",
+      documentName: entry.documentName || "회의록",
+      kind: "meeting",
+      sourceKind: entry.sourceKind === "transcript" ? "transcript" : "meeting",
+      sourceDocumentId: entry.sourceDocumentId || "",
+      roundId: entry.roundId || "",
+      roundNumber: Number.isInteger(entry.roundNumber) ? entry.roundNumber : null,
+      meetingIndex: Number.isInteger(entry.meetingIndex) ? entry.meetingIndex : 0,
+    };
+  }
+  return null;
+}
+
+function preservePreviousEvidence(previousRequirement) {
+  if (!Array.isArray(previousRequirement?.evidence)) return [];
+  return previousRequirement.evidence.flatMap((entry) => {
+    if (!entry || typeof entry.text !== "string" || !entry.text.trim()) return [];
+    return [{
+      text: entry.text,
+      date: entry.date || "",
+      documentName: entry.documentName || "회의록",
+      kind: "meeting",
+      sourceKind: entry.sourceKind === "transcript" ? "transcript" : "meeting",
+      sourceDocumentId: entry.sourceDocumentId || "",
+      roundId: entry.roundId || "",
+      roundNumber: Number.isInteger(entry.roundNumber) ? entry.roundNumber : null,
+      meetingIndex: Number.isInteger(entry.meetingIndex) ? entry.meetingIndex : 0,
+    }];
+  });
+}
+
+function mergeRequirementEvidence(priorEvidence, currentEvidence) {
+  const result = [];
+  const seen = new Set();
+  for (const entry of [...priorEvidence, ...currentEvidence]) {
+    const key = [entry.sourceDocumentId || "", entry.roundId || "", entry.date || "", entry.sourceKind || entry.kind || "", normalizedRequirementForMatch(entry.text)].join("|");
+    if (!entry.text || seen.has(key)) continue;
+    seen.add(key);
+    result.push(entry);
+  }
+  return result.sort((first, second) => String(first.date || "").localeCompare(String(second.date || ""))
+    || Number(first.roundNumber || 0) - Number(second.roundNumber || 0));
+}
+
 function normalizeRequirements(items, kind, input) {
   if (!Array.isArray(items)) return [];
   return items.slice(0, 500).flatMap((item, index) => {
     if (!item || typeof item.text !== "string" || !item.text.trim()) return [];
+    const requestedPreviousId = typeof item.previous_id === "string" ? item.previous_id.trim() : "";
+    const requestedPreviousText = typeof item.previous_text === "string" ? item.previous_text.trim() : "";
+    const previousRequirement = kind === "source"
+      ? input.previousRequirements.find((requirement) => requirement.id === requestedPreviousId)
+        || (item.change_type === "unchanged" || item.change_type === "conflict"
+          ? input.previousRequirements.find((requirement) => normalizedRequirementForMatch(requirement.text) === normalizedRequirementForMatch(item.text))
+          : null)
+        || ((item.change_type === "updated" || item.change_type === "conflict") && requestedPreviousText
+          ? input.previousRequirements.find((requirement) => normalizedRequirementForMatch(requirement.text) === normalizedRequirementForMatch(requestedPreviousText))
+          : null)
+      : null;
     const evidenceItems = Array.isArray(item.evidence) ? item.evidence : [];
     const evidence = evidenceItems.slice(0, 30).flatMap((entry) => {
       if (!entry || typeof entry.text !== "string" || !entry.text.trim()) return [];
@@ -771,7 +837,10 @@ function normalizeRequirements(items, kind, input) {
           && requestedIndex < evidenceByMeeting.length
           && Boolean(evidenceByMeeting[requestedIndex]);
         const exactIndex = requestedQuoteMatches ? requestedIndex : evidenceByMeeting.findIndex(Boolean);
-        if (exactIndex < 0) return [];
+        if (exactIndex < 0) {
+          const existingEvidence = priorEvidenceMatch(previousRequirement, entry.text);
+          return existingEvidence ? [existingEvidence] : [];
+        }
         const matchingIndex = exactIndex;
         const meeting = matchingIndex >= 0 ? input.meetings[matchingIndex] : null;
         return [{
@@ -799,24 +868,32 @@ function normalizeRequirements(items, kind, input) {
       }];
     });
 
+    const priorEvidence = kind === "source" ? preservePreviousEvidence(previousRequirement) : [];
+    const mergedEvidence = kind === "source" ? mergeRequirementEvidence(priorEvidence, evidence) : evidence;
+    const changeType = kind === "source" && ["new", "updated", "unchanged", "conflict"].includes(item.change_type)
+      ? item.change_type
+      : previousRequirement ? (item.updated ? "updated" : "unchanged") : item.updated ? "updated" : "new";
+    const requirementId = previousRequirement?.id
+      || (kind === "source" && requestedPreviousId ? requestedPreviousId : "")
+      || `${kind}-${index + 1}`;
     const latestMeeting = kind === "source" ? input.meetings.at(-1) : null;
     const fallbackId = kind === "source" && input.previousRequirements.length
       ? `source-${latestMeeting?.roundId || "new"}-${index + 1}`
       : `${kind}-${index + 1}`;
     return [{
-      id: kind === "source" && typeof item.previous_id === "string" && item.previous_id.trim()
-        ? item.previous_id.trim().slice(0, 180)
-        : fallbackId,
+      id: previousRequirement ? String(previousRequirement.id).slice(0, 180) : fallbackId,
       text: stripSpeakerPrefix(item.text).slice(0, 2000),
       category: cleanCategory(item.category, item.text),
-      needsConfirmation: Boolean(item.needs_confirmation ?? item.needsConfirmation) || (kind === "source" && evidence.length === 0),
-      updated: kind === "source" && Boolean(item.updated),
-      changeType: kind === "source" && ["new", "updated", "unchanged", "conflict"].includes(item.change_type) ? item.change_type : item.updated ? "updated" : "new",
-      previousId: typeof item.previous_id === "string" ? item.previous_id.slice(0, 180) : "",
-      previousText: typeof item.previous_text === "string" ? item.previous_text.trim().slice(0, 2000) : "",
-      roundIds: [...new Set(evidence.map((entry) => entry.roundId).filter(Boolean))],
-      roundNumbers: [...new Set(evidence.map((entry) => entry.roundNumber).filter(Number.isInteger))],
-      evidence,
+      needsConfirmation: Boolean(item.needs_confirmation ?? item.needsConfirmation) || changeType === "conflict" || (kind === "source" && mergedEvidence.length === 0),
+      updated: kind === "source" && (Boolean(item.updated) || changeType === "updated"),
+      changeType,
+      previousId: previousRequirement?.id || "",
+      previousText: typeof item.previous_text === "string" && item.previous_text.trim()
+        ? item.previous_text.trim().slice(0, 2000)
+        : changeType === "updated" || changeType === "conflict" ? String(previousRequirement?.text || "").slice(0, 2000) : "",
+      roundIds: [...new Set(mergedEvidence.map((entry) => entry.roundId).filter(Boolean))],
+      roundNumbers: [...new Set(mergedEvidence.map((entry) => entry.roundNumber).filter(Number.isInteger))],
+      evidence: mergedEvidence,
     }];
   });
 }
@@ -845,7 +922,11 @@ function normalizeComparison(items, sourceRequirements) {
       roundIds: requirement.roundIds,
       specEvidence: typeof item.spec_evidence === "string" && item.spec_evidence.trim()
         ? item.spec_evidence.trim().slice(0, 1000)
-        : status === "missing" ? "기획서에서 관련 문장을 찾지 못했습니다." : "비교 근거가 없습니다.",
+        : status === "missing"
+          ? "기획서에서 관련 문장을 찾지 못했습니다."
+          : status === "pending"
+            ? "기획서가 없어 비교를 건너뛰었습니다."
+            : "비교 근거가 없습니다.",
       reason: typeof item.reason === "string" ? item.reason.trim().slice(0, 500) : "",
       status,
     };
@@ -854,6 +935,27 @@ function normalizeComparison(items, sourceRequirements) {
 
 function normalizeAnalysis(raw, input, requestMetadata) {
   const meetingRequirements = normalizeRequirements(raw.meeting_requirements, "source", input);
+  const matchedPreviousIds = new Set(meetingRequirements.flatMap((requirement) => {
+    const previousId = requirement.previousId || (input.previousRequirements.some((previous) => previous.id === requirement.id) ? requirement.id : "");
+    return previousId ? [previousId] : [];
+  }));
+  for (const previous of input.previousRequirements) {
+    if (matchedPreviousIds.has(previous.id)) continue;
+    const evidence = preservePreviousEvidence(previous);
+    meetingRequirements.push({
+      id: previous.id,
+      text: previous.text,
+      category: previous.category || "other",
+      needsConfirmation: Boolean(previous.needsConfirmation) || evidence.length === 0,
+      updated: false,
+      changeType: "unchanged",
+      previousId: previous.id,
+      previousText: previous.previousText || "",
+      roundIds: [...new Set(evidence.map((entry) => entry.roundId).filter(Boolean))],
+      roundNumbers: [...new Set(evidence.map((entry) => entry.roundNumber).filter(Number.isInteger))],
+      evidence,
+    });
+  }
   const specRequirements = normalizeRequirements(raw.spec_requirements, "spec", input);
   if (!meetingRequirements.length && !specRequirements.length) {
     throw new HttpError(502, "문서에서 요구사항을 찾지 못했습니다. 입력 내용을 확인해 주세요.");

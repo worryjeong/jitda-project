@@ -1594,6 +1594,9 @@
       }
 
       .spec-draft-content {
+        display: block;
+        width: 100%;
+        min-height: 300px;
         max-height: 520px;
         overflow: auto;
         margin: 0;
@@ -1606,6 +1609,24 @@
         font-size: 12px;
         line-height: 1.8;
         white-space: pre-wrap;
+        resize: vertical;
+      }
+
+      textarea.spec-draft-content {
+        font-family: inherit;
+      }
+
+      .spec-draft-actions {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 10px;
+      }
+
+      .spec-draft-actions span {
+        color: #7b867e;
+        font-size: 10px;
       }
 
       .meeting-stt-clear {
@@ -2611,6 +2632,11 @@
       .requirement-state-pill.updated {
         background: #edf2f4;
         color: #526c75;
+      }
+
+      .requirement-state-pill.conflict-change {
+        background: #fbf1e6;
+        color: #9a622d;
       }
 
       .extraction-evidence-list {
@@ -4553,10 +4579,10 @@
                 <path d="M10 2.8 17 16H3L10 2.8Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round" />
                 <path d="M10 7v4M10 13.5v.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
               </svg>
-              <span>LLM이 회의록과 기획서를 분석합니다. 같은 요구사항은 합치고, 변경 근거와 판단이 모호한 항목은 확인 필요로 표시합니다.</span>
+              <span>회의록·메모와 음성 전사를 LLM으로 분석합니다. 기획서가 있으면 비교·업데이트안을 만들고, 없으면 템플릿 기반 초안을 생성합니다.</span>
             </div>
 
-            <p class="analysis-state" id="analysis-state" role="status" aria-live="polite">AI 분석을 눌러 두 문서의 요구사항을 확인하세요.</p>
+            <p class="analysis-state" id="analysis-state" role="status" aria-live="polite">AI 분석을 눌러 회의 자료를 확인하세요. 최종 기획서는 선택 사항입니다.</p>
 
             <div class="extraction-sections">
               <section class="extraction-panel" aria-labelledby="source-extraction-title">
@@ -5005,6 +5031,10 @@
               const evidence = Array.isArray(rawEvidence) ? rawEvidence : rawEvidence ? [{ text: rawEvidence }] : [];
               const legacyReviewId = `source-${index + 1}`;
               const savedReviewId = project.requirementReview?.items?.[legacyReviewId] ? legacyReviewId : `${projectId}-legacy-req-${index + 1}`;
+              if (requirement?.id && project.requirementReview?.items?.[legacyReviewId] && !project.requirementReview.items[requirement.id]) {
+                project.requirementReview.items[requirement.id] = structuredClone(project.requirementReview.items[legacyReviewId]);
+                changed = true;
+              }
               return {
                 id: requirement?.id || savedReviewId,
                 text: String(text).trim(),
@@ -5538,7 +5568,10 @@
             : '<div class="empty-state">아직 입력 문서가 없습니다.</div>';
           const documentCount = activeDocuments.length;
           const description = project.summary || "프로젝트 요구사항을 검토하고 있습니다.";
-          const specStatus = specDocument ? "기획서가 입력되었습니다." : "기획서 입력을 기다리고 있습니다.";
+          const hasDraft = Boolean(project.specDraft?.content);
+          const specStatus = specDocument
+            ? "최종 기획서가 입력되었습니다."
+            : hasDraft ? "최종 기획서가 없어 AI 초안을 생성했습니다." : "선택 사항 · 기획서 없이도 분석할 수 있습니다.";
           const sourceStatus = sourceDocuments.length ? `${project.rounds?.length || sourceDocuments.length}회차 자료가 등록되었습니다.` : "회의 메모 또는 전사 내용을 기다리고 있습니다.";
 
           elements.detailContent.innerHTML = `
@@ -5612,8 +5645,8 @@
                 <div class="progress-list">
                   ${progressStep(1, "프로젝트 생성", "이름과 고객사 정보가 저장되었습니다.", true, false)}
                   ${progressStep(2, "회의록 · 메모 입력", sourceStatus, Boolean(sourceDocuments.length), !sourceDocuments.length)}
-                  ${progressStep(3, "최종 기획서 입력", specStatus, Boolean(specDocument), Boolean(sourceDocuments.length) && !specDocument)}
-                  ${progressStep(4, "요구사항 추출", checked ? "문서 요구사항을 확인했습니다." : "AI 분석을 기다리고 있습니다.", Boolean(project.extractionRun), Boolean(sourceDocuments.length && specDocument) && !project.extractionRun)}
+                  ${progressStep(3, "최종 기획서 · 양식", specStatus, Boolean(specDocument || hasDraft), Boolean(sourceDocuments.length) && !specDocument && !hasDraft)}
+                  ${progressStep(4, "요구사항 추출", checked ? "문서 요구사항을 확인했습니다." : "AI 분석을 기다리고 있습니다.", Boolean(project.extractionRun), Boolean(sourceDocuments.length) && !project.extractionRun)}
                 </div>
                   <div class="detail-notice">LLM의 반영·누락·충돌 판단은 참고용입니다. 원문 근거와 함께 검토해 주세요.</div>
                 </section>
@@ -5633,7 +5666,8 @@
           const history = Array.isArray(item.evidence)
             ? item.evidence
             : [{ text: typeof item.evidence === "string" ? item.evidence : item.text, date: item.date, kind: item.kind }];
-          const updated = Boolean(item.updated);
+          const updated = Boolean(item.updated || item.changeType === "updated");
+          const hasVersionHistory = updated || item.changeType === "conflict" || Boolean(item.previousText);
           const changeBadge = item.changeType === "conflict"
             ? '<span class="requirement-state-pill conflict-change">충돌 항목</span>'
             : item.changeType === "updated" || item.previousText
@@ -5655,11 +5689,11 @@
             const roundNumber = evidence.roundNumber || item.roundNumbers?.[index];
             const round = Number.isInteger(roundNumber) ? ` · ${roundNumber}회차` : "";
             const isLatest = index === history.length - 1;
-            const label = updated
+            const label = hasVersionHistory
               ? `${isLatest ? "최신 근거" : "이전 근거"}${round}${date ? ` · ${date}` : ""}`
               : `${evidence.kind === "spec" ? "기획서 근거" : evidence.sourceKind === "transcript" ? "음성 전사 근거" : "회의 근거"}${round}${date ? ` · ${date}` : ""}`;
             return `
-              <div class="extraction-evidence-entry ${updated && isLatest ? "latest" : ""}">
+              <div class="extraction-evidence-entry ${hasVersionHistory && isLatest ? "latest" : ""}">
                 <span>${escapeHtml(label)}</span>
                 <p>“${escapeHtml(evidence.text || item.text)}”</p>
               </div>`;
@@ -5715,7 +5749,7 @@
           ]));
           const extractedMeetingDates = [...new Set(extractedMeetingEvidence.map((evidence) => evidence.date).filter(Boolean))].sort();
           const sourceMeetingCount = Math.max(project.rounds?.length || 0, distinctExtractedMeetings.size, sourceDocuments.length);
-          const latestMeetingDate = extractedMeetingDates.at(-1) || (latestMeeting ? meetingDateFor(latestMeeting, project) : "");
+          const latestMeetingDate = latestMeeting ? meetingDateFor(latestMeeting, project) : extractedMeetingDates.at(-1) || "";
           const sourceDateSummary = sourceMeetingCount
             ? `${showAllExtractionRounds ? "전체" : "최근"} · ${sourceMeetingCount}회 회의 · 최신 ${formatMeetingDate(latestMeetingDate)}`
             : "회의록 또는 메모가 입력되지 않았습니다.";
@@ -5860,6 +5894,7 @@
             const nextText = String(requirement.text || "").trim();
             const changed = previousText && nextText && normalizedRequirementText(previousText) !== normalizedRequirementText(nextText);
             const hasMemo = Boolean(record.revisionMemo);
+            const memoApplied = hasMemo && (Boolean(changed) || requirement.changeType === "updated" || requirement.changeType === "conflict");
             if (changed) {
               record.history = Array.isArray(record.history) ? record.history : [];
               record.history.push({ field: "text", previousValue: previousText, newValue: nextText, at });
@@ -5875,12 +5910,12 @@
               record.text = nextText;
               record.category = requirement.category || record.category || "other";
             }
-            if (hasMemo) {
+            if (memoApplied) {
               record.history = Array.isArray(record.history) ? record.history : [];
               record.history.push({ field: "memo", previousValue: record.revisionMemo, newValue: "분석 결과에 적용됨", at, applied: true });
               record.revisionMemo = "";
             }
-            if (requirement.changeType === "updated" && !changed && record.status === "confirmed") {
+            if ((requirement.changeType === "updated" || requirement.changeType === "conflict" || requirement.needsConfirmation) && !changed && record.status === "confirmed") {
               record.history.push({ field: "status", previousValue: "confirmed", newValue: "needsReview", at });
               record.status = "needsReview";
             }
@@ -6132,6 +6167,9 @@
             || project.comparisonStale
           ));
           const hasConfirmed = state.confirmedRequirements.length > 0;
+          const hasSpecification = Boolean((project.documents || []).some((documentItem) =>
+            documentItem.kind === "spec" && !documentItem.archivedAt && documentItem.content?.trim()
+          ));
           const hasSavedResults = Boolean(saved && Array.isArray(saved.results));
 
           elements.comparisonBack.href = reviewPath;
@@ -6143,7 +6181,7 @@
           elements.comparisonStale.hidden = !isStale;
           elements.comparisonEmpty.hidden = hasConfirmed;
           elements.comparisonResults.hidden = !hasSavedResults;
-          elements.runComparison.disabled = !hasConfirmed;
+          elements.runComparison.disabled = !hasConfirmed || !hasSpecification;
           elements.runComparison.textContent = saved ? "다시 비교" : "기획서 비교";
           elements.comparisonFallbackNotice.hidden = !saved?.usedFallback;
           elements.comparisonFallbackNotice.textContent = saved?.fallbackMessage || "AI 비교 실패로 규칙 기반 결과를 표시합니다";
@@ -6151,7 +6189,9 @@
           if (hasConfirmed) {
             elements.comparisonState.textContent = hasSavedResults
               ? `저장된 비교 결과 · ${formatDateTime(saved.comparedAt)}${isStale ? " · 다시 비교가 필요합니다." : ""}`
-              : "기획서 비교 버튼을 눌러 확정된 요구사항을 비교하세요.";
+              : hasSpecification
+                ? "기획서 비교 버튼을 눌러 확정된 요구사항을 비교하세요."
+                : "최종 기획서가 없습니다. 요구사항 추출 화면에서 생성한 기획서 초안을 검토해 주세요.";
             delete elements.comparisonState.dataset.state;
           } else if (hasSavedResults) {
             elements.comparisonState.textContent = "현재 확정된 요구사항이 없습니다. 기존 비교 결과는 이전 확정 항목 기준입니다.";
@@ -6268,9 +6308,16 @@
               reason: "비교 결과에서 항목이 누락되어 누락 의심으로 표시했습니다.",
             }));
             const previousComparison = project.requirementComparison;
+            const previousComparisonHistory = project.requirementComparisonHistory;
             const previousUpdatedAt = project.updatedAt;
             const previousComparisonStale = project.comparisonStale;
             const comparedAt = new Date().toISOString();
+            if (previousComparison) {
+              project.requirementComparisonHistory = [
+                ...(Array.isArray(previousComparisonHistory) ? previousComparisonHistory : []),
+                structuredClone(previousComparison),
+              ];
+            }
             project.requirementComparison = {
               version: 1,
               comparedAt,
@@ -6289,6 +6336,7 @@
             project.comparisonStale = false;
             if (!persistProjects()) {
               project.requirementComparison = previousComparison;
+              project.requirementComparisonHistory = previousComparisonHistory;
               project.updatedAt = previousUpdatedAt;
               project.comparisonStale = previousComparisonStale;
               throw new Error("비교 결과를 프로젝트에 저장하지 못했습니다.");
@@ -6346,7 +6394,11 @@
           elements.confirmedEmptyWarning.hidden = confirmedCount > 0;
           const comparisonState = getComparisonInputs(project);
           const comparisonIsStale = Boolean(project.requirementComparison
-            && project.requirementComparison.confirmedSignature !== comparisonState.signature);
+            && (
+              project.requirementComparison.confirmedSignature !== comparisonState.signature
+              || (project.requirementComparison.contentSignature && project.requirementComparison.contentSignature !== projectContentSignature(project))
+              || project.comparisonStale
+            ));
           elements.reviewComparisonStale.hidden = !comparisonIsStale;
           elements.reviewRoundToggle.textContent = showAllReviewRounds ? "최근 회차만 보기" : "전체 보기";
           elements.reviewRoundToggle.setAttribute("aria-pressed", String(showAllReviewRounds));
@@ -6393,10 +6445,13 @@
         function currentReviewRecord(project, item) {
           const saved = project.requirementReview?.items?.[item.id];
           return {
+            ...(saved && typeof saved === "object" ? structuredClone(saved) : {}),
             status: saved?.status || item.status || "needsReview",
             text: typeof saved?.text === "string" ? saved.text : item.text,
             category: saved?.category || item.category || "other",
             directlyAdded: Boolean(saved?.directlyAdded || item.directlyAdded),
+            roundId: saved?.roundId || item.roundId || item.roundIds?.at(-1) || "",
+            revisionMemo: typeof saved?.revisionMemo === "string" ? saved.revisionMemo : item.revisionMemo || "",
             history: Array.isArray(saved?.history) ? [...saved.history] : [...(item.history || [])],
           };
         }
@@ -6737,7 +6792,7 @@
                 </div>
                 <span class="meeting-entry-label">${row.roundNumber ? `회차 ${row.roundNumber}` : `회의 ${suffix}`}</span>
               </div>
-              <textarea id="meeting-notes-${suffix}" class="meeting-notes" placeholder="이 회의에서 새로 요청되거나 변경된 내용을 적어 주세요.">${escapeHtml(row.content || "")}</textarea>
+              <textarea id="meeting-notes-${suffix}" class="meeting-notes" aria-label="${escapeHtml(row.roundNumber ? `회차 ${row.roundNumber}` : `회의 ${suffix}`)} 회의록 또는 고객 메모" placeholder="이 회의에서 새로 요청되거나 변경된 내용을 적어 주세요.">${escapeHtml(row.content || "")}</textarea>
               <div class="file-upload">
                 <div class="file-upload-copy">
                   <strong>회의록 파일 업로드</strong>
@@ -6783,7 +6838,7 @@
               </details>
               <div class="meeting-entry-actions">
                 <button class="file-remove meeting-file-remove" type="button" hidden>파일 연결 해제</button>
-                <button class="file-remove remove-meeting" type="button">회의 삭제</button>
+                ${(documentItem || index > 1) ? '<button class="file-remove remove-meeting" type="button">회의 삭제</button>' : ""}
               </div>
             </section>`;
         }
@@ -6844,6 +6899,7 @@
         }
 
         function resetCreateForm() {
+          elements.meetingList.innerHTML = meetingEntryMarkup(1, localDateValue());
           elements.form.reset();
           showFormAlert("");
           editingProjectId = null;
@@ -6852,11 +6908,11 @@
           elements.createDescription.textContent = "프로젝트 정보와 회의 내용, 기획서 내용을 입력해 주세요.";
           elements.saveProjectLabel.textContent = "프로젝트 저장";
           const firstMeeting = elements.meetingList.querySelector("[data-meeting-entry]");
-          elements.meetingList.querySelectorAll("[data-meeting-entry]").forEach((entry, index) => {
-            if (index > 0) entry.remove();
-          });
+          const meetingLabel = elements.meetingList.closest(".field-group")?.querySelector("label[for='meeting-notes']");
+          if (meetingLabel) meetingLabel.htmlFor = firstMeeting.querySelector(".meeting-notes").id;
           firstMeeting.querySelector(".meeting-date").value = localDateValue();
           firstMeeting.querySelector(".meeting-entry-label").textContent = "회의 1";
+          firstMeeting.querySelector(".meeting-notes").value = "";
           firstMeeting.querySelector(".meeting-file").disabled = false;
           firstMeeting.querySelector(".meeting-file").value = "";
           firstMeeting.querySelector(".meeting-file-remove").hidden = true;
@@ -7011,6 +7067,9 @@
             }
             entry.__originalDocument = documentItem ? structuredClone(documentItem) : null;
           });
+          const meetingLabel = elements.meetingList.closest(".field-group")?.querySelector("label[for='meeting-notes']");
+          const firstMeetingNotes = elements.meetingList.querySelector(".meeting-notes");
+          if (meetingLabel && firstMeetingNotes) meetingLabel.htmlFor = firstMeetingNotes.id;
           nextMeetingIndex = Math.max(rows.length + 1, 2);
           const nextFromRounds = Math.max(0, ...(project.rounds || []).map((round) => Number(round.roundNumber) || 0)) + 1;
           nextRoundNumber = nextFromRounds;
@@ -7468,7 +7527,8 @@
         elements.confirmAll.addEventListener("click", () => {
           const project = projects.find((item) => item.id === elements.review.dataset.projectId);
           if (!project) return;
-          const pending = getReviewItems(project).filter((item) => item.status === "needsReview");
+          const pending = filterRequirementsByRound(project, getReviewItems(project), showAllReviewRounds)
+            .filter((item) => item.status === "needsReview");
           if (!pending.length) return;
 
           const at = new Date().toISOString();
@@ -7754,8 +7814,8 @@
                 meetingIndex: 0,
               })).filter((entry) => entry.text) : [],
             })).filter((item) => item.text);
-            if (!sourceRequirements.length && !specRequirements.length) {
-              throw new Error("LLM이 두 문서에서 요구사항을 찾지 못했습니다. 입력 내용을 확인해 주세요.");
+          if (!sourceRequirements.length && !specRequirements.length) {
+              throw new Error("LLM이 회의록·메모에서 요구사항을 찾지 못했습니다. 입력 내용을 확인해 주세요.");
             }
 
             const nextRequirements = Array.isArray(analysis.comparison)
@@ -7785,6 +7845,7 @@
               }));
             const previousState = {
               extractedRequirements: project.extractedRequirements,
+              extractionHistory: project.extractionHistory,
               extractionRun: project.extractionRun,
               requirements: project.requirements,
               analysisRun: project.analysisRun,
@@ -7803,6 +7864,19 @@
             };
             const completedAt = new Date().toISOString();
 
+            if (project.extractionRun && Array.isArray(project.extractedRequirements?.source) && project.extractedRequirements.source.length) {
+              project.extractionHistory = [
+                ...(Array.isArray(project.extractionHistory) ? project.extractionHistory : []),
+                {
+                  analyzedAt: project.analysisRunAt || project.updatedAt || completedAt,
+                  inputSignature: project.analysisInputSignature || "",
+                  extractedRequirements: structuredClone(project.extractedRequirements),
+                  requirements: structuredClone(project.requirements || []),
+                  specDraft: structuredClone(project.specDraft || null),
+                  specUpdateProposal: structuredClone(project.specUpdateProposal || null),
+                },
+              ];
+            }
             project.extractedRequirements = { source: sourceRequirements, spec: specRequirements };
             project.extractionRun = true;
             project.requirements = nextRequirements;
@@ -7836,6 +7910,12 @@
                 editedByUser: false,
               };
             } else {
+              if (project.specUpdateProposal?.content) {
+                project.specUpdateHistory = [
+                  ...(Array.isArray(project.specUpdateHistory) ? project.specUpdateHistory : []),
+                  { ...project.specUpdateProposal, archivedAt: completedAt },
+                ];
+              }
               project.specDraft = {
                 content: String(analysis.specDraft || ""),
                 generatedAt: completedAt,
