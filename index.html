@@ -5634,9 +5634,11 @@
             ? item.evidence
             : [{ text: typeof item.evidence === "string" ? item.evidence : item.text, date: item.date, kind: item.kind }];
           const updated = Boolean(item.updated);
-          const changeBadge = item.changeType === "updated" || item.previousText
-            ? '<span class="requirement-state-pill updated">수정 항목</span>'
-            : item.changeType === "new" ? '<span class="requirement-state-pill">신규 항목</span>' : "";
+          const changeBadge = item.changeType === "conflict"
+            ? '<span class="requirement-state-pill conflict-change">충돌 항목</span>'
+            : item.changeType === "updated" || item.previousText
+              ? '<span class="requirement-state-pill updated">수정 항목</span>'
+              : item.changeType === "new" ? '<span class="requirement-state-pill">신규 항목</span>' : "";
           const previousText = item.previousText ? `
             <details class="review-meeting-change" open>
               <summary>변경 전·후 문장 <span>이력</span></summary>
@@ -7710,9 +7712,9 @@
               id: item.id || `source-${index + 1}`,
               text: String(item.text || "").trim(),
               category: requirementCategoryLabels[item.category] ? item.category : "other",
-              needsConfirmation: Boolean(item.needsConfirmation) || !Array.isArray(item.evidence) || item.evidence.length === 0,
+              needsConfirmation: Boolean(item.needsConfirmation) || item.changeType === "conflict" || !Array.isArray(item.evidence) || item.evidence.length === 0,
               updated: Boolean(item.updated),
-              changeType: ["new", "updated", "unchanged"].includes(item.changeType) ? item.changeType : item.updated ? "updated" : "new",
+              changeType: ["new", "updated", "unchanged", "conflict"].includes(item.changeType) ? item.changeType : item.updated ? "updated" : "new",
               previousId: String(item.previousId || ""),
               previousText: String(item.previousText || ""),
               roundIds: Array.isArray(item.roundIds) ? item.roundIds : [],
@@ -7733,7 +7735,7 @@
               id: item.id || `spec-${index + 1}`,
               text: String(item.text || "").trim(),
               category: requirementCategoryLabels[item.category] ? item.category : "other",
-              needsConfirmation: Boolean(item.needsConfirmation) || !Array.isArray(item.evidence) || item.evidence.length === 0,
+              needsConfirmation: Boolean(item.needsConfirmation) || item.changeType === "conflict" || !Array.isArray(item.evidence) || item.evidence.length === 0,
               updated: false,
               changeType: "unchanged",
               previousId: "",

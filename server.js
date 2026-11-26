@@ -29,7 +29,7 @@ const responseFormat = {
               category: { type: "string", enum: ["function", "screen", "schedule", "other"] },
               needs_confirmation: { type: "boolean" },
               updated: { type: "boolean" },
-              change_type: { type: "string", enum: ["new", "updated", "unchanged"] },
+              change_type: { type: "string", enum: ["new", "updated", "unchanged", "conflict"] },
               previous_id: { type: ["string", "null"] },
               previous_text: { type: ["string", "null"] },
               evidence: {
@@ -553,7 +553,7 @@ function buildMessages(input) {
 2. 요구사항 text는 화자 이름·호칭(예: 김원장:)과 배경 설명을 빼고, 한 문장의 분명한 의무·기능 표현으로 정리합니다. 가능한 경우 “...해야 합니다” 또는 “...할 수 있어야 합니다” 형식으로 씁니다. 요청 내용을 지나치게 넓히거나 새 조건을 만들지 마세요.
 3. evidence.text는 회의 메모 또는 해당 회차의 음성 전사문에서 근거가 되는 원문 문장 전체를 그대로 복사합니다. 원문에 화자 접두어가 있으면 evidence에는 그대로 남기되, 요구사항 text에는 넣지 않습니다. evidence.source_kind에는 출처에 따라 meeting 또는 transcript를 씁니다.
 4. 날짜, 문서 이름, source_document_id, round_id, round_number는 해당 회의 입력의 값을 그대로 사용합니다. evidence.meeting_index를 정확히 지정합니다.
-5. previousRequirements가 제공되면 기존 id와 요구사항을 대조합니다. 과거 요구사항이 새 자료에서 언급되지 않았다는 이유만으로 삭제하거나 누락하지 말고 unchanged로 유지합니다. 새 자료가 명시적으로 내용을 보완·변경하면 updated, 새로 요청한 내용이면 new로 분류합니다. 각 항목의 change_type은 new, updated, unchanged 중 하나입니다. 변경된 항목은 previous_id에 기존 id, previous_text에 변경 전 문장을 넣고, text에 최신 내용을 씁니다. 동일하거나 수정된 기존 항목은 previous_id에 기존 id를 넣어 ID를 유지합니다. 새 항목은 previous_id와 previous_text를 null로 둡니다. evidence에는 이전·최신 원문과 회차를 모두 보존합니다.
+5. previousRequirements가 제공되면 기존 id와 요구사항을 대조합니다. 과거 요구사항이 새 자료에서 언급되지 않았다는 이유만으로 삭제하거나 누락하지 말고 unchanged로 유지합니다. 새 자료가 명시적으로 내용을 보완·변경하면 updated, 새로 요청한 내용이면 new, 기존 조건과 동시에 성립할 수 없는 반대 요청이면 conflict로 분류합니다. 각 항목의 change_type은 new, updated, unchanged, conflict 중 하나입니다. updated 또는 conflict 항목은 previous_id에 기존 id, previous_text에 변경 전 문장을 넣고, text에 새 회차의 문장을 씁니다. 같은 항목은 기존 id를 유지합니다. 새 항목은 previous_id와 previous_text를 null로 둡니다. evidence에는 이전·최신 원문과 회차를 모두 보존하며, conflict 항목은 needs_confirmation=true로 표시합니다.
 6. 뜻, 대상, 기준, 범위가 모호하거나 회의 내용끼리 해결되지 않은 충돌이 있으면 needs_confirmation=true로 표시합니다.
 7. category는 function, screen, schedule, other 중 하나만 사용합니다. QR 코드 출석, 출결 기록·관리, QR 체크인처럼 사용자가 수행하는 행동이나 시스템 동작은 반드시 function입니다. 동작이 아닌 화면 배치·보이는 요소 자체가 핵심인 요청만 screen, 날짜·마감·기간은 schedule로 분류합니다.
 8. reviewMemos에 특정 requirementId의 수정 메모가 있으면 이를 반영해 최신 요구사항 text를 정리하세요. 메모를 고객 원문으로 취급하지 말고, 원문 근거는 실제 회의록/전사문에서만 인용합니다.
@@ -811,7 +811,7 @@ function normalizeRequirements(items, kind, input) {
       category: cleanCategory(item.category, item.text),
       needsConfirmation: Boolean(item.needs_confirmation ?? item.needsConfirmation) || (kind === "source" && evidence.length === 0),
       updated: kind === "source" && Boolean(item.updated),
-      changeType: kind === "source" && ["new", "updated", "unchanged"].includes(item.change_type) ? item.change_type : item.updated ? "updated" : "new",
+      changeType: kind === "source" && ["new", "updated", "unchanged", "conflict"].includes(item.change_type) ? item.change_type : item.updated ? "updated" : "new",
       previousId: typeof item.previous_id === "string" ? item.previous_id.slice(0, 180) : "",
       previousText: typeof item.previous_text === "string" ? item.previous_text.trim().slice(0, 2000) : "",
       roundIds: [...new Set(evidence.map((entry) => entry.roundId).filter(Boolean))],
