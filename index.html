@@ -768,6 +768,14 @@
         column-gap: 10px;
       }
 
+      .project-table-head.with-delete-column {
+        grid-template-columns: minmax(190px, 1.7fr) minmax(100px, 0.82fr) minmax(94px, 0.78fr) 78px 38px;
+      }
+
+      .project-row.with-delete {
+        grid-template-columns: minmax(190px, 1.7fr) minmax(100px, 0.82fr) minmax(94px, 0.78fr) 78px 38px;
+      }
+
       .project-table-head {
         min-height: 34px;
         border-top: 1px solid #edf0ec;
@@ -786,6 +794,10 @@
         border-bottom: 1px solid #edf0ec;
       }
 
+      .project-row.with-delete {
+        min-height: 65px;
+      }
+
       .project-row:last-child {
         border-bottom: 0;
       }
@@ -795,6 +807,53 @@
         min-width: 0;
         align-items: center;
         gap: 10px;
+      }
+
+      .project-row-link {
+        min-height: 64px;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .project-row-link:focus-visible {
+        outline: 3px solid #9eae5e;
+        outline-offset: -3px;
+        border-radius: 6px;
+      }
+
+      .project-action-cell {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+      }
+
+      .project-delete-button {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        place-items: center;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        background: transparent;
+        color: #9c685f;
+        cursor: pointer;
+        transition: background-color 140ms ease, border-color 140ms ease, color 140ms ease;
+      }
+
+      .project-delete-button:hover {
+        border-color: #efd8d3;
+        background: #fff5f2;
+        color: #a74236;
+      }
+
+      .project-delete-button:focus-visible {
+        outline: 3px solid rgba(173, 81, 69, 0.2);
+        outline-offset: 2px;
+      }
+
+      .project-delete-button svg {
+        width: 16px;
+        height: 16px;
       }
 
       .project-monogram {
@@ -950,7 +1009,7 @@
         transition: background-color 150ms ease;
       }
 
-      a.project-row:hover {
+      .project-row:hover {
         background: #f8faf6;
       }
 
@@ -979,6 +1038,40 @@
       .button-secondary:hover {
         border-color: #b7c4b9;
         background: #f8faf7;
+      }
+
+      .button-danger {
+        display: inline-flex;
+        min-height: 42px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 0 13px;
+        border: 1px solid #ecd8d4;
+        border-radius: 8px;
+        background: #fff8f6;
+        color: #a34e42;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .button-danger:hover {
+        border-color: #dfbcb5;
+        background: #fff1ed;
+        color: #963d33;
+      }
+
+      .button-danger:focus-visible {
+        outline: 3px solid rgba(173, 81, 69, 0.2);
+        outline-offset: 2px;
+      }
+
+      .button-danger svg {
+        width: 15px;
+        height: 15px;
       }
 
       .button-secondary svg,
@@ -3153,6 +3246,14 @@
           column-gap: 7px;
         }
 
+        .project-table-head.with-delete-column {
+          grid-template-columns: minmax(145px, 1.4fr) minmax(82px, 0.8fr) minmax(82px, 0.8fr) 60px 36px;
+        }
+
+        .project-row.with-delete {
+          grid-template-columns: minmax(145px, 1.4fr) minmax(82px, 0.8fr) minmax(82px, 0.8fr) 60px 36px;
+        }
+
         .project-count {
           font-size: 9px;
         }
@@ -3392,6 +3493,16 @@
           column-gap: 6px;
         }
 
+        .project-table-head.with-delete-column {
+          grid-template-columns: minmax(115px, 1fr) 68px 55px 34px;
+          column-gap: 5px;
+        }
+
+        .project-row.with-delete {
+          grid-template-columns: minmax(115px, 1fr) 68px 55px 34px;
+          column-gap: 5px;
+        }
+
         .project-table-head span:nth-child(2),
         .project-count {
           display: none;
@@ -3410,7 +3521,16 @@
           font-size: 8px;
         }
 
+        .project-table-head span:nth-child(5) {
+          font-size: 8px;
+          text-align: right;
+        }
+
         .project-row {
+          min-height: 61px;
+        }
+
+        .project-row.with-delete {
           min-height: 61px;
         }
 
@@ -3446,6 +3566,15 @@
           font-size: 8px;
         }
 
+        .project-action-cell {
+          justify-content: flex-end;
+        }
+
+        .project-delete-button {
+          width: 32px;
+          height: 36px;
+        }
+
         .demo-footnote {
           margin-top: 12px;
           font-size: 8px;
@@ -3454,6 +3583,17 @@
         .detail-title-row {
           flex-direction: column;
           align-items: flex-start;
+        }
+
+        .detail-title-row .page-actions {
+          display: grid;
+          width: 100%;
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .detail-title-row .page-actions > .button-secondary,
+        .detail-title-row .page-actions > .button-danger {
+          width: 100%;
         }
 
         .detail-summary-grid {
@@ -3468,6 +3608,10 @@
         .form-actions .button-secondary,
         .form-actions .static-button,
         .detail-title-row .static-button {
+          width: 100%;
+        }
+
+        .detail-title-row .button-danger {
           width: 100%;
         }
 
@@ -3688,11 +3832,12 @@
                 <span class="search-result-count" id="project-search-count"></span>
               </div>
               <div class="project-table" aria-label="전체 프로젝트 목록">
-                <div class="project-table-head" aria-hidden="true">
+                <div class="project-table-head with-delete-column" aria-hidden="true">
                   <span>프로젝트</span>
                   <span>요구사항</span>
                   <span>진행 상태</span>
                   <span>업데이트</span>
+                  <span>관리</span>
                 </div>
                 <div id="all-project-list"></div>
               </div>
@@ -4292,23 +4437,31 @@
           return documentItem.date || project?.createdAt?.slice(0, 10) || project?.updatedAt?.slice(0, 10) || "";
         }
 
-        function projectRow(project) {
+        function projectRow(project, withDelete = false) {
           const statusClass = project.status === "done" ? "done" : project.status === "draft" ? "draft" : "";
           const count = project.requirements?.length ?? 0;
           const initial = Array.from(project.name || "P")[0];
           return `
-            <a class="project-row" href="#/projects/${encodeURIComponent(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 상세 보기">
-              <span class="project-name-cell">
+            <div class="project-row ${withDelete ? "with-delete" : ""}" role="row">
+              <a class="project-name-cell project-row-link" role="cell" href="#/projects/${encodeURIComponent(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 상세 보기">
                 <span class="project-monogram">${escapeHtml(initial)}</span>
                 <span class="project-name-copy">
                   <strong>${escapeHtml(project.name)}</strong>
                   <span>${escapeHtml(project.client)} · ${escapeHtml(project.summary || "프로젝트")}</span>
                 </span>
-              </span>
+              </a>
               <span class="project-count">${String(count).padStart(2, "0")}개 항목</span>
               <span class="status-pill ${statusClass}">${statusLabels[project.status] || statusLabels.draft}</span>
               <span class="project-date">${formatShortDate(project.updatedAt)}</span>
-            </a>`;
+              ${withDelete ? `
+                <span class="project-action-cell">
+                  <button class="project-delete-button" type="button" data-delete-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 삭제" title="프로젝트 삭제">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="M4 6h12M8 6V4h4v2m2 0-.7 10H6.7L6 6m2.5 3v4m3-4v4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                </span>` : ""}
+            </div>`;
         }
 
         function renderProjectLists() {
@@ -4319,8 +4472,8 @@
           );
           const empty = '<div class="empty-state"><strong>아직 프로젝트가 없습니다.</strong>새 프로젝트를 만들어 요구사항 검토를 시작해 보세요.</div>';
           const noResults = `<div class="empty-state"><strong>검색 결과가 없습니다.</strong>다른 프로젝트명이나 고객사 이름으로 검색해 보세요.</div>`;
-          elements.recentList.innerHTML = ordered.slice(0, 3).map(projectRow).join("") || empty;
-          elements.allList.innerHTML = matching.map(projectRow).join("") || (query ? noResults : empty);
+          elements.recentList.innerHTML = ordered.slice(0, 3).map((project) => projectRow(project)).join("") || empty;
+          elements.allList.innerHTML = matching.map((project) => projectRow(project, true)).join("") || (query ? noResults : empty);
           elements.searchResultCount.textContent = query ? `${matching.length}개 검색 결과` : `${ordered.length}개 프로젝트`;
         }
 
@@ -4422,6 +4575,12 @@
                 ${statusBadge(project.status)}
                 <a class="button-secondary" href="#/projects/${encodeURIComponent(project.id)}/extract">요구사항 추출</a>
                 <a class="button-secondary" href="#/projects/${encodeURIComponent(project.id)}/review">검토·확정으로 이동</a>
+                <button class="button-danger" type="button" data-delete-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 삭제">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M4 6h12M8 6V4h4v2m2 0-.7 10H6.7L6 6m2.5 3v4m3-4v4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  프로젝트 삭제
+                </button>
               </div>
             </header>
 
@@ -5356,6 +5515,32 @@
           }
         }
 
+        function deleteProject(projectId) {
+          const target = projects.find((project) => project.id === projectId);
+          if (!target) return false;
+
+          const confirmed = window.confirm(`“${target.name}” 프로젝트와 저장된 문서, 요구사항, 분석 결과를 삭제할까요? 이 작업은 되돌릴 수 없습니다.`);
+          if (!confirmed) return false;
+
+          const previousProjects = projects;
+          projects = projects.filter((project) => project.id !== projectId);
+          if (!persistProjects()) {
+            projects = previousProjects;
+            renderProjectLists();
+            const currentRoute = decodeURIComponent(window.location.hash.slice(1));
+            if (currentRoute.startsWith(`/projects/${projectId}`)) renderDetail(target);
+            window.alert("프로젝트를 삭제하지 못했습니다. 브라우저 저장 공간을 확인해 주세요.");
+            return false;
+          }
+
+          renderProjectLists();
+          const currentRoute = decodeURIComponent(window.location.hash.slice(1));
+          if (currentRoute === `/projects/${projectId}` || currentRoute.startsWith(`/projects/${projectId}/`)) {
+            setRoute("/projects");
+          }
+          return true;
+        }
+
         function setRoute(path) {
           window.location.hash = path;
         }
@@ -5466,6 +5651,14 @@
         }
 
         elements.projectSearch.addEventListener("input", renderProjectLists);
+
+        document.addEventListener("click", (event) => {
+          const deleteButton = event.target.closest("[data-delete-project-id]");
+          if (!deleteButton) return;
+          event.preventDefault();
+          event.stopPropagation();
+          deleteProject(deleteButton.dataset.deleteProjectId);
+        });
 
         document.querySelector("#add-meeting").addEventListener("click", () => {
           const index = nextMeetingIndex++;
