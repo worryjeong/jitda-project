@@ -4693,8 +4693,18 @@
           const hasSpecText = Boolean(specDocument?.content?.trim());
           const hasBothDocuments = hasSourceText && hasSpecText;
           const latestMeeting = sourceDocuments.at(-1);
-          const sourceDateSummary = sourceDocuments.length
-            ? `${sourceDocuments.length}회 회의 · 최신 회의 ${formatMeetingDate(meetingDateFor(latestMeeting, project))}`
+          const extractedMeetingEvidence = sourceRequirements.flatMap((requirement) => Array.isArray(requirement.evidence) ? requirement.evidence : []);
+          const distinctExtractedMeetings = new Map(extractedMeetingEvidence.map((evidence) => [
+            Number.isInteger(evidence.meetingIndex)
+              ? `meeting-${evidence.meetingIndex}`
+              : `${evidence.date || ""}-${evidence.documentName || ""}`,
+            evidence,
+          ]));
+          const extractedMeetingDates = [...new Set(extractedMeetingEvidence.map((evidence) => evidence.date).filter(Boolean))].sort();
+          const sourceMeetingCount = Math.max(sourceDocuments.length, distinctExtractedMeetings.size);
+          const latestMeetingDate = extractedMeetingDates.at(-1) || (latestMeeting ? meetingDateFor(latestMeeting, project) : "");
+          const sourceDateSummary = sourceMeetingCount
+            ? `${sourceMeetingCount}회 회의 · 최신 회의 ${formatMeetingDate(latestMeetingDate)}`
             : "회의록 또는 메모가 입력되지 않았습니다.";
 
           elements.extractionTitle.textContent = `${project.name} 요구사항`;
