@@ -12,6 +12,18 @@ const sttEndpoint = "https://api.groq.com/openai/v1/audio/transcriptions";
 const maxAudioBytes = 25 * 1024 * 1024;
 const maxBodyBytes = 2 * 1024 * 1024;
 const staticFiles = new Set(["index.html", "__preview-bridge.js"]);
+const defaultSpecificationTemplate = {
+  fileName: "서비스 기본 기획서 양식",
+  content: "# 서비스 기획서\n## 1. 프로젝트 개요\n## 2. 사용자 및 권한\n## 3. 기능 요구사항\n## 4. 화면 및 이용 흐름\n## 5. 예외 상황 및 정책\n## 6. 일정 및 검수 기준",
+  structure: [
+    "## 1. 프로젝트 개요",
+    "## 2. 사용자 및 권한",
+    "## 3. 기능 요구사항",
+    "## 4. 화면 및 이용 흐름",
+    "## 5. 예외 상황 및 정책",
+    "## 6. 일정 및 검수 기준",
+  ],
+};
 const responseFormat = {
   type: "json_schema",
   json_schema: {
@@ -88,6 +100,21 @@ const responseFormat = {
         },
         spec_draft: { type: "string" },
         spec_update: { type: "string" },
+        template_sections: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              target: { type: "string", enum: ["draft", "update"] },
+              section: { type: "string" },
+              needs_confirmation: { type: "boolean" },
+              evidence: { type: ["string", "null"] },
+              reason: { type: "string" },
+            },
+            required: ["target", "section", "needs_confirmation", "evidence", "reason"],
+            additionalProperties: false,
+          },
+        },
         comparison: {
           type: "array",
           items: {
@@ -103,7 +130,7 @@ const responseFormat = {
           },
         },
       },
-      required: ["meeting_requirements", "spec_requirements", "spec_draft", "spec_update", "comparison"],
+      required: ["meeting_requirements", "spec_requirements", "spec_draft", "spec_update", "template_sections", "comparison"],
       additionalProperties: false,
     },
   },
@@ -420,6 +447,14 @@ function stripSpeakerPrefix(text) {
   return value.slice(match[0].length).trim();
 }
 
+function templateStructureFromText(text) {
+  const lines = String(text || "").split(/\r?\n/u).map((line) => line.trim()).filter(Boolean);
+  const headings = lines.filter((line) =>
+    /^(?:#{2,6}\s+|(?:제\s*)?\d+(?:\.\d+)*[.)]?\s+|[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+[.)]?\s+|목차\s*[:：]?\s*$|[가-힣]\s*[.)]\s*)/u.test(line)
+  );
+  return [...new Set((headings.length ? headings : lines.slice(0, 120)).map((line) => line.slice(0, 240)))].slice(0, 300);
+}
+
 function validateInput(input) {
   if (!Array.isArray(input.meetings) || input.meetings.length === 0) {
     throw new HttpError(400, "분석할 회의록 또는 고객 메모가 없습니다.");
@@ -465,15 +500,25 @@ function validateInput(input) {
       : "최종 기획서",
     content: typeof input.specification?.content === "string" ? input.specification.content.trim() : "",
   };
-  const specificationTemplate = input.specificationTemplate && typeof input.specificationTemplate.content === "string"
-    ? {
+  let specificationTemplate;
+  if (input.specificationTemplate && typeof input.specificationTemplate.content === "string") {
+    const suppliedStructure = Array.isArray(input.specificationTemplate.structure) && input.specificationTemplate.structure.length
+      ? input.specificationTemplate.structure.filter((item) => typeof item === "string").slice(0, 300).map((item) => item.slice(0, 300))
+      : templateStructureFromText(input.specificationTemplate.content);
+    const withoutTitle = suppliedStructure.filter((item) => !/^\s*#\s+\S/u.test(item));
+    specificationTemplate = {
       fileName: typeof input.specificationTemplate.fileName === "string" ? input.specificationTemplate.fileName.slice(0, 180) : "",
       content: input.specificationTemplate.content.trim().slice(0, 300_000),
-      structure: Array.isArray(input.specificationTemplate.structure)
-        ? input.specificationTemplate.structure.filter((item) => typeof item === "string").slice(0, 300).map((item) => item.slice(0, 300))
-        : [],
-    }
-    : null;
+      structure: withoutTitle.length ? withoutTitle : suppliedStructure,
+      isDefault: Boolean(input.specificationTemplate.isDefault),
+    };
+  } else {
+    specificationTemplate = {
+      ...defaultSpecificationTemplate,
+      structure: [...defaultSpecificationTemplate.structure],
+      isDefault: true,
+    };
+  }
   const previousRequirements = Array.isArray(input.previousRequirements)
     ? input.previousRequirements.slice(0, 500).flatMap((requirement, index) => {
       if (!requirement || typeof requirement.text !== "string" || !requirement.text.trim()) return [];
@@ -557,12 +602,13 @@ function buildMessages(input) {
 6. 뜻, 대상, 기준, 범위가 모호하거나 회의 내용끼리 해결되지 않은 충돌이 있으면 needs_confirmation=true로 표시합니다.
 7. category는 function, screen, schedule, other 중 하나만 사용합니다. QR 코드 출석, 출결 기록·관리, QR 체크인처럼 사용자가 수행하는 행동이나 시스템 동작은 반드시 function입니다. 동작이 아닌 화면 배치·보이는 요소 자체가 핵심인 요청만 screen, 날짜·마감·기간은 schedule로 분류합니다.
 8. reviewMemos에 특정 requirementId의 수정 메모가 있으면 이를 반영해 최신 요구사항 text를 정리하세요. 메모를 고객 원문으로 취급하지 말고, 원문 근거는 실제 회의록/전사문에서만 인용합니다.
-9. specification.content가 비어 있으면 spec_requirements는 빈 배열, comparison 각 상태는 pending, spec_evidence는 빈 문자열, spec_update는 빈 문자열로 둡니다. spec_draft에는 회의 요구사항을 반영한 검토용 기획서 초안을 작성합니다. specificationTemplate이 제공되면 그 목차·항목·구성·작성 형식을 우선 적용합니다. 양식이 없으면 서비스 기본 기획서 구조를 사용합니다. 초안에는 확정되지 않은 새 조건을 만들지 마세요.
-10. specification.content가 있으면 spec_draft는 빈 문자열로 두고, 기획서의 요구사항을 추출해 각 항목에 실제 원문 근거를 붙입니다. specificationTemplate이 있으면 그 구조에 맞춘 spec_update를 작성하고, 없으면 기존 기획서에서 수정·추가할 항목을 요약합니다.
-11. 최종 기획서가 있는 경우 최신 회의 요구사항 각각을 기획서와 비교합니다. status는 reflected(의미상 반영), missing(찾을 수 없음), conflict(반대 내용), pending(판단 불가) 중 하나입니다. spec_evidence에는 실제 기획서의 짧은 원문을 넣고, 없는 경우 빈 문자열을 사용합니다. 기획서가 없으면 모두 pending으로 반환합니다.
-12. 문서에 없는 정보는 만들지 말고, 결과만 아래 JSON 스키마로 반환하세요. 마크다운이나 코드 울타리는 쓰지 마세요.
+9. specificationTemplate.structure의 모든 섹션마다 template_sections 결과를 정확히 하나씩 반환합니다. target은 기획서가 없으면 draft, 기존 기획서가 있으면 update입니다. 회의록, 음성 전사, 최종 기획서 자료로 해당 섹션의 내용을 확인할 수 있으면 needs_confirmation=false와 실제 원문 evidence를 넣습니다. 근거가 부족하면 내용을 지어내지 말고 needs_confirmation=true, evidence=null, reason에 무엇을 확인해야 할지 씁니다.
+10. specification.content가 비어 있으면 spec_requirements는 빈 배열, comparison 각 상태는 pending, spec_evidence와 spec_update는 빈 문자열로 둡니다. spec_draft에는 양식의 모든 섹션을 원래 순서로 포함합니다. 근거가 없는 섹션의 본문에는 정확히 “추가 확인 필요”만 씁니다. 양식이 없으면 제공된 서비스 기본 기획서 구조를 사용합니다. 입력으로 확인되지 않는 새 조건·정책·값을 만들지 마세요.
+11. specification.content가 있으면 spec_draft는 빈 문자열로 두고, 기획서의 요구사항을 추출해 실제 원문 근거를 붙입니다. spec_update에는 양식의 섹션 구조를 유지하면서 확인된 회의 요구사항에 대한 변경안만 작성합니다. 근거가 없는 항목은 임의로 작성하지 말고 “추가 확인 필요”라고 표시합니다.
+12. 최종 기획서가 있는 경우 최신 회의 요구사항 각각을 기획서와 비교합니다. status는 reflected(의미상 반영), missing(찾을 수 없음), conflict(반대 내용), pending(판단 불가) 중 하나입니다. spec_evidence에는 실제 기획서의 짧은 원문을 넣고, 없는 경우 빈 문자열을 사용합니다. 기획서가 없으면 모두 pending으로 반환합니다.
+13. 문서에 없는 정보는 만들지 말고, 결과만 아래 JSON 스키마로 반환하세요. 마크다운이나 코드 울타리는 쓰지 마세요.
 
-{"meeting_requirements":[{"text":"한 문장 요구사항","category":"function|screen|schedule|other","needs_confirmation":false,"updated":false,"change_type":"new|updated|unchanged|conflict","previous_id":"이전 ID 또는 null","previous_text":"변경 전 문장 또는 null","evidence":[{"meeting_index":0,"date":"YYYY-MM-DD","document_name":"회의록 이름","source_document_id":"문서 ID 또는 null","round_id":"회차 ID 또는 null","round_number":1,"source_kind":"meeting|transcript","text":"원문 근거"}]}],"spec_requirements":[{"text":"한 문장 요구사항","category":"function|screen|schedule|other","needs_confirmation":false,"evidence":[{"meeting_index":0,"date":null,"document_name":"최종 기획서","source_document_id":null,"round_id":null,"round_number":null,"source_kind":"spec","text":"기획서 원문"}]}],"spec_draft":"기획서가 없으면 템플릿 기반 검토용 초안, 있으면 빈 문자열","spec_update":"기획서가 있을 때 업데이트안, 없으면 빈 문자열","comparison":[{"meeting_requirement_index":0,"status":"reflected|missing|conflict|pending","spec_evidence":"기획서 원문 또는 빈 문자열","reason":"짧은 판단 근거"}]}`;
+{"meeting_requirements":[{"text":"한 문장 요구사항","category":"function|screen|schedule|other","needs_confirmation":false,"updated":false,"change_type":"new|updated|unchanged|conflict","previous_id":"이전 ID 또는 null","previous_text":"변경 전 문장 또는 null","evidence":[{"meeting_index":0,"date":"YYYY-MM-DD","document_name":"회의록 이름","source_document_id":"문서 ID 또는 null","round_id":"회차 ID 또는 null","round_number":1,"source_kind":"meeting|transcript","text":"원문 근거"}]}],"spec_requirements":[{"text":"한 문장 요구사항","category":"function|screen|schedule|other","needs_confirmation":false,"evidence":[{"meeting_index":0,"date":null,"document_name":"최종 기획서","source_document_id":null,"round_id":null,"round_number":null,"source_kind":"spec","text":"기획서 원문"}]}],"spec_draft":"기획서가 없으면 템플릿 기반 검토용 초안, 있으면 빈 문자열","spec_update":"기획서가 있을 때 업데이트안, 없으면 빈 문자열","template_sections":[{"target":"draft|update","section":"양식 섹션 제목","needs_confirmation":false,"evidence":"실제 원문 근거 또는 null","reason":"섹션 상태 이유"}],"comparison":[{"meeting_requirement_index":0,"status":"reflected|missing|conflict|pending","spec_evidence":"기획서 원문 또는 빈 문자열","reason":"짧은 판단 근거"}]}`;
 
   const user = JSON.stringify({
     project: input.project,
@@ -812,6 +858,44 @@ function mergeRequirementEvidence(priorEvidence, currentEvidence) {
     || Number(first.roundNumber || 0) - Number(second.roundNumber || 0));
 }
 
+function inferMeetingEvidence(requirementText, meetings) {
+  const requirement = String(requirementText || "").trim();
+  const requirementWords = new Set(comparisonKeywords(stripSpeakerPrefix(requirement)));
+  const inferred = [];
+  for (let meetingIndex = 0; meetingIndex < meetings.length; meetingIndex += 1) {
+    const meeting = meetings[meetingIndex];
+    const sentences = comparisonSentences(meeting.content || "");
+    const matches = sentences.map((sentence) => {
+      const cleanSentence = stripSpeakerPrefix(sentence);
+      const exact = normalizedRequirementForMatch(cleanSentence) === normalizedRequirementForMatch(requirement)
+        || normalizedRequirementForMatch(cleanSentence).includes(normalizedRequirementForMatch(requirement))
+        || normalizedRequirementForMatch(requirement).includes(normalizedRequirementForMatch(cleanSentence));
+      const words = new Set(comparisonKeywords(cleanSentence));
+      const overlap = [...requirementWords].filter((word) => words.has(word)).length;
+      const coverage = overlap / Math.max(1, Math.min(requirementWords.size, words.size));
+      const matched = exact || (requirementWords.size >= 2 && overlap >= 2 && coverage >= 0.5);
+      return { sentence: sentence.trim(), exact, overlap, coverage, matched };
+    }).filter((item) => item.matched)
+      .sort((first, second) => Number(second.exact) - Number(first.exact)
+        || second.overlap - first.overlap
+        || second.coverage - first.coverage);
+    const best = matches[0];
+    if (!best) continue;
+    inferred.push({
+      text: best.sentence.slice(0, 1000),
+      date: meeting.date || "",
+      documentName: meeting.documentName || "회의록",
+      kind: "meeting",
+      sourceKind: meeting.sourceKind === "transcript" ? "transcript" : "meeting",
+      sourceDocumentId: meeting.sourceDocumentId || "",
+      roundId: meeting.roundId || "",
+      roundNumber: Number.isInteger(meeting.roundNumber) ? meeting.roundNumber : null,
+      meetingIndex,
+    });
+  }
+  return inferred;
+}
+
 function normalizeRequirements(items, kind, input) {
   if (!Array.isArray(items)) return [];
   return items.slice(0, 500).flatMap((item, index) => {
@@ -868,8 +952,11 @@ function normalizeRequirements(items, kind, input) {
       }];
     });
 
+    const currentEvidence = kind === "source"
+      ? mergeRequirementEvidence(evidence, inferMeetingEvidence(item.text, input.meetings))
+      : evidence;
     const priorEvidence = kind === "source" ? preservePreviousEvidence(previousRequirement) : [];
-    const mergedEvidence = kind === "source" ? mergeRequirementEvidence(priorEvidence, evidence) : evidence;
+    const mergedEvidence = kind === "source" ? mergeRequirementEvidence(priorEvidence, currentEvidence) : currentEvidence;
     const changeType = kind === "source" && ["new", "updated", "unchanged", "conflict"].includes(item.change_type)
       ? item.change_type
       : previousRequirement ? (item.updated ? "updated" : "unchanged") : item.updated ? "updated" : "new";
@@ -933,6 +1020,106 @@ function normalizeComparison(items, sourceRequirements) {
   });
 }
 
+function normalizeTemplateSections(items, input, generatedOutputs = {}, extractedRequirements = []) {
+  const target = input.specification.content.trim() ? "update" : "draft";
+  const structure = [...new Set((input.specificationTemplate?.structure || []).map((section) => String(section || "").trim()).filter(Boolean))];
+  const normalizedHeading = (value) => String(value || "")
+    .replace(/^\s*#{1,6}\s*/u, "")
+    .replace(/\s+/gu, " ")
+    .trim()
+    .toLocaleLowerCase("ko-KR");
+  const rawSections = Array.isArray(items) ? items : [];
+  const materials = [
+    ...input.meetings.map((meeting, index) => ({ text: meeting.content, date: meeting.date || "", order: index }))
+      .filter((material) => typeof material.text === "string" && material.text.trim()),
+    ...(input.specification.content.trim() ? [{ text: input.specification.content, date: "", order: input.meetings.length }] : []),
+  ];
+  const generatedDocument = String(generatedOutputs[target] || "");
+
+  function sectionBody(section) {
+    if (!generatedDocument) return "";
+    const lines = String(generatedDocument).split(/\r?\n/u);
+    const targetIndex = lines.findIndex((line) => normalizedHeading(line) === normalizedHeading(section));
+    if (targetIndex < 0) return "";
+    const body = [];
+    for (let index = targetIndex + 1; index < lines.length; index += 1) {
+      if (/^\s*#{1,6}\s+/u.test(lines[index])) break;
+      body.push(lines[index]);
+    }
+    return body.join(" ").replace(/추가 확인 필요/gu, " ").trim();
+  }
+
+  function findVerifiableEvidence(section, item, requestedEvidence) {
+    if (requestedEvidence) {
+      for (const material of materials) {
+        const exact = verbatimEvidenceFromSource(material.text, requestedEvidence);
+        if (exact) return { text: exact, exact: true };
+      }
+    }
+
+    const body = sectionBody(section);
+    const context = `${section} ${body}`.trim();
+    if (!context || /추가 확인 필요/gu.test(context) || !comparisonKeywords(context).length) return { text: "", exact: false };
+    const contextWords = new Set(comparisonKeywords(context));
+
+    const requirementBackedEvidence = extractedRequirements
+      .filter((requirement) => !requirement.needsConfirmation)
+      .flatMap((requirement) => {
+        const requirementWords = new Set(comparisonKeywords(requirement.text));
+        const overlap = [...contextWords].filter((word) => requirementWords.has(word)).length;
+        const coverage = overlap / Math.max(1, Math.min(contextWords.size, requirementWords.size));
+        if (overlap < 2 || coverage < 0.35) return [];
+        const evidence = Array.isArray(requirement.evidence) ? requirement.evidence : [];
+        const latest = [...evidence].sort((first, second) => String(second.date || "").localeCompare(String(first.date || ""))).at(0);
+        if (!latest?.text) return [];
+        return [{ text: latest.text, date: latest.date || "", order: latest.roundNumber || 0, overlap, coverage }];
+      })
+      .sort((first, second) => String(second.date || "").localeCompare(String(first.date || ""))
+        || second.overlap - first.overlap
+        || second.coverage - first.coverage);
+    if (requirementBackedEvidence.length) return { text: requirementBackedEvidence[0].text, exact: false, requirementMatched: true };
+    if (item?.needs_confirmation) return { text: "", exact: false };
+
+    const candidates = materials.flatMap((material) => comparisonSentences(material.text).map((sentence) => {
+      const words = new Set(comparisonKeywords(sentence));
+      const overlap = [...contextWords].filter((word) => words.has(word)).length;
+      const coverage = overlap / Math.max(1, Math.min(contextWords.size, words.size));
+      return { sentence, date: material.date, order: material.order, overlap, coverage };
+    })).filter((candidate) => candidate.overlap >= 2 && candidate.coverage >= 0.5)
+      .sort((first, second) => String(second.date || "").localeCompare(String(first.date || ""))
+        || second.order - first.order
+        || second.overlap - first.overlap
+        || second.coverage - first.coverage);
+    return candidates[0] ? { text: candidates[0].sentence, exact: false, requirementMatched: false } : { text: "", exact: false, requirementMatched: false };
+  }
+
+  return structure.map((section) => {
+    const candidates = rawSections.filter((item) => normalizedHeading(item?.section) === normalizedHeading(section));
+    const item = candidates.find((candidate) => candidate.target === target) || candidates[0] || null;
+    const requestedEvidence = typeof item?.evidence === "string" ? item.evidence.trim() : "";
+    const evidenceResult = findVerifiableEvidence(section, item, requestedEvidence);
+    const verifiedEvidence = evidenceResult.text;
+    const needsConfirmation = !item || (Boolean(item.needs_confirmation) && !evidenceResult.requirementMatched) || !verifiedEvidence;
+    return {
+      target,
+      section,
+      needsConfirmation,
+      evidence: verifiedEvidence,
+      reason: evidenceResult.requirementMatched
+        ? "추출된 요구사항과 실제 원문 근거가 있어 이 양식 항목에 반영할 수 있습니다."
+        : requestedEvidence && !evidenceResult.exact && verifiedEvidence
+        ? "LLM 인용은 원문과 일치하지 않아, 양식 항목과 의미가 가까운 원문 문장으로 표시했습니다. 검토해 주세요."
+        : requestedEvidence && !verifiedEvidence
+          ? "제공된 인용을 입력 원문에서 확인하지 못했습니다. 내용을 임의로 작성하지 말고 추가 확인이 필요합니다."
+        : typeof item?.reason === "string" && item.reason.trim()
+          ? item.reason.trim().slice(0, 500)
+          : needsConfirmation
+            ? "입력 자료에서 이 양식 항목을 작성할 근거를 확인하지 못했습니다. 내용을 임의로 채우지 말고 추가 확인이 필요합니다."
+            : "입력 자료에서 이 양식 항목을 작성할 근거를 확인했습니다.",
+    };
+  });
+}
+
 function normalizeAnalysis(raw, input, requestMetadata) {
   const meetingRequirements = normalizeRequirements(raw.meeting_requirements, "source", input);
   const matchedPreviousIds = new Set(meetingRequirements.flatMap((requirement) => {
@@ -960,11 +1147,16 @@ function normalizeAnalysis(raw, input, requestMetadata) {
   if (!meetingRequirements.length && !specRequirements.length) {
     throw new HttpError(502, "문서에서 요구사항을 찾지 못했습니다. 입력 내용을 확인해 주세요.");
   }
+  const templateSections = normalizeTemplateSections(raw.template_sections, input, {
+    draft: raw.spec_draft,
+    update: raw.spec_update,
+  }, [...meetingRequirements, ...specRequirements]);
   return {
     meetingRequirements,
     specRequirements,
     specDraft: typeof raw.spec_draft === "string" ? raw.spec_draft.trim().slice(0, 100_000) : "",
     specUpdate: typeof raw.spec_update === "string" ? raw.spec_update.trim().slice(0, 100_000) : "",
+    templateSections,
     comparison: normalizeComparison(raw.comparison, meetingRequirements),
     model,
     llmStatus: requestMetadata.status,
