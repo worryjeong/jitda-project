@@ -481,10 +481,17 @@ function validateInput(input) {
         id: typeof requirement.id === "string" ? requirement.id.slice(0, 180) : `previous-${index + 1}`,
         text: requirement.text.trim().slice(0, 2000),
         category: ["function", "screen", "schedule", "other"].includes(requirement.category) ? requirement.category : "other",
+        needsConfirmation: Boolean(requirement.needsConfirmation),
+        changeType: ["new", "updated", "unchanged"].includes(requirement.changeType) ? requirement.changeType : "unchanged",
+        previousText: typeof requirement.previousText === "string" ? requirement.previousText.slice(0, 2000) : "",
+        roundIds: Array.isArray(requirement.roundIds) ? requirement.roundIds.filter((value) => typeof value === "string").slice(0, 100) : [],
         evidence: Array.isArray(requirement.evidence) ? requirement.evidence.slice(0, 30).map((evidence) => ({
           text: typeof evidence?.text === "string" ? evidence.text.slice(0, 1000) : "",
           date: typeof evidence?.date === "string" ? evidence.date.slice(0, 10) : "",
           roundId: typeof evidence?.roundId === "string" ? evidence.roundId.slice(0, 180) : "",
+          roundNumber: Number.isInteger(evidence?.roundNumber) ? evidence.roundNumber : null,
+          sourceDocumentId: typeof evidence?.sourceDocumentId === "string" ? evidence.sourceDocumentId.slice(0, 180) : "",
+          sourceKind: evidence?.sourceKind === "transcript" ? "transcript" : "meeting",
         })) : [],
       }];
     })
@@ -495,7 +502,7 @@ function validateInput(input) {
       return [{ requirementId: memo.requirementId.slice(0, 180), memo: memo.memo.trim().slice(0, 4000) }];
     })
     : [];
-  const totalCharacters = [...meetings.map((meeting) => meeting.content), ...meetings.map((meeting) => meeting.transcript), specification.content, specificationTemplate?.content || ""]
+  const totalCharacters = [...meetings.map((meeting) => meeting.content), specification.content, specificationTemplate?.content || ""]
     .reduce((total, content) => total + content.length, 0);
   if (totalCharacters > 500_000) {
     throw new HttpError(413, "문서 전체가 너무 큽니다. 분석할 내용을 나누어 다시 시도해 주세요.");
@@ -546,7 +553,7 @@ function buildMessages(input) {
 2. 요구사항 text는 화자 이름·호칭(예: 김원장:)과 배경 설명을 빼고, 한 문장의 분명한 의무·기능 표현으로 정리합니다. 가능한 경우 “...해야 합니다” 또는 “...할 수 있어야 합니다” 형식으로 씁니다. 요청 내용을 지나치게 넓히거나 새 조건을 만들지 마세요.
 3. evidence.text는 회의 메모 또는 해당 회차의 음성 전사문에서 근거가 되는 원문 문장 전체를 그대로 복사합니다. 원문에 화자 접두어가 있으면 evidence에는 그대로 남기되, 요구사항 text에는 넣지 않습니다. evidence.source_kind에는 출처에 따라 meeting 또는 transcript를 씁니다.
 4. 날짜, 문서 이름, source_document_id, round_id, round_number는 해당 회의 입력의 값을 그대로 사용합니다. evidence.meeting_index를 정확히 지정합니다.
-5. previousRequirements가 제공되면 기존 id와 요구사항을 대조합니다. 각 항목을 new, updated, unchanged 중 하나로 분류합니다. 변경된 항목은 previous_id에 기존 id, previous_text에 변경 전 문장을 넣고, text에 최신 내용을 씁니다. 동일하거나 수정된 기존 항목은 previous_id에 기존 id를 넣어 ID를 유지합니다. 새 항목은 previous_id와 previous_text를 null로 둡니다. evidence에는 이전·최신 원문과 회차를 모두 보존합니다.
+5. previousRequirements가 제공되면 기존 id와 요구사항을 대조합니다. 과거 요구사항이 새 자료에서 언급되지 않았다는 이유만으로 삭제하거나 누락하지 말고 unchanged로 유지합니다. 새 자료가 명시적으로 내용을 보완·변경하면 updated, 새로 요청한 내용이면 new로 분류합니다. 각 항목의 change_type은 new, updated, unchanged 중 하나입니다. 변경된 항목은 previous_id에 기존 id, previous_text에 변경 전 문장을 넣고, text에 최신 내용을 씁니다. 동일하거나 수정된 기존 항목은 previous_id에 기존 id를 넣어 ID를 유지합니다. 새 항목은 previous_id와 previous_text를 null로 둡니다. evidence에는 이전·최신 원문과 회차를 모두 보존합니다.
 6. 뜻, 대상, 기준, 범위가 모호하거나 회의 내용끼리 해결되지 않은 충돌이 있으면 needs_confirmation=true로 표시합니다.
 7. category는 function, screen, schedule, other 중 하나만 사용합니다. QR 코드 출석, 출결 기록·관리, QR 체크인처럼 사용자가 수행하는 행동이나 시스템 동작은 반드시 function입니다. 동작이 아닌 화면 배치·보이는 요소 자체가 핵심인 요청만 screen, 날짜·마감·기간은 schedule로 분류합니다.
 8. reviewMemos에 특정 requirementId의 수정 메모가 있으면 이를 반영해 최신 요구사항 text를 정리하세요. 메모를 고객 원문으로 취급하지 말고, 원문 근거는 실제 회의록/전사문에서만 인용합니다.
@@ -792,10 +799,14 @@ function normalizeRequirements(items, kind, input) {
       }];
     });
 
+    const latestMeeting = kind === "source" ? input.meetings.at(-1) : null;
+    const fallbackId = kind === "source" && input.previousRequirements.length
+      ? `source-${latestMeeting?.roundId || "new"}-${index + 1}`
+      : `${kind}-${index + 1}`;
     return [{
       id: kind === "source" && typeof item.previous_id === "string" && item.previous_id.trim()
         ? item.previous_id.trim().slice(0, 180)
-        : `${kind}-${index + 1}`,
+        : fallbackId,
       text: stripSpeakerPrefix(item.text).slice(0, 2000),
       category: cleanCategory(item.category, item.text),
       needsConfirmation: Boolean(item.needs_confirmation ?? item.needsConfirmation) || (kind === "source" && evidence.length === 0),
@@ -827,6 +838,11 @@ function normalizeComparison(items, sourceRequirements) {
       id: `req-${index + 1}`,
       text: requirement.text,
       evidence: requirement.evidence.at(-1)?.text || requirement.text,
+      meetingEvidence: requirement.evidence,
+      category: requirement.category,
+      changeType: requirement.changeType,
+      previousText: requirement.previousText,
+      roundIds: requirement.roundIds,
       specEvidence: typeof item.spec_evidence === "string" && item.spec_evidence.trim()
         ? item.spec_evidence.trim().slice(0, 1000)
         : status === "missing" ? "기획서에서 관련 문장을 찾지 못했습니다." : "비교 근거가 없습니다.",
@@ -1061,7 +1077,10 @@ const server = http.createServer(async (request, response) => {
     } catch (error) {
       const status = error instanceof HttpError ? error.status : 500;
       const message = error instanceof HttpError ? error.message : "요구사항 분석 중 서버 오류가 발생했습니다.";
-      if (!(error instanceof HttpError)) console.error("LLM analysis failed.");
+      if (!(error instanceof HttpError)) {
+        const safeDetails = redactApiKey(error?.stack || error?.message || "Unknown error", process.env.LLM_API_KEY);
+        console.error(`LLM analysis failed: ${safeDetails}`);
+      }
       sendJson(response, status, { error: message, ...(error instanceof HttpError ? error.details : {}) });
     }
     return;

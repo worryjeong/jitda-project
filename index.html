@@ -847,6 +847,16 @@
         color: #a74236;
       }
 
+      .project-edit-button {
+        color: #65745c;
+      }
+
+      .project-edit-button:hover {
+        border-color: #dce7d9;
+        background: #f3f8f1;
+        color: #3d6647;
+      }
+
       .project-delete-button:focus-visible {
         outline: 3px solid rgba(173, 81, 69, 0.2);
         outline-offset: 2px;
@@ -1450,6 +1460,126 @@
       .meeting-stt-transcript-actions span {
         color: #89938c;
         font-size: 9px;
+      }
+
+      .template-upload-panel {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+        padding: 15px;
+        border: 1px solid #e3e9e2;
+        border-radius: 9px;
+        background: #fbfcfa;
+      }
+
+      .template-upload-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .template-upload-heading h3 {
+        margin: 0 0 4px;
+        color: #38463c;
+        font-size: 12px;
+        font-weight: 690;
+      }
+
+      .template-upload-heading h3 span {
+        color: #89938c;
+        font-size: 9px;
+        font-weight: 500;
+      }
+
+      .template-upload-heading p {
+        max-width: 690px;
+        margin: 0;
+        color: #7d887f;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .template-preview {
+        border: 1px solid #e7ece6;
+        border-radius: 7px;
+        background: #ffffff;
+      }
+
+      .template-preview[hidden] {
+        display: none;
+      }
+
+      .template-preview summary {
+        display: flex;
+        min-height: 38px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 0 10px;
+        color: #536157;
+        cursor: pointer;
+        font-size: 9px;
+        font-weight: 650;
+        list-style: none;
+      }
+
+      .template-preview summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .template-preview summary span:last-child {
+        color: #8a948c;
+        font-weight: 450;
+      }
+
+      .template-preview pre {
+        max-height: 220px;
+        overflow: auto;
+        margin: 0;
+        padding: 10px;
+        border-top: 1px solid #edf0ec;
+        color: #59655d;
+        font: inherit;
+        font-size: 9px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+      }
+
+      .edit-project-notice {
+        margin: 0 0 13px;
+        padding: 10px 12px;
+        border: 1px solid #e4e9df;
+        border-radius: 7px;
+        background: #f7f9f3;
+        color: #667257;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .review-edit-memo {
+        margin: 10px 0 0;
+        padding: 9px 10px;
+        border-left: 2px solid #abb98a;
+        border-radius: 0 6px 6px 0;
+        background: #f7f8f1;
+        color: #596449;
+        font-size: 10px;
+        line-height: 1.6;
+        white-space: pre-wrap;
+      }
+
+      .round-history-label {
+        display: inline-flex;
+        align-items: center;
+        min-height: 21px;
+        padding: 0 7px;
+        border-radius: 5px;
+        background: #eef2e8;
+        color: #60714d;
+        font-size: 8px;
+        font-weight: 680;
+        white-space: nowrap;
       }
 
       .stt-summary-hint {
@@ -3028,6 +3158,12 @@
         outline: 3px solid rgba(49, 114, 85, 0.1);
       }
 
+      .review-inline-editor label {
+        color: #445249;
+        font-size: 10px;
+        font-weight: 680;
+      }
+
       .review-inline-editor-actions,
       .review-card-actions {
         display: flex;
@@ -4535,6 +4671,7 @@
                   <button class="review-filter" type="button" data-review-filter="confirmed" aria-pressed="false">확정 <span id="filter-count-confirmed">0</span></button>
                 </div>
                 <div class="review-toolbar-actions">
+                  <button class="button-secondary" id="toggle-review-rounds" type="button" aria-pressed="false">전체 보기</button>
                   <button class="button-secondary" id="toggle-deleted" type="button" aria-pressed="false">삭제된 항목 보기</button>
                   <button class="button-secondary" id="open-direct-add" type="button">+ 요구사항 직접 추가</button>
                 </div>
@@ -4605,9 +4742,9 @@
 
             <div id="comparison-results" hidden>
               <div class="comparison-count-grid" aria-label="기획서 비교 결과 상태별 개수">
-                <article class="comparison-count-card reflected"><span>반영됨</span><strong id="comparison-count-reflected">0</strong></article>
-                <article class="comparison-count-card missing"><span>누락 의심</span><strong id="comparison-count-missing">0</strong></article>
-                <article class="comparison-count-card conflict"><span>충돌</span><strong id="comparison-count-conflict">0</strong></article>
+                <article class="comparison-count-card reflected"><span>반영</span><strong id="comparison-count-reflected">0</strong></article>
+                <article class="comparison-count-card missing"><span>누락 추정</span><strong id="comparison-count-missing">0</strong></article>
+                <article class="comparison-count-card conflict"><span>충돌 추정</span><strong id="comparison-count-conflict">0</strong></article>
               </div>
 
               <p class="comparison-fallback-notice" id="comparison-fallback-notice" role="status" hidden>AI 비교 실패로 규칙 기반 결과를 표시합니다</p>
@@ -4615,9 +4752,9 @@
               <div class="comparison-toolbar">
                 <div class="comparison-filter-group" role="group" aria-label="비교 상태 필터">
                   <button class="comparison-filter active" type="button" data-comparison-filter="all" aria-pressed="true">전체 <span id="comparison-filter-count-all">0</span></button>
-                  <button class="comparison-filter" type="button" data-comparison-filter="반영됨" aria-pressed="false">반영됨 <span id="comparison-filter-count-reflected">0</span></button>
-                  <button class="comparison-filter" type="button" data-comparison-filter="누락 의심" aria-pressed="false">누락 의심 <span id="comparison-filter-count-missing">0</span></button>
-                  <button class="comparison-filter" type="button" data-comparison-filter="충돌" aria-pressed="false">충돌 <span id="comparison-filter-count-conflict">0</span></button>
+                  <button class="comparison-filter" type="button" data-comparison-filter="반영됨" aria-pressed="false">반영 <span id="comparison-filter-count-reflected">0</span></button>
+                  <button class="comparison-filter" type="button" data-comparison-filter="누락 의심" aria-pressed="false">누락 추정 <span id="comparison-filter-count-missing">0</span></button>
+                  <button class="comparison-filter" type="button" data-comparison-filter="충돌" aria-pressed="false">충돌 추정 <span id="comparison-filter-count-conflict">0</span></button>
                 </div>
               </div>
 
@@ -4796,6 +4933,114 @@
             changed = true;
           }
 
+          const hasSourceDocument = project.documents.some((documentItem) => documentItem?.kind === "source");
+          if (!hasSourceDocument) {
+            const legacyMeetingRecords = Array.isArray(project.meetings) ? project.meetings : [];
+            const legacyMeetingText = [project.meetingNotes, project.notes, project.memo]
+              .filter((value) => typeof value === "string" && value.trim())
+              .join("\n");
+            if (legacyMeetingRecords.length) {
+              legacyMeetingRecords.forEach((meeting, index) => {
+                const content = [meeting?.content, meeting?.notes, meeting?.memo].find((value) => typeof value === "string" && value.trim());
+                const transcript = meeting?.stt?.transcript || meeting?.transcript || "";
+                if (!content && !transcript) return;
+                project.documents.push({
+                  id: `${projectId}-legacy-source-${index + 1}`,
+                  name: meeting?.name || `기존 회의록 ${index + 1}`,
+                  type: "기존 데이터 · 텍스트",
+                  kind: "source",
+                  date: meeting?.date || project.createdAt?.slice(0, 10) || "",
+                  content: content || "",
+                  stt: { fileName: meeting?.stt?.fileName || "", transcript, transcribedAt: meeting?.stt?.transcribedAt || null, model: meeting?.stt?.model || null },
+                });
+                changed = true;
+              });
+            } else if (legacyMeetingText) {
+              project.documents.push({
+                id: `${projectId}-legacy-source-1`,
+                name: "기존 회의록 및 메모",
+                type: "기존 데이터 · 텍스트",
+                kind: "source",
+                date: project.createdAt?.slice(0, 10) || "",
+                content: legacyMeetingText,
+              });
+              changed = true;
+            }
+          }
+
+          if (!project.documents.some((documentItem) => documentItem?.kind === "spec" && !documentItem.archivedAt)) {
+            const legacySpecification = [project.specContent, project.specification, project.plan]
+              .find((value) => typeof value === "string" && value.trim());
+            if (legacySpecification) {
+              project.documents.push({
+                id: `${projectId}-legacy-spec`,
+                name: "기존 최종 기획서",
+                type: "기존 데이터 · 텍스트",
+                kind: "spec",
+                content: legacySpecification,
+              });
+              changed = true;
+            }
+          }
+
+          if (!project.extractedRequirements || typeof project.extractedRequirements !== "object") {
+            project.extractedRequirements = { source: [], spec: [] };
+            changed = true;
+          }
+          if (!Array.isArray(project.extractedRequirements.source)) {
+            project.extractedRequirements.source = [];
+            changed = true;
+          }
+          if (!Array.isArray(project.extractedRequirements.spec)) {
+            project.extractedRequirements.spec = [];
+            changed = true;
+          }
+          if (!project.extractedRequirements.source.length && Array.isArray(project.requirements) && project.requirements.length) {
+            const legacySourceDocument = project.documents.find((documentItem) => documentItem.kind === "source");
+            const legacyRoundId = `${projectId}-round-1`;
+            project.extractedRequirements.source = project.requirements.map((requirement, index) => {
+              const text = typeof requirement === "string" ? requirement : requirement?.text || requirement?.requirement || "";
+              if (!String(text).trim()) return null;
+              const rawEvidence = requirement?.evidence;
+              const evidence = Array.isArray(rawEvidence) ? rawEvidence : rawEvidence ? [{ text: rawEvidence }] : [];
+              const legacyReviewId = `source-${index + 1}`;
+              const savedReviewId = project.requirementReview?.items?.[legacyReviewId] ? legacyReviewId : `${projectId}-legacy-req-${index + 1}`;
+              return {
+                id: requirement?.id || savedReviewId,
+                text: String(text).trim(),
+                category: requirement?.category || "other",
+                needsConfirmation: requirement?.needsConfirmation ?? ["pending", "needsReview"].includes(requirement?.status),
+                updated: false,
+                changeType: "unchanged",
+                previousText: "",
+                roundIds: [legacyRoundId],
+                roundNumbers: [1],
+                evidence: evidence.length ? evidence.map((entry) => ({
+                  text: String(entry?.text || entry || text),
+                  date: entry?.date || legacySourceDocument?.date || project.createdAt?.slice(0, 10) || "",
+                  documentName: entry?.documentName || legacySourceDocument?.name || "기존 회의록 및 메모",
+                  sourceDocumentId: entry?.sourceDocumentId || legacySourceDocument?.id || `${projectId}-legacy-source-1`,
+                  roundId: legacyRoundId,
+                  roundNumber: 1,
+                  sourceKind: entry?.sourceKind || "meeting",
+                  kind: "meeting",
+                  meetingIndex: 0,
+                })) : legacySourceDocument ? [{
+                  text: String(text).trim(),
+                  date: legacySourceDocument.date || project.createdAt?.slice(0, 10) || "",
+                  documentName: legacySourceDocument.name || "기존 회의록 및 메모",
+                  sourceDocumentId: legacySourceDocument.id,
+                  roundId: legacyRoundId,
+                  roundNumber: 1,
+                  sourceKind: "meeting",
+                  kind: "meeting",
+                  meetingIndex: 0,
+                }] : [],
+              };
+            }).filter(Boolean);
+            changed = true;
+          }
+
           if (!Array.isArray(project.rounds)) {
             project.rounds = [];
             changed = true;
@@ -4913,8 +5158,10 @@
         }
 
         function loadProjects() {
+          let storedRaw = null;
           try {
-            const stored = JSON.parse(localStorage.getItem(storageKey));
+            storedRaw = localStorage.getItem(storageKey);
+            const stored = storedRaw === null ? null : JSON.parse(storedRaw);
             if (Array.isArray(stored)) {
               let changed = false;
               const migrated = stored.map((project, index) => {
@@ -4922,12 +5169,20 @@
                 changed ||= result.changed;
                 return result.project;
               });
-              if (changed) localStorage.setItem(storageKey, JSON.stringify(migrated));
+              if (changed) {
+                try {
+                  localStorage.setItem(storageKey, JSON.stringify(migrated));
+                } catch (error) {
+                  console.warn("기존 프로젝트를 읽었지만 마이그레이션 결과를 저장하지 못했습니다. 원본 데이터는 유지됩니다.", error);
+                }
+              }
               return migrated;
             }
           } catch (error) {
             console.warn("저장된 프로젝트를 불러오지 못했습니다.", error);
+            if (storedRaw !== null) return [];
           }
+          if (storedRaw !== null) return [];
           const initialProjects = sampleProjects();
           try {
             localStorage.setItem(storageKey, JSON.stringify(initialProjects));
@@ -5050,6 +5305,8 @@
         let comparisonFilter = "all";
         let showAllReviewRounds = false;
         let showAllExtractionRounds = false;
+        let lastReviewRoundProjectId = "";
+        let lastExtractionRoundProjectId = "";
         let showDeletedReviews = false;
         let editingReviewId = null;
         let pendingDeleteProjectId = null;
@@ -5104,13 +5361,15 @@
         }
 
         function latestProjectRoundId(project) {
-          const rounds = Array.isArray(project?.rounds) ? project.rounds : [];
+          const activeDocuments = (project?.documents || []).filter((documentItem) => documentItem.kind === "source" && !documentItem.archivedAt);
+          const activeIds = new Set(activeDocuments.map((documentItem) => documentItem.roundId).filter(Boolean));
+          const rounds = (Array.isArray(project?.rounds) ? project.rounds : []).filter((round) => !activeIds.size || activeIds.has(round.id));
           if (rounds.length) {
             return [...rounds].sort((first, second) =>
               Number(first.roundNumber || first.number || 0) - Number(second.roundNumber || second.number || 0)
             ).at(-1)?.id || "";
           }
-          const source = (project?.documents || []).filter((documentItem) => documentItem.kind === "source");
+          const source = activeDocuments;
           return source.at(-1)?.roundId || "";
         }
 
@@ -5146,7 +5405,7 @@
               <span class="project-date">${formatShortDate(project.updatedAt)}</span>
               ${withDelete ? `
                 <span class="project-action-cell">
-                  <button class="project-delete-button" type="button" data-edit-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 수정" title="프로젝트 수정">
+                  <button class="project-delete-button project-edit-button" type="button" data-edit-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 수정" title="프로젝트 수정">
                     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                       <path d="m12.8 4.2 3 3M4 16l3.4-.7 8.9-8.9a1.6 1.6 0 0 0-2.3-2.3l-8.9 8.9L4 16Z" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
                     </svg>
@@ -5188,35 +5447,59 @@
           const dateLabel = documentItem.kind === "source" && documentItem.date
             ? ` · 회의일 ${formatMeetingDate(documentItem.date)}`
             : "";
-          const content = documentItem.content || "문서 내용이 비어 있습니다.";
+          const content = documentItem.content || "";
+          const stt = documentItem.stt && typeof documentItem.stt === "object" ? documentItem.stt : {};
+          const archivedLabel = documentItem.archivedAt ? '<span class="document-archived-badge">이전 버전</span>' : "";
+          const transcriptMarkup = stt.transcript ? `
+              <div class="document-content-section">
+                <span class="document-section-label">음성 전사 · ${escapeHtml(stt.fileName || "파일명 없음")}</span>
+                <pre class="document-content">${escapeHtml(stt.transcript)}</pre>
+              </div>` : "";
           return `
             <details class="document-card">
               <summary>
                 <span class="document-icon">${iconLabel}</span>
                 <span class="document-copy">
-                  <strong>${escapeHtml(documentItem.name)}</strong>
+                  <strong>${escapeHtml(documentItem.name)} ${archivedLabel}</strong>
                   <span>${kindLabel}${dateLabel} · ${escapeHtml(documentItem.type || "텍스트 입력")}</span>
                 </span>
                 <span class="document-chevron" aria-hidden="true">⌄</span>
               </summary>
-              <pre class="document-content">${escapeHtml(content)}</pre>
+              ${content ? `<pre class="document-content">${escapeHtml(content)}</pre>` : ""}
+              ${transcriptMarkup}
             </details>`;
+        }
+
+        function visibleStatusLabel(status) {
+          return ({ reflected: "반영", missing: "누락 추정", conflict: "충돌 추정", pending: "확인 필요" })[status] || resultLabels[status] || "확인 필요";
+        }
+
+        function visibleStatusBadge(status) {
+          return `<span class="result-badge ${escapeHtml(status)}">${visibleStatusLabel(status)}</span>`;
         }
 
         function renderRequirement(requirement) {
           const evidence = requirement.evidence || requirement.text;
           const specEvidence = requirement.specEvidence || "비교 전이거나 기획서에서 관련 문장을 찾지 못했습니다.";
           const reason = requirement.reason ? `<p class="comparison-reason">LLM 판단: ${escapeHtml(requirement.reason)}</p>` : "";
+          const changeInfo = requirement.previousText ? `
+            <div class="evidence-block">
+              <span>요구사항 변경 · 이전 문장 → 최신 문장</span>
+              <p>${escapeHtml(requirement.previousText)} → ${escapeHtml(requirement.text)}</p>
+            </div>` : "";
+          const kindLabel = requirement.changeType === "new" ? "신규" : requirement.changeType === "updated" ? "수정" : "";
           return `
             <article class="requirement-card">
               <div class="requirement-card-top">
                 <strong>${escapeHtml(requirement.text)}</strong>
-                ${resultBadge(requirement.status)}
+                ${visibleStatusBadge(requirement.status)}
               </div>
+              ${kindLabel ? `<span class="requirement-state-pill ${requirement.changeType === "updated" ? "updated" : ""}">${kindLabel}</span>` : ""}
               <div class="evidence-block">
                 <span>회의록 원문 근거</span>
                 <p>${escapeHtml(evidence)}</p>
               </div>
+              ${changeInfo}
               <div class="evidence-block spec-evidence">
                 <span>기획서 비교</span>
                 <p>${escapeHtml(specEvidence)}</p>
@@ -5241,8 +5524,9 @@
         function renderDetail(project) {
           const documents = project.documents || [];
           const requirements = project.requirements || [];
-          const sourceDocuments = documents.filter((documentItem) => documentItem.kind === "source");
-          const specDocument = documents.find((documentItem) => documentItem.kind === "spec");
+          const activeDocuments = documents.filter((documentItem) => !documentItem.archivedAt);
+          const sourceDocuments = activeDocuments.filter((documentItem) => documentItem.kind === "source");
+          const specDocument = activeDocuments.find((documentItem) => documentItem.kind === "spec");
           const missingCount = requirements.filter((item) => item.status === "missing").length;
           const conflictCount = requirements.filter((item) => item.status === "conflict").length;
           const checked = Boolean(project.analysisRun);
@@ -5252,10 +5536,10 @@
           const documentItems = documents.length
             ? documents.map(renderDocument).join("")
             : '<div class="empty-state">아직 입력 문서가 없습니다.</div>';
-          const documentCount = documents.length;
+          const documentCount = activeDocuments.length;
           const description = project.summary || "프로젝트 요구사항을 검토하고 있습니다.";
           const specStatus = specDocument ? "기획서가 입력되었습니다." : "기획서 입력을 기다리고 있습니다.";
-          const sourceStatus = sourceDocuments.length ? `${sourceDocuments.length}회 회의 내용이 입력되었습니다.` : "회의 메모 입력을 기다리고 있습니다.";
+          const sourceStatus = sourceDocuments.length ? `${project.rounds?.length || sourceDocuments.length}회차 자료가 등록되었습니다.` : "회의 메모 또는 전사 내용을 기다리고 있습니다.";
 
           elements.detailContent.innerHTML = `
             <header class="page-heading detail-title-row">
@@ -5286,10 +5570,12 @@
               </div>
             </header>
 
+            ${project.analysisStale ? '<p class="comparison-stale-notice">자료가 변경되어 요구사항을 다시 확인해 주세요. 기존 추출·검토·비교 결과는 보존되어 있습니다.</p>' : ""}
+
             <section class="detail-summary-grid" aria-label="프로젝트 요약">
-              <article class="detail-summary-card"><span>입력 문서</span><strong>${documentCount}</strong></article>
+              <article class="detail-summary-card"><span>활성 문서</span><strong>${activeDocuments.length}</strong></article>
               <article class="detail-summary-card"><span>요구사항</span><strong>${requirements.length}</strong></article>
-              <article class="detail-summary-card"><span>누락 · 충돌 의심</span><strong>${missingCount + conflictCount}</strong></article>
+              <article class="detail-summary-card"><span>누락 추정 · 충돌 추정</span><strong>${missingCount + conflictCount}</strong></article>
             </section>
 
             <div class="detail-layout">
@@ -5348,12 +5634,28 @@
             ? item.evidence
             : [{ text: typeof item.evidence === "string" ? item.evidence : item.text, date: item.date, kind: item.kind }];
           const updated = Boolean(item.updated);
+          const changeBadge = item.changeType === "updated" || item.previousText
+            ? '<span class="requirement-state-pill updated">수정 항목</span>'
+            : item.changeType === "new" ? '<span class="requirement-state-pill">신규 항목</span>' : "";
+          const previousText = item.previousText ? `
+            <details class="review-meeting-change" open>
+              <summary>변경 전·후 문장 <span>이력</span></summary>
+              <div class="review-history-list">
+                <div class="requirement-version-pair">
+                  <div><span>변경 전</span><p>${escapeHtml(item.previousText)}</p></div>
+                  <span class="version-arrow" aria-hidden="true">→</span>
+                  <div><span>변경 후</span><p>${escapeHtml(item.text)}</p></div>
+                </div>
+              </div>
+            </details>` : "";
           const evidenceItems = history.map((evidence, index) => {
             const date = evidence.date ? formatMeetingDate(evidence.date) : "";
+            const roundNumber = evidence.roundNumber || item.roundNumbers?.[index];
+            const round = Number.isInteger(roundNumber) ? ` · ${roundNumber}회차` : "";
             const isLatest = index === history.length - 1;
             const label = updated
-              ? `${isLatest ? "최신 근거" : "이전 근거"}${date ? ` · ${date}` : ""}`
-              : `${evidence.kind === "spec" ? "기획서 근거" : "회의 근거"}${date ? ` · ${date}` : ""}`;
+              ? `${isLatest ? "최신 근거" : "이전 근거"}${round}${date ? ` · ${date}` : ""}`
+              : `${evidence.kind === "spec" ? "기획서 근거" : evidence.sourceKind === "transcript" ? "음성 전사 근거" : "회의 근거"}${round}${date ? ` · ${date}` : ""}`;
             return `
               <div class="extraction-evidence-entry ${updated && isLatest ? "latest" : ""}">
                 <span>${escapeHtml(label)}</span>
@@ -5367,10 +5669,12 @@
               </div>
               <div class="extraction-card-badges">
                 <span class="category-pill ${escapeHtml(item.category)}">${categoryLabel}</span>
+                ${changeBadge}
                 ${updated ? '<span class="requirement-state-pill updated">최신 내용으로 갱신</span>' : ""}
                 ${item.needsConfirmation ? '<span class="requirement-state-pill">확인 필요</span>' : ""}
               </div>
               <div class="extraction-evidence-list">${evidenceItems}</div>
+              ${previousText}
             </article>`;
         }
 
@@ -5385,12 +5689,18 @@
         }
 
         function renderExtraction(project) {
+          if (lastExtractionRoundProjectId !== project.id) {
+            showAllExtractionRounds = false;
+            lastExtractionRoundProjectId = project.id;
+          }
+          elements.extraction.dataset.projectId = project.id;
           const sourceDocuments = (project.documents || [])
             .filter((documentItem) => documentItem.kind === "source" && !documentItem.archivedAt)
             .sort((first, second) => Number(first.roundNumber || 0) - Number(second.roundNumber || 0)
               || meetingDateFor(first, project).localeCompare(meetingDateFor(second, project)));
-          const specDocument = project.documents?.find((documentItem) => documentItem.kind === "spec");
+          const specDocument = [...(project.documents || [])].reverse().find((documentItem) => documentItem.kind === "spec" && !documentItem.archivedAt);
           const allSourceRequirements = project.extractedRequirements?.source || [];
+          const latestSourceRequirements = filterRequirementsByRound(project, allSourceRequirements, false);
           const sourceRequirements = filterRequirementsByRound(project, allSourceRequirements, showAllExtractionRounds);
           const specRequirements = project.extractedRequirements?.spec || [];
           const hasSourceText = sourceDocuments.some((documentItem) => Boolean(documentItem.content?.trim() || documentItem.stt?.transcript?.trim()));
@@ -5418,7 +5728,7 @@
           elements.specRequirementCount.textContent = `${specRequirements.length}개`;
           elements.extractionRoundToggle.textContent = showAllExtractionRounds ? "최근 회차만 보기" : "전체 보기";
           elements.extractionRoundToggle.setAttribute("aria-pressed", String(showAllExtractionRounds));
-          elements.extractionRoundToggle.disabled = allSourceRequirements.length === sourceRequirements.length;
+          elements.extractionRoundToggle.disabled = latestSourceRequirements.length === allSourceRequirements.length;
           elements.runAnalysisButton.dataset.projectId = project.id;
           elements.runAnalysisButton.disabled = !hasSourceText;
           renderExtractedList(elements.sourceExtractionList, sourceRequirements, hasSourceText, "회의록 또는 고객 메모", "source");
@@ -5432,7 +5742,7 @@
           elements.specUpdateContent.value = update;
 
           if (project.extractionRun) {
-            elements.analysisState.textContent = `저장된 LLM 분석 결과 · ${formatDateTime(project.analysisRunAt || project.updatedAt)} · 회의록 ${sourceRequirements.length}개, 기획서 ${specRequirements.length}개 요구사항. 이 결과를 이어서 확인할 수 있습니다.`;
+            elements.analysisState.textContent = `저장된 LLM 분석 결과 · ${formatDateTime(project.analysisRunAt || project.updatedAt)} · ${sourceRequirements.length}개 요구사항${hasSpecText ? `, 기획서 ${specRequirements.length}개` : ", 기획서 초안 생성"}. 이 결과를 이어서 확인할 수 있습니다.${project.analysisStale ? " 자료가 변경되어 다시 분석이 필요합니다." : ""}`;
             elements.analysisState.dataset.state = "success";
             elements.runAnalysisButton.innerHTML = `
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -5440,8 +5750,8 @@
                 <path d="m16 13 .7 2.3L19 16l-2.3.7L16 19l-.7-2.3L13 16l2.3-.7L16 13Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" />
               </svg>
               요구사항 다시 확인`;
-          } else if (!hasBothDocuments) {
-            elements.analysisState.textContent = "분석하려면 회의록 또는 고객 메모와 최종 기획서를 모두 입력해 주세요.";
+          } else if (!hasSourceText) {
+            elements.analysisState.textContent = "분석하려면 회의록·메모 또는 전사 텍스트를 하나 이상 입력해 주세요.";
             elements.analysisState.dataset.state = "error";
             elements.runAnalysisButton.innerHTML = `
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -5450,7 +5760,9 @@
               </svg>
               AI 분석`;
           } else {
-            elements.analysisState.textContent = "AI 분석을 눌러 두 문서의 요구사항을 확인하세요.";
+            elements.analysisState.textContent = hasSpecText
+              ? "AI 분석을 눌러 요구사항을 추출하고 기존 기획서와 비교하세요."
+              : "AI 분석을 눌러 요구사항을 추출하고 기획서 초안을 생성하세요.";
             delete elements.analysisState.dataset.state;
             elements.runAnalysisButton.innerHTML = `
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -5474,6 +5786,7 @@
             text: typeof record?.text === "string" ? record.text : item.text,
             category: record?.category || item.category || "other",
             directlyAdded: Boolean(record?.directlyAdded || item.directlyAdded),
+            revisionMemo: typeof record?.revisionMemo === "string" ? record.revisionMemo : "",
             history: Array.isArray(record?.history) ? record.history : [],
           };
         }
@@ -5485,6 +5798,7 @@
               ...item,
               id,
               ...getReviewRecord(project, { ...item, id }),
+              roundIds: requirementRoundIds(item),
               sourceItem: item,
             };
           });
@@ -5496,6 +5810,9 @@
               category: record.category || "other",
               status: record.status || "needsReview",
               directlyAdded: true,
+              roundId: record.roundId || latestProjectRoundId(project),
+              roundIds: [record.roundId || latestProjectRoundId(project)].filter(Boolean),
+              revisionMemo: record.revisionMemo || "",
               history: Array.isArray(record.history) ? record.history : [],
               evidence: [],
               sourceItem: null,
@@ -5528,6 +5845,48 @@
           persistProjects();
         }
 
+        function reconcileReviewAfterAnalysis(project, meetingRequirements, at) {
+          if (!project.requirementReview?.items) return;
+          const records = Object.fromEntries(Object.entries(project.requirementReview.items).map(([id, record]) => [
+            id,
+            record && typeof record === "object" ? structuredClone(record) : record,
+          ]));
+          for (const requirement of meetingRequirements) {
+            const record = records[requirement.id];
+            if (!record) continue;
+            const previousText = typeof record.text === "string" ? record.text : "";
+            const nextText = String(requirement.text || "").trim();
+            const changed = previousText && nextText && normalizedRequirementText(previousText) !== normalizedRequirementText(nextText);
+            const hasMemo = Boolean(record.revisionMemo);
+            if (changed) {
+              record.history = Array.isArray(record.history) ? record.history : [];
+              record.history.push({ field: "text", previousValue: previousText, newValue: nextText, at });
+              record.text = nextText;
+              record.category = requirement.category || record.category || "other";
+              if (record.status !== "deleted") {
+                if (record.status === "confirmed") {
+                  record.history.push({ field: "status", previousValue: "confirmed", newValue: "needsReview", at });
+                }
+                record.status = "needsReview";
+              }
+            } else if (!previousText) {
+              record.text = nextText;
+              record.category = requirement.category || record.category || "other";
+            }
+            if (hasMemo) {
+              record.history = Array.isArray(record.history) ? record.history : [];
+              record.history.push({ field: "memo", previousValue: record.revisionMemo, newValue: "분석 결과에 적용됨", at, applied: true });
+              record.revisionMemo = "";
+            }
+            if (requirement.changeType === "updated" && !changed && record.status === "confirmed") {
+              record.history.push({ field: "status", previousValue: "confirmed", newValue: "needsReview", at });
+              record.status = "needsReview";
+            }
+            records[requirement.id] = record;
+          }
+          project.requirementReview = { ...project.requirementReview, items: records };
+        }
+
         function normalizedEvidenceText(text) {
           return String(text || "").replace(/\s+/gu, "");
         }
@@ -5547,11 +5906,13 @@
           if (!phrase) return false;
           const documents = (project.documents || []).filter((documentItem) => {
             if (documentItem.kind !== "source") return false;
-            if (evidence.documentName && documentItem.name !== evidence.documentName) return false;
+            if (evidence.sourceDocumentId && documentItem.id !== evidence.sourceDocumentId) return false;
+            if (evidence.documentName && documentItem.name !== evidence.documentName && !documentItem.name?.startsWith(`${evidence.documentName} ·`)) return false;
             if (evidence.date && documentItem.date && evidence.date !== documentItem.date) return false;
             return true;
           });
-          return documents.some((documentItem) => normalizedEvidenceText(documentItem.content).includes(phrase));
+          return documents.some((documentItem) => normalizedEvidenceText(documentItem.content).includes(phrase)
+            || normalizedEvidenceText(documentItem.stt?.transcript).includes(phrase));
         }
 
         function renderReviewEvidence(project, item) {
@@ -5573,11 +5934,12 @@
           const evidenceMarkup = evidence.map((entry) => {
             const date = entry.date || "";
             const documentLabel = entry.documentName || "회의록";
+            const roundLabel = Number.isInteger(entry.roundNumber) ? ` · ${entry.roundNumber}회차` : "";
             const exists = evidenceExistsInMeetings(project, entry);
             return `
               <article class="review-evidence">
                 <header>
-                  <span>${escapeHtml(documentLabel)} · ${formatMeetingDate(date || project.createdAt?.slice(0, 10))}</span>
+                  <span>${escapeHtml(documentLabel)}${roundLabel} · ${formatMeetingDate(date || project.createdAt?.slice(0, 10))}${entry.sourceKind === "transcript" ? " · 음성 전사" : ""}</span>
                   ${exists ? "" : '<span class="evidence-check-badge unverified">근거 확인 불가</span>'}
                 </header>
                 <p>“${escapeHtml(entry.text || item.text)}”</p>
@@ -5595,20 +5957,24 @@
           const evidence = Array.isArray(sourceItem?.evidence) ? sourceItem.evidence : [];
           const latestText = sourceItem?.text || item.text;
           const latestKey = normalizedRequirementText(latestText);
+          const previousText = sourceItem?.previousText || "";
           const earlier = evidence.filter((entry) => normalizedRequirementText(entry.text) !== latestKey);
           const uniqueEarlier = [...new Map(earlier.map((entry) => [normalizedRequirementText(entry.text), entry])).values()];
-          if (!sourceItem?.updated && uniqueEarlier.length === 0) return "";
+          if (!sourceItem?.updated && !previousText && uniqueEarlier.length === 0) return "";
 
           const latestEvidence = evidence.at(-1);
-          const olderMarkup = uniqueEarlier.map((entry) => `
+          const historyEntries = previousText
+            ? [{ text: previousText, date: earlier[0]?.date || "" }]
+            : uniqueEarlier;
+          const olderMarkup = historyEntries.map((entry) => `
             <div class="requirement-version-pair">
-              <div><span>이전 문장 · ${formatMeetingDate(entry.date || "")}</span><p>${escapeHtml(entry.text)}</p></div>
+              <div><span>이전 문장${entry.date ? ` · ${formatMeetingDate(entry.date)}` : ""}</span><p>${escapeHtml(entry.text)}</p></div>
               <span class="version-arrow" aria-hidden="true">→</span>
               <div><span>새 문장 · ${formatMeetingDate(latestEvidence?.date || "")}</span><p>${escapeHtml(latestText)}</p></div>
             </div>`).join("");
           return `
             <details class="review-meeting-change" open>
-              <summary>회의 내용 변경 이력 <span>${uniqueEarlier.length}</span></summary>
+              <summary>회의 내용 변경 이력 <span>${historyEntries.length}</span></summary>
               <div class="review-history-list">${olderMarkup}</div>
             </details>`;
         }
@@ -5621,8 +5987,10 @@
         function renderReviewHistory(history) {
           if (!history.length) return "";
           const entries = history.map((entry) => {
-            const title = entry.action === "added"
-              ? "직접 추가"
+          const title = entry.action === "added"
+            ? "직접 추가"
+            : entry.field === "memo"
+              ? "수정 메모 변경"
               : entry.field === "status"
                 ? "상태 변경"
                 : "문장 수정";
@@ -5649,10 +6017,12 @@
           const editMarkup = editing
             ? `
               <div class="review-inline-editor">
-                <textarea data-review-edit-input aria-label="요구사항 문장 수정">${escapeHtml(item.text)}</textarea>
+                <label for="review-memo-${escapeHtml(item.id)}">수정 메모</label>
+                <textarea id="review-memo-${escapeHtml(item.id)}" data-review-memo-input aria-label="요구사항 수정 메모" placeholder="예: 기존 요구사항의 로그인 조건을 회원만 가능하도록 변경합니다.">${escapeHtml(item.revisionMemo || "")}</textarea>
+                <span class="field-hint">요구사항 문장은 직접 수정하지 않습니다. 메모를 저장한 뒤 ‘요구사항 다시 확인’을 실행하면 기존 요구사항을 기준으로 변경안을 분석합니다.</span>
                 <div class="review-inline-editor-actions">
                   <button class="button-secondary" type="button" data-review-action="cancel-edit" data-review-id="${escapeHtml(item.id)}">취소</button>
-                  <button class="button-secondary" type="button" data-review-action="save-edit" data-review-id="${escapeHtml(item.id)}">저장</button>
+                  <button class="button-secondary" type="button" data-review-action="save-memo" data-review-id="${escapeHtml(item.id)}">수정 메모 저장</button>
                 </div>
               </div>`
             : `<strong class="review-card-title">${escapeHtml(item.text)}</strong>`;
@@ -5664,7 +6034,7 @@
             ${evidenceVerified ? "" : '<span class="evidence-check-badge unverified">근거 확인 불가</span>'}`;
           const actions = deleted || editing ? "" : `
             <div class="review-card-actions">
-              <button class="button-secondary" type="button" data-review-action="edit" data-review-id="${escapeHtml(item.id)}">수정</button>
+              <button class="button-secondary" type="button" data-review-action="edit" data-review-id="${escapeHtml(item.id)}">메모로 수정</button>
               <button class="button-secondary confirm-requirement" type="button" data-review-action="confirm" data-review-id="${escapeHtml(item.id)}" ${item.status === "confirmed" ? "disabled" : ""}>확정</button>
               <button class="button-secondary delete-requirement" type="button" data-review-action="delete" data-review-id="${escapeHtml(item.id)}">삭제</button>
             </div>`;
@@ -5678,6 +6048,7 @@
                   ${originBadges}
                 </div>
               </header>
+              ${item.revisionMemo && !editing ? `<p class="review-edit-memo"><strong>수정 메모 · 다음 분석에 반영</strong><br>${escapeHtml(item.revisionMemo)}</p>` : ""}
               ${renderReviewEvidence(project, item)}
               ${renderMeetingChangeHistory(item)}
               ${renderReviewHistory(item.history)}
@@ -5732,7 +6103,7 @@
             <article class="comparison-card" data-comparison-status="${escapeHtml(result.status)}">
               <header class="comparison-card-header">
                 <strong class="comparison-card-title">${escapeHtml(savedRequirement.text)}</strong>
-                <span class="comparison-status-badge ${statusClass}">${escapeHtml(result.status)}</span>
+                <span class="comparison-status-badge ${statusClass}">${escapeHtml(visibleStatusLabel(result.status === "반영됨" ? "reflected" : result.status === "누락 의심" ? "missing" : "conflict"))}</span>
               </header>
               <div class="comparison-card-category"><span class="category-pill ${escapeHtml(savedRequirement.category)}">${categoryLabel}</span></div>
               ${evidenceMarkup}
@@ -5753,7 +6124,11 @@
           const reviewPath = `${projectPath}/review`;
           const state = getComparisonInputs(project);
           const saved = project.requirementComparison || null;
-          const isStale = Boolean(saved && saved.confirmedSignature !== state.signature);
+          const isStale = Boolean(saved && (
+            saved.confirmedSignature !== state.signature
+            || (saved.contentSignature && saved.contentSignature !== projectContentSignature(project))
+            || project.comparisonStale
+          ));
           const hasConfirmed = state.confirmedRequirements.length > 0;
           const hasSavedResults = Boolean(saved && Array.isArray(saved.results));
 
@@ -5830,7 +6205,7 @@
             renderComparisonPage(project);
             return;
           }
-          const specification = project.documents?.find((documentItem) => documentItem.kind === "spec");
+          const specification = [...(project.documents || [])].reverse().find((documentItem) => documentItem.kind === "spec" && !documentItem.archivedAt);
           if (!specification?.content?.trim()) {
             elements.comparisonState.textContent = "비교할 최종 기획서가 없습니다. 프로젝트 문서에서 기획서를 확인해 주세요.";
             elements.comparisonState.dataset.state = "error";
@@ -5892,11 +6267,13 @@
             }));
             const previousComparison = project.requirementComparison;
             const previousUpdatedAt = project.updatedAt;
+            const previousComparisonStale = project.comparisonStale;
             const comparedAt = new Date().toISOString();
             project.requirementComparison = {
               version: 1,
               comparedAt,
               confirmedSignature: state.signature,
+              contentSignature: projectContentSignature(project),
               confirmedRequirements: state.confirmedRequirements,
               results: completeResults,
               usedFallback: Boolean(payload.usedFallback),
@@ -5907,9 +6284,11 @@
               remainingBudget: payload.remainingBudget || null,
             };
             project.updatedAt = comparedAt;
+            project.comparisonStale = false;
             if (!persistProjects()) {
               project.requirementComparison = previousComparison;
               project.updatedAt = previousUpdatedAt;
+              project.comparisonStale = previousComparisonStale;
               throw new Error("비교 결과를 프로젝트에 저장하지 못했습니다.");
             }
             renderProjectLists();
@@ -5929,6 +6308,10 @@
 
         function renderReviewPage(project) {
           elements.review.dataset.projectId = project.id;
+          if (lastReviewRoundProjectId !== project.id) {
+            showAllReviewRounds = false;
+            lastReviewRoundProjectId = project.id;
+          }
           initializeReviewData(project);
           const extracted = project.extractedRequirements?.source || [];
           const hasResults = extracted.length > 0;
@@ -5944,7 +6327,9 @@
           elements.confirmAll.hidden = !hasResults;
           if (!hasResults) return;
 
-          const items = getReviewItems(project);
+          const allItems = getReviewItems(project);
+          const latestItems = filterRequirementsByRound(project, allItems, false);
+          const items = filterRequirementsByRound(project, allItems, showAllReviewRounds);
           const needsReviewCount = items.filter((item) => item.status === "needsReview").length;
           const confirmedCount = items.filter((item) => item.status === "confirmed").length;
           const deletedCount = items.filter((item) => item.status === "deleted").length;
@@ -5961,6 +6346,9 @@
           const comparisonIsStale = Boolean(project.requirementComparison
             && project.requirementComparison.confirmedSignature !== comparisonState.signature);
           elements.reviewComparisonStale.hidden = !comparisonIsStale;
+          elements.reviewRoundToggle.textContent = showAllReviewRounds ? "최근 회차만 보기" : "전체 보기";
+          elements.reviewRoundToggle.setAttribute("aria-pressed", String(showAllReviewRounds));
+          elements.reviewRoundToggle.disabled = latestItems.length === allItems.length;
           elements.confirmAll.disabled = needsReviewCount === 0;
           elements.toggleDeleted.setAttribute("aria-pressed", String(showDeletedReviews));
           elements.toggleDeleted.textContent = showDeletedReviews ? "삭제된 항목 숨기기" : `삭제된 항목 보기 (${deletedCount})`;
@@ -6200,7 +6588,7 @@
           const headings = lines.filter((line) =>
             /^(?:#{1,6}\s+|(?:제\s*)?\d+(?:\.\d+)*[.)]?\s+|[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+[.)]?\s+|목차\s*[:：]?\s*$|[가-힣]\s*[.)]\s*)/u.test(line)
           );
-          return [...new Set((headings.length ? headings : lines.slice(0, 120)).map((line) => line.slice(0, 240))].slice(0, 300);
+          return [...new Set((headings.length ? headings : lines.slice(0, 120)).map((line) => line.slice(0, 240)))].slice(0, 300);
         }
 
         function showTemplateValue(template) {
@@ -6456,6 +6844,11 @@
         function resetCreateForm() {
           elements.form.reset();
           showFormAlert("");
+          editingProjectId = null;
+          elements.projectEditId.value = "";
+          elements.createTitle.textContent = "새 프로젝트";
+          elements.createDescription.textContent = "프로젝트 정보와 회의 내용, 기획서 내용을 입력해 주세요.";
+          elements.saveProjectLabel.textContent = "프로젝트 저장";
           const firstMeeting = elements.meetingList.querySelector("[data-meeting-entry]");
           elements.meetingList.querySelectorAll("[data-meeting-entry]").forEach((entry, index) => {
             if (index > 0) entry.remove();
@@ -6466,10 +6859,27 @@
           firstMeeting.querySelector(".meeting-file").value = "";
           firstMeeting.querySelector(".meeting-file-remove").hidden = true;
           firstMeeting.querySelector(".meeting-file-status").textContent = "문서 내용을 읽어 위 입력란에 채웁니다.";
+          firstMeeting.querySelector(".meeting-stt-textarea").value = "";
+          firstMeeting.querySelector(".meeting-stt-transcript").hidden = true;
+          firstMeeting.querySelector(".meeting-audio-file").disabled = false;
+          firstMeeting.querySelector(".meeting-audio-file").value = "";
+          firstMeeting.querySelector(".meeting-stt-retry").hidden = true;
+          firstMeeting.querySelector(".meeting-stt-status").textContent = "음성을 텍스트로 바꾸려면 파일을 선택하세요.";
+          firstMeeting.__audioFile = null;
           delete firstMeeting.dataset.uploadName;
           delete firstMeeting.dataset.uploadType;
+          delete firstMeeting.dataset.documentId;
+          delete firstMeeting.dataset.roundId;
+          delete firstMeeting.dataset.roundNumber;
+          delete firstMeeting.dataset.sttFileName;
+          delete firstMeeting.dataset.sttTranscribedAt;
+          delete firstMeeting.dataset.sttModel;
+          firstMeeting.__originalDocument = null;
           nextMeetingIndex = 2;
+          nextRoundNumber = 2;
           uploadedDocuments.spec = null;
+          showTemplateValue(null);
+          elements.templateFile.value = "";
           for (const kind of Object.keys(fileControls)) {
             const control = fileControls[kind];
             control.input.disabled = false;
@@ -6477,6 +6887,280 @@
             control.remove.hidden = true;
             setFileStatus(control.status, control.initialMessage);
           }
+          formOriginalContentSignature = projectContentSignature(null);
+        }
+
+        function projectContentSignature(project) {
+          const activeDocuments = (project?.documents || []).filter((documentItem) => !documentItem.archivedAt);
+          return JSON.stringify({
+            source: activeDocuments.filter((documentItem) => documentItem.kind === "source").map((documentItem) => ({
+              id: documentItem.id,
+              roundId: documentItem.roundId,
+              date: documentItem.date,
+              content: documentItem.content || "",
+              stt: documentItem.stt?.transcript || "",
+              sttFileName: documentItem.stt?.fileName || "",
+            })),
+            specification: activeDocuments.find((documentItem) => documentItem.kind === "spec")?.content || "",
+            template: project?.specTemplate ? {
+              fileName: project.specTemplate.fileName || "",
+              content: project.specTemplate.content || "",
+              structure: project.specTemplate.structure || [],
+            } : null,
+          });
+        }
+
+        function sourceValueSignature(meeting) {
+          return JSON.stringify({
+            date: meeting.date || "",
+            name: meeting.name || "",
+            type: meeting.type || "",
+            content: meeting.content || "",
+            sttFileName: meeting.stt?.fileName || "",
+            transcript: meeting.stt?.transcript || "",
+          });
+        }
+
+        function createSourceDocument(project, meeting, roundNumber, now, roundId = createId()) {
+          const documentId = meeting.documentId && !meeting.forceNewVersion ? meeting.documentId : createId();
+          const hasText = Boolean(meeting.content || meeting.stt?.transcript);
+          if (!hasText) return null;
+          return {
+            id: documentId,
+            roundId,
+            roundNumber,
+            name: meeting.name || `회의록 ${roundNumber}차`,
+            type: meeting.type || "직접 입력 · 텍스트",
+            kind: "source",
+            date: meeting.date || "",
+            content: meeting.content || "",
+            stt: {
+              fileName: meeting.stt?.fileName || "",
+              transcript: meeting.stt?.transcript || "",
+              transcribedAt: meeting.stt?.transcribedAt || null,
+              model: meeting.stt?.model || null,
+            },
+            roundCreatedAt: now,
+          };
+        }
+
+        function rebuildProjectRounds(project) {
+          const existing = new Map((project.rounds || []).map((round) => [round.id, round]));
+          const grouped = new Map();
+          (project.documents || []).filter((documentItem) => documentItem.kind === "source" && documentItem.roundId).forEach((documentItem) => {
+            if (!grouped.has(documentItem.roundId)) {
+              const oldRound = existing.get(documentItem.roundId);
+              grouped.set(documentItem.roundId, {
+                ...(oldRound || {}),
+                id: documentItem.roundId,
+                roundNumber: Number(documentItem.roundNumber || oldRound?.roundNumber || 1),
+                createdAt: oldRound?.createdAt || documentItem.roundCreatedAt || documentItem.createdAt || project.createdAt || new Date().toISOString(),
+                sourceDocumentIds: [],
+              });
+            }
+            grouped.get(documentItem.roundId).sourceDocumentIds.push(documentItem.id);
+          });
+          for (const round of project.rounds || []) {
+            if (!grouped.has(round.id)) grouped.set(round.id, round);
+          }
+          project.rounds = [...grouped.values()].sort((first, second) => first.roundNumber - second.roundNumber);
+        }
+
+        function loadProjectIntoForm(project) {
+          resetCreateForm();
+          editingProjectId = project.id;
+          elements.projectEditId.value = project.id;
+          elements.createTitle.textContent = "프로젝트 수정";
+          elements.createDescription.textContent = "기본 정보와 회차별 자료를 수정합니다. 기존 분석·검토 결과는 유지됩니다.";
+          elements.saveProjectLabel.textContent = "변경사항 저장";
+          document.querySelector("#project-name").value = project.name || "";
+          document.querySelector("#client-name").value = project.client || "";
+          document.querySelector("#project-summary").value = project.summary || "";
+
+          const specification = [...(project.documents || [])].reverse().find((documentItem) => documentItem.kind === "spec" && !documentItem.archivedAt);
+          document.querySelector("#spec-content").value = specification?.content || "";
+          if (specification) {
+            uploadedDocuments.spec = {
+              name: specification.name || "최종 기획서",
+              type: specification.type || "직접 입력 · 텍스트",
+            };
+            fileControls.spec.remove.hidden = !String(specification.type || "").startsWith("업로드");
+            setFileStatus(fileControls.spec.status, `${specification.name || "최종 기획서"} · 저장된 내용`);
+          }
+
+          showTemplateValue(project.specTemplate || null);
+          const activeSource = (project.documents || [])
+            .filter((documentItem) => documentItem.kind === "source" && !documentItem.archivedAt)
+            .sort((first, second) => Number(first.roundNumber || 0) - Number(second.roundNumber || 0)
+              || meetingDateFor(first, project).localeCompare(meetingDateFor(second, project)));
+          elements.meetingList.innerHTML = "";
+          const rows = activeSource.length ? activeSource : [null];
+          rows.forEach((documentItem, index) => {
+            const roundNumber = documentItem?.roundNumber || index + 1;
+            const entryIndex = index + 1;
+            elements.meetingList.insertAdjacentHTML("beforeend", meetingEntryMarkup(entryIndex, documentItem ? (documentItem.date || "") : localDateValue(), documentItem));
+            const entry = elements.meetingList.lastElementChild;
+            entry.querySelector(".meeting-entry-label").textContent = `회차 ${roundNumber}`;
+            entry.querySelector(".meeting-stt-textarea").value = documentItem?.stt?.transcript || "";
+            entry.querySelector(".meeting-stt-transcript").hidden = !documentItem?.stt?.transcript;
+            entry.querySelector(".meeting-audio-file").value = "";
+            if (documentItem?.stt?.fileName) {
+              setMeetingSttStatus(entry, `${documentItem.stt.fileName} · 저장된 전사 텍스트`, "success");
+            }
+            entry.__originalDocument = documentItem ? structuredClone(documentItem) : null;
+          });
+          nextMeetingIndex = Math.max(rows.length + 1, 2);
+          const nextFromRounds = Math.max(0, ...(project.rounds || []).map((round) => Number(round.roundNumber) || 0)) + 1;
+          nextRoundNumber = nextFromRounds;
+          formOriginalContentSignature = projectContentSignature(project);
+          showFormAlert("");
+        }
+
+        function hasMeetingMaterial(values) {
+          return values.meetings.some((meeting) => meeting.content.trim() || meeting.stt.transcript.trim());
+        }
+
+        function archiveDocument(documentItem, at, replacementId = "") {
+          documentItem.archivedAt = at;
+          if (replacementId) documentItem.supersededBy = replacementId;
+        }
+
+        function sameSourceContent(documentItem, meeting) {
+          return sourceValueSignature({
+            date: documentItem.date || "",
+            name: documentItem.name || "",
+            type: documentItem.type || "",
+            content: documentItem.content || "",
+            stt: {
+              fileName: documentItem.stt?.fileName || "",
+              transcript: documentItem.stt?.transcript || "",
+            },
+          }) === sourceValueSignature(meeting);
+        }
+
+        function applyProjectFormToExisting(project, values) {
+          const now = new Date().toISOString();
+          const previousContentSignature = projectContentSignature(project);
+          const oldDocuments = project.documents || [];
+          const oldActiveSource = oldDocuments.filter((documentItem) => documentItem.kind === "source" && !documentItem.archivedAt);
+          const oldActiveSpec = [...oldDocuments].reverse().find((documentItem) => documentItem.kind === "spec" && !documentItem.archivedAt);
+          const representedSourceIds = new Set();
+          let nextNumber = Math.max(
+            0,
+            ...(project.rounds || []).map((round) => Number(round.roundNumber || round.number) || 0),
+            ...oldActiveSource.map((documentItem) => Number(documentItem.roundNumber) || 0)
+          ) + 1;
+          const nextDocuments = [...oldDocuments];
+
+          for (const meeting of values.meetings) {
+            const hasText = Boolean(meeting.content || meeting.stt?.transcript);
+            const existing = oldActiveSource.find((documentItem) => documentItem.id === meeting.documentId);
+            if (existing) representedSourceIds.add(existing.id);
+            if (!hasText) {
+              if (existing) archiveDocument(existing, now);
+              continue;
+            }
+
+            if (existing && sameSourceContent(existing, meeting)) continue;
+
+            if (existing) archiveDocument(existing, now);
+            const roundNumber = !existing && Number.isInteger(meeting.roundNumber) && meeting.roundNumber > 0
+              ? meeting.roundNumber
+              : nextNumber++;
+            const roundId = !existing && meeting.roundId ? meeting.roundId : createId();
+            const newMeeting = { ...meeting, documentId: "", forceNewVersion: true };
+            const newDocument = createSourceDocument(project, newMeeting, roundNumber, now, roundId);
+            if (!newDocument) continue;
+            if (existing) existing.supersededBy = newDocument.id;
+            nextDocuments.push(newDocument);
+          }
+
+          for (const oldDocument of oldActiveSource) {
+            if (!representedSourceIds.has(oldDocument.id)) archiveDocument(oldDocument, now);
+          }
+
+          if (oldActiveSpec && !values.specContent) {
+            archiveDocument(oldActiveSpec, now);
+          } else if (values.specContent) {
+            const specName = uploadedDocuments.spec?.name || oldActiveSpec?.name || "최종 기획서";
+            const specType = uploadedDocuments.spec?.type || oldActiveSpec?.type || "직접 입력 · 텍스트";
+            if (!oldActiveSpec || oldActiveSpec.content !== values.specContent || oldActiveSpec.name !== specName) {
+              if (oldActiveSpec) archiveDocument(oldActiveSpec, now);
+              nextDocuments.push({
+                id: createId(),
+                name: specName,
+                type: specType,
+                kind: "spec",
+                content: values.specContent,
+                createdAt: now,
+              });
+            }
+          }
+
+          if (project.specTemplate && JSON.stringify(project.specTemplate) !== JSON.stringify(values.specTemplate)) {
+            project.specTemplateHistory = Array.isArray(project.specTemplateHistory) ? project.specTemplateHistory : [];
+            project.specTemplateHistory.push({ ...project.specTemplate, archivedAt: now });
+          }
+
+          project.name = values.name;
+          project.client = values.client;
+          project.summary = values.summary || "프로젝트";
+          project.documents = nextDocuments;
+          project.specTemplate = values.specTemplate ? { ...values.specTemplate, structure: [...(values.specTemplate.structure || [])] } : null;
+          rebuildProjectRounds(project);
+          const nextContentSignature = projectContentSignature(project);
+          const contentChanged = previousContentSignature !== nextContentSignature;
+          if (contentChanged) {
+            if (project.extractionRun) project.analysisStale = true;
+            if (project.requirementComparison) project.comparisonStale = true;
+          }
+          project.updatedAt = now;
+          return { contentChanged };
+        }
+
+        function createProjectFromForm(values) {
+          const now = new Date().toISOString();
+          const project = {
+            id: createId(),
+            name: values.name,
+            client: values.client,
+            summary: values.summary || "프로젝트",
+            status: "draft",
+            createdAt: now,
+            updatedAt: now,
+            analysisRunAt: null,
+            isSample: false,
+            analysisRun: false,
+            extractionRun: false,
+            analysisStale: false,
+            extractedRequirements: { source: [], spec: [] },
+            documents: [],
+            rounds: [],
+            requirements: [],
+            specTemplate: values.specTemplate ? { ...values.specTemplate, structure: [...(values.specTemplate.structure || [])] } : null,
+          };
+          let roundNumber = 1;
+          for (const meeting of values.meetings) {
+            if (!meeting.content && !meeting.stt.transcript) continue;
+            const number = Number.isInteger(meeting.roundNumber) && meeting.roundNumber > 0 ? meeting.roundNumber : roundNumber;
+            const roundId = meeting.roundId || createId();
+            const documentItem = createSourceDocument(project, meeting, number, now, roundId);
+            if (documentItem) project.documents.push(documentItem);
+            roundNumber = Math.max(roundNumber + 1, number + 1);
+          }
+          if (values.specContent) {
+            project.documents.push({
+              id: createId(),
+              name: uploadedDocuments.spec?.name || "최종 기획서",
+              type: uploadedDocuments.spec?.type || "직접 입력 · 텍스트",
+              kind: "spec",
+              content: values.specContent,
+              createdAt: now,
+            });
+          }
+          rebuildProjectRounds(project);
+          project.analysisInputSignature = projectContentSignature(project);
+          return project;
         }
 
         function renderRoute() {
@@ -6497,6 +7181,19 @@
             elements.create.hidden = false;
             document.title = "새 프로젝트 | 스펙가드";
             resetCreateForm();
+            return;
+          }
+
+          const editRoute = route.match(/^\/projects\/([^/]+)\/edit$/);
+          if (editRoute) {
+            const project = projects.find((item) => item.id === editRoute[1]);
+            if (project) {
+              elements.create.hidden = false;
+              document.title = `프로젝트 수정 | ${project.name}`;
+              loadProjectIntoForm(project);
+              return;
+            }
+            setRoute("/projects");
             return;
           }
 
@@ -6561,6 +7258,13 @@
         elements.projectSearch.addEventListener("input", renderProjectLists);
 
         document.addEventListener("click", (event) => {
+          const editButton = event.target.closest("[data-edit-project-id]");
+          if (editButton) {
+            event.preventDefault();
+            event.stopPropagation();
+            setRoute(`/projects/${encodeURIComponent(editButton.dataset.editProjectId)}/edit`);
+            return;
+          }
           const deleteButton = event.target.closest("[data-delete-project-id]");
           if (!deleteButton) return;
           event.preventDefault();
@@ -6586,26 +7290,108 @@
 
         document.querySelector("#add-meeting").addEventListener("click", () => {
           const index = nextMeetingIndex++;
-          elements.meetingList.insertAdjacentHTML("beforeend", meetingEntryMarkup(index));
+          const roundNumber = nextRoundNumber++;
+          const roundId = createId();
+          elements.meetingList.insertAdjacentHTML("beforeend", meetingEntryMarkup(index, localDateValue(), {
+            roundId,
+            roundNumber,
+          }));
+        });
+
+        elements.extractionRoundToggle.addEventListener("click", () => {
+          showAllExtractionRounds = !showAllExtractionRounds;
+          const project = projects.find((item) => item.id === elements.extraction.dataset.projectId);
+          if (project) renderExtraction(project);
+        });
+
+        elements.reviewRoundToggle.addEventListener("click", () => {
+          showAllReviewRounds = !showAllReviewRounds;
+          const project = projects.find((item) => item.id === elements.review.dataset.projectId);
+          if (project) renderReviewPage(project);
+        });
+
+        elements.specDraftSave.addEventListener("click", () => {
+          const projectId = elements.extraction.dataset.projectId;
+          const project = projects.find((item) => item.id === projectId);
+          if (!project) return;
+          const previous = project.specDraft;
+          project.specDraft = {
+            ...(typeof previous === "object" && previous ? previous : {}),
+            content: elements.specDraftContent.value.trim(),
+            updatedAt: new Date().toISOString(),
+            editedByUser: true,
+          };
+          if (!persistProjects()) {
+            project.specDraft = previous;
+            elements.specDraftSaveState.textContent = "저장하지 못했습니다. 저장 공간을 확인해 주세요.";
+            return;
+          }
+          elements.specDraftSaveState.textContent = "초안을 저장했습니다.";
+        });
+
+        elements.specUpdateSave.addEventListener("click", () => {
+          const projectId = elements.extraction.dataset.projectId;
+          const project = projects.find((item) => item.id === projectId);
+          if (!project) return;
+          const previous = project.specUpdateProposal;
+          project.specUpdateProposal = {
+            ...(typeof previous === "object" && previous ? previous : {}),
+            content: elements.specUpdateContent.value.trim(),
+            updatedAt: new Date().toISOString(),
+            editedByUser: true,
+          };
+          if (!persistProjects()) {
+            project.specUpdateProposal = previous;
+            elements.specUpdateSaveState.textContent = "저장하지 못했습니다. 저장 공간을 확인해 주세요.";
+            return;
+          }
+          elements.specUpdateSaveState.textContent = "업데이트안을 저장했습니다.";
         });
 
         elements.meetingList.addEventListener("change", (event) => {
           const input = event.target.closest(".meeting-file");
-          if (!input) return;
-          const entry = input.closest("[data-meeting-entry]");
-          const control = {
-            input,
-            textarea: entry.querySelector(".meeting-notes"),
-            status: entry.querySelector(".meeting-file-status"),
-            remove: entry.querySelector(".meeting-file-remove"),
-          };
-          handleDocumentUpload(control, input.files?.[0], (metadata) => {
-            entry.dataset.uploadName = metadata.name;
-            entry.dataset.uploadType = metadata.type;
-          });
+          if (input) {
+            const entry = input.closest("[data-meeting-entry]");
+            const control = {
+              input,
+              textarea: entry.querySelector(".meeting-notes"),
+              status: entry.querySelector(".meeting-file-status"),
+              remove: entry.querySelector(".meeting-file-remove"),
+            };
+            handleDocumentUpload(control, input.files?.[0], (metadata) => {
+              entry.dataset.uploadName = metadata.name;
+              entry.dataset.uploadType = metadata.type;
+            });
+            return;
+          }
+
+          const audioInput = event.target.closest(".meeting-audio-file");
+          if (!audioInput) return;
+          const entry = audioInput.closest("[data-meeting-entry]");
+          transcribeMeetingAudio(entry, audioInput.files?.[0]);
         });
 
         elements.meetingList.addEventListener("click", (event) => {
+          const retryStt = event.target.closest(".meeting-stt-retry");
+          if (retryStt) {
+            transcribeMeetingAudio(retryStt.closest("[data-meeting-entry]"));
+            return;
+          }
+
+          const clearTranscript = event.target.closest(".meeting-stt-clear");
+          if (clearTranscript) {
+            const entry = clearTranscript.closest("[data-meeting-entry]");
+            entry.querySelector(".meeting-stt-textarea").value = "";
+            entry.querySelector(".meeting-stt-transcript").hidden = true;
+            entry.querySelector(".meeting-audio-file").value = "";
+            entry.__audioFile = null;
+            delete entry.dataset.sttFileName;
+            delete entry.dataset.sttTranscribedAt;
+            delete entry.dataset.sttModel;
+            setMeetingSttStatus(entry, "전사 텍스트를 지웠습니다. 프로젝트 저장 전까지 변경 내용은 임시 상태입니다.");
+            return;
+          }
+
           const unlink = event.target.closest(".meeting-file-remove");
           if (unlink) {
             const entry = unlink.closest("[data-meeting-entry]");
@@ -6639,6 +7425,16 @@
             setFileStatus(control.status, "파일 연결을 해제했습니다. 입력한 내용은 유지됩니다.");
           });
         }
+
+        elements.templateFile.addEventListener("change", (event) => {
+          handleTemplateUpload(event.currentTarget.files?.[0]);
+        });
+
+        elements.templateRemove.addEventListener("click", () => {
+          showTemplateValue(null);
+          elements.templateFile.value = "";
+          elements.templateStatus.textContent = "양식이 제거되었습니다. 서비스 기본 구성을 사용합니다.";
+        });
 
         elements.comparisonFilterGroup.addEventListener("click", (event) => {
           const button = event.target.closest("[data-comparison-filter]");
@@ -6720,6 +7516,7 @@
             text,
             category: elements.directRequirementCategory.value,
             directlyAdded: true,
+            roundId: latestProjectRoundId(project),
             history: [{ field: "text", previousValue: "", newValue: text, at, action: "added" }],
           };
           const records = { ...(project.requirementReview?.items || {}), [id]: record };
@@ -6745,7 +7542,7 @@
           if (action === "edit") {
             editingReviewId = item.id;
             renderReviewPage(project);
-            elements.reviewList.querySelector("[data-review-edit-input]")?.focus();
+            elements.reviewList.querySelector("[data-review-memo-input]")?.focus();
             return;
           }
           if (action === "cancel-edit") {
@@ -6753,21 +7550,30 @@
             renderReviewPage(project);
             return;
           }
-          if (action === "save-edit") {
-            const text = button.closest(".review-card")?.querySelector("[data-review-edit-input]")?.value.trim() || "";
-            if (!text) {
-              window.alert("요구사항 내용을 입력해 주세요");
+          if (action === "save-memo") {
+            const memo = button.closest(".review-card")?.querySelector("[data-review-memo-input]")?.value.trim() || "";
+            if (!memo) {
+              window.alert("요구사항 수정 메모를 입력해 주세요");
               return;
             }
             const record = currentReviewRecord(project, item);
-            if (record.text !== text) {
+            if (record.revisionMemo !== memo) {
               record.history.push({
-                field: "text",
-                previousValue: record.text,
-                newValue: text,
+                field: "memo",
+                previousValue: record.revisionMemo,
+                newValue: memo,
                 at: new Date().toISOString(),
               });
-              record.text = text;
+              record.revisionMemo = memo;
+            }
+            if (record.status === "confirmed") {
+              record.history.push({
+                field: "status",
+                previousValue: "confirmed",
+                newValue: "needsReview",
+                at: new Date().toISOString(),
+              });
+              record.status = "needsReview";
             }
             if (saveReviewRecord(project, item.id, record)) {
               editingReviewId = null;
@@ -6787,50 +7593,39 @@
 
         elements.form.addEventListener("submit", (event) => {
           event.preventDefault();
-          const meetingEntries = [...elements.meetingList.querySelectorAll("[data-meeting-entry]")];
-          for (const entry of meetingEntries) {
-            const notes = entry.querySelector(".meeting-notes");
-            const date = entry.querySelector(".meeting-date");
-            date.setCustomValidity(notes.value.trim() && !date.value ? "회의 날짜를 선택해 주세요." : "");
-          }
           if (!elements.form.reportValidity()) return;
           const values = currentFormValues();
-          const documents = values.meetings.filter((meeting) => meeting.content).map((meeting) => ({
-            name: meeting.name,
-            type: meeting.type,
-            kind: "source",
-            date: meeting.date,
-            content: meeting.content,
-          }));
-          if (values.specContent) {
-            documents.push({
-              name: uploadedDocuments.spec?.name || "최종 기획서",
-              type: uploadedDocuments.spec?.type || "직접 입력 · 텍스트",
-              kind: "spec",
-              content: values.specContent,
-            });
+          if (!hasMeetingMaterial(values)) {
+            showFormAlert("회의록·메모 또는 음성 전사 내용을 하나 이상 입력해 주세요.");
+            return;
           }
-          const createdAt = new Date().toISOString();
-          const project = {
-            id: createId(),
-            name: values.name,
-            client: values.client,
-            summary: values.summary || "프로젝트",
-            status: "draft",
-            createdAt,
-            updatedAt: createdAt,
-            analysisRunAt: null,
-            isSample: false,
-            analysisRun: false,
-            extractionRun: false,
-            extractedRequirements: { source: [], spec: [] },
-            documents,
-            requirements: [],
-          };
+          showFormAlert("");
+
+          if (editingProjectId) {
+            const project = projects.find((item) => item.id === editingProjectId);
+            if (!project) {
+              showFormAlert("수정할 프로젝트를 찾을 수 없습니다. 프로젝트 목록에서 다시 열어 주세요.");
+              return;
+            }
+            const previousState = structuredClone(project);
+            applyProjectFormToExisting(project, values);
+            if (!persistProjects()) {
+              Object.assign(project, previousState);
+              showFormAlert("프로젝트를 저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요.");
+              return;
+            }
+            renderProjectLists();
+            const savedId = project.id;
+            editingProjectId = null;
+            setRoute(`/projects/${encodeURIComponent(savedId)}`);
+            return;
+          }
+
+          const project = createProjectFromForm(values);
           projects = [project, ...projects];
           if (!persistProjects()) {
             projects = projects.filter((item) => item.id !== project.id);
-            showFormAlert("브라우저에 프로젝트를 저장하지 못했습니다. 저장 공간 설정을 확인해 주세요.");
+            showFormAlert("프로젝트를 저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요.");
             return;
           }
           setRoute(`/projects/${encodeURIComponent(project.id)}/extract`);
@@ -6841,21 +7636,25 @@
           if (!project || elements.runAnalysisButton.disabled) return;
 
           const hasSavedReview = Object.keys(project.requirementReview?.items || {}).length > 0;
-          if (hasSavedReview && !window.confirm("요구사항을 다시 분석하면 저장된 검토·확정 결과와 직접 추가한 항목이 삭제될 수 있습니다. 다시 분석할까요?")) return;
+          if (hasSavedReview && !window.confirm("저장된 요구사항을 최신 회차 자료와 수정 메모로 다시 분석합니다. 기존 검토·확정 이력은 보존되며, 내용이 변경된 확정 항목은 다시 확인이 필요할 수 있습니다. 계속할까요?")) return;
 
           const sourceDocuments = project.documents
-            .filter((documentItem) => documentItem.kind === "source" && documentItem.content?.trim())
-            .sort((first, second) => meetingDateFor(first, project).localeCompare(meetingDateFor(second, project)));
-          const specDocument = project.documents.find((documentItem) => documentItem.kind === "spec");
-          if (!sourceDocuments.length || !specDocument?.content?.trim()) {
-            elements.analysisState.textContent = "분석하려면 회의록 또는 고객 메모와 최종 기획서를 모두 입력해 주세요.";
+            .filter((documentItem) => documentItem.kind === "source" && !documentItem.archivedAt
+              && (documentItem.content?.trim() || documentItem.stt?.transcript?.trim()))
+            .sort((first, second) => Number(first.roundNumber || 0) - Number(second.roundNumber || 0)
+              || meetingDateFor(first, project).localeCompare(meetingDateFor(second, project)));
+          const specDocument = [...(project.documents || [])].reverse().find((documentItem) => documentItem.kind === "spec" && !documentItem.archivedAt);
+          if (!sourceDocuments.length) {
+            elements.analysisState.textContent = "분석하려면 회의록·메모 또는 음성 전사 내용을 하나 이상 입력해 주세요.";
             elements.analysisState.dataset.state = "error";
             return;
           }
 
           elements.runAnalysisButton.disabled = true;
           elements.runAnalysisButton.textContent = "분석 중...";
-          elements.analysisState.textContent = "분석 중... LLM이 회의록과 기획서를 읽고 요구사항을 비교하고 있습니다.";
+          elements.analysisState.textContent = specDocument
+            ? "분석 중... LLM이 회의록, 전사 내용과 기존 기획서를 비교하고 있습니다."
+            : "분석 중... LLM이 회의록과 전사 내용에서 요구사항을 정리하고 기획서 초안을 작성하고 있습니다.";
           elements.analysisState.dataset.state = "loading";
           elements.extraction.setAttribute("aria-busy", "true");
 
@@ -6868,9 +7667,32 @@
                 meetings: sourceDocuments.map((documentItem) => ({
                   date: meetingDateFor(documentItem, project),
                   documentName: documentItem.name,
+                  sourceDocumentId: documentItem.id,
+                  roundId: documentItem.roundId,
+                  roundNumber: documentItem.roundNumber,
                   content: documentItem.content,
+                  transcript: documentItem.stt?.transcript || "",
+                  transcriptFileName: documentItem.stt?.fileName || "",
                 })),
-                specification: { documentName: specDocument.name, content: specDocument.content },
+                specification: { documentName: specDocument?.name || "", content: specDocument?.content || "" },
+                specificationTemplate: project.specTemplate ? {
+                  fileName: project.specTemplate.fileName,
+                  content: project.specTemplate.content,
+                  structure: project.specTemplate.structure || [],
+                } : null,
+                previousRequirements: (project.extractedRequirements?.source || []).map((requirement) => ({
+                  id: requirement.id,
+                  text: requirement.text,
+                  category: requirement.category,
+                  needsConfirmation: Boolean(requirement.needsConfirmation),
+                  changeType: requirement.changeType || "unchanged",
+                  previousText: requirement.previousText || "",
+                  roundIds: requirement.roundIds || [],
+                  evidence: requirement.evidence || [],
+                })),
+                reviewMemos: Object.entries(project.requirementReview?.items || {}).flatMap(([requirementId, record]) =>
+                  record?.revisionMemo ? [{ requirementId, memo: record.revisionMemo }] : []
+                ),
               }),
             });
             let analysis;
@@ -6890,11 +7712,20 @@
               category: requirementCategoryLabels[item.category] ? item.category : "other",
               needsConfirmation: Boolean(item.needsConfirmation) || !Array.isArray(item.evidence) || item.evidence.length === 0,
               updated: Boolean(item.updated),
+              changeType: ["new", "updated", "unchanged"].includes(item.changeType) ? item.changeType : item.updated ? "updated" : "new",
+              previousId: String(item.previousId || ""),
+              previousText: String(item.previousText || ""),
+              roundIds: Array.isArray(item.roundIds) ? item.roundIds : [],
+              roundNumbers: Array.isArray(item.roundNumbers) ? item.roundNumbers : [],
               evidence: Array.isArray(item.evidence) ? item.evidence.map((entry) => ({
                 text: String(entry.text || "").trim(),
                 date: String(entry.date || "").slice(0, 10),
                 documentName: String(entry.documentName || "회의록"),
                 kind: "meeting",
+                sourceKind: entry.sourceKind === "transcript" ? "transcript" : entry.sourceKind === "spec" ? "spec" : "meeting",
+                sourceDocumentId: String(entry.sourceDocumentId || ""),
+                roundId: String(entry.roundId || ""),
+                roundNumber: Number.isInteger(entry.roundNumber) ? entry.roundNumber : null,
                 meetingIndex: Number.isInteger(entry.meetingIndex) ? entry.meetingIndex : 0,
               })).filter((entry) => entry.text) : [],
             })).filter((item) => item.text);
@@ -6904,11 +7735,20 @@
               category: requirementCategoryLabels[item.category] ? item.category : "other",
               needsConfirmation: Boolean(item.needsConfirmation) || !Array.isArray(item.evidence) || item.evidence.length === 0,
               updated: false,
+              changeType: "unchanged",
+              previousId: "",
+              previousText: "",
+              roundIds: [],
+              roundNumbers: [],
               evidence: Array.isArray(item.evidence) ? item.evidence.map((entry) => ({
                 text: String(entry.text || "").trim(),
                 date: "",
-                documentName: specDocument.name,
+                documentName: specDocument?.name || "최종 기획서",
                 kind: "spec",
+                sourceKind: "spec",
+                sourceDocumentId: "",
+                roundId: "",
+                roundNumber: null,
                 meetingIndex: 0,
               })).filter((entry) => entry.text) : [],
             })).filter((item) => item.text);
@@ -6921,6 +7761,10 @@
                 id: item.id || `req-${index + 1}`,
                 text: String(item.text || sourceRequirements[index]?.text || "").trim(),
                 evidence: String(item.evidence || sourceRequirements[index]?.evidence?.at(-1)?.text || ""),
+                category: item.category || sourceRequirements[index]?.category || "other",
+                changeType: item.changeType || sourceRequirements[index]?.changeType || "new",
+                previousText: item.previousText || sourceRequirements[index]?.previousText || "",
+                roundIds: item.roundIds || sourceRequirements[index]?.roundIds || [],
                 specEvidence: String(item.specEvidence || "비교 근거가 없습니다."),
                 reason: String(item.reason || ""),
                 status: ["reflected", "missing", "conflict"].includes(item.status) ? item.status : "pending",
@@ -6929,6 +7773,10 @@
                 id: `req-${index + 1}`,
                 text: item.text,
                 evidence: item.evidence.at(-1)?.text || item.text,
+                category: item.category,
+                changeType: item.changeType,
+                previousText: item.previousText,
+                roundIds: item.roundIds,
                 specEvidence: "비교 결과가 제공되지 않았습니다.",
                 reason: "",
                 status: "pending",
@@ -6940,6 +7788,13 @@
               analysisRun: project.analysisRun,
               analysisRunAt: project.analysisRunAt,
               analysisModel: project.analysisModel,
+              analysisInputSignature: project.analysisInputSignature,
+              analysisStale: project.analysisStale,
+              comparisonStale: project.comparisonStale,
+              specDraft: project.specDraft,
+              specUpdateProposal: project.specUpdateProposal,
+              specDraftHistory: project.specDraftHistory,
+              specUpdateHistory: project.specUpdateHistory,
               status: project.status,
               updatedAt: project.updatedAt,
               requirementReview: project.requirementReview,
@@ -6954,7 +7809,39 @@
             project.status = project.requirements.some((item) => item.status !== "reflected") ? "review" : "done";
             project.analysisRunAt = completedAt;
             project.updatedAt = completedAt;
-            if (hasSavedReview) project.requirementReview = { version: 1, items: {} };
+            project.analysisInputSignature = projectContentSignature(project);
+            project.analysisStale = false;
+            if (project.requirementComparison) project.comparisonStale = true;
+            reconcileReviewAfterAnalysis(project, sourceRequirements, completedAt);
+            if (specDocument) {
+              if (project.specDraft?.content) {
+                project.specDraftHistory = [
+                  ...(Array.isArray(project.specDraftHistory) ? project.specDraftHistory : []),
+                  { ...project.specDraft, archivedAt: completedAt },
+                ];
+              }
+              if (project.specUpdateProposal?.content) {
+                project.specUpdateHistory = [
+                  ...(Array.isArray(project.specUpdateHistory) ? project.specUpdateHistory : []),
+                  { ...project.specUpdateProposal, archivedAt: completedAt },
+                ];
+              }
+              project.specDraft = null;
+              project.specUpdateProposal = {
+                content: String(analysis.specUpdate || ""),
+                generatedAt: completedAt,
+                templateFileName: project.specTemplate?.fileName || "",
+                editedByUser: false,
+              };
+            } else {
+              project.specDraft = {
+                content: String(analysis.specDraft || ""),
+                generatedAt: completedAt,
+                templateFileName: project.specTemplate?.fileName || "",
+                editedByUser: false,
+              };
+              project.specUpdateProposal = null;
+            }
             if (!persistProjects()) {
               Object.assign(project, previousState);
               throw new Error("분석 결과를 저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요.");
