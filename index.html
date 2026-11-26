@@ -769,11 +769,11 @@
       }
 
       .project-table-head.with-delete-column {
-        grid-template-columns: minmax(190px, 1.7fr) minmax(100px, 0.82fr) minmax(94px, 0.78fr) 78px 38px;
+        grid-template-columns: minmax(190px, 1.7fr) minmax(100px, 0.82fr) minmax(94px, 0.78fr) 78px 78px;
       }
 
       .project-row.with-delete {
-        grid-template-columns: minmax(190px, 1.7fr) minmax(100px, 0.82fr) minmax(94px, 0.78fr) 78px 38px;
+        grid-template-columns: minmax(190px, 1.7fr) minmax(100px, 0.82fr) minmax(94px, 0.78fr) 78px 78px;
       }
 
       .project-table-head {
@@ -825,6 +825,7 @@
         display: flex;
         align-items: center;
         justify-content: flex-end;
+        gap: 2px;
       }
 
       .project-delete-button {
@@ -1488,6 +1489,90 @@
         font-size: 9px;
         text-decoration: underline;
         text-underline-offset: 2px;
+      }
+
+      .template-upload-panel {
+        display: grid;
+        gap: 10px;
+        margin-top: 18px;
+        padding: 15px;
+        border: 1px solid #e3e9e2;
+        border-radius: 9px;
+        background: #fbfcfa;
+      }
+
+      .template-upload-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .template-upload-heading h3 {
+        margin: 0 0 4px;
+        color: #38463c;
+        font-size: 12px;
+        font-weight: 690;
+      }
+
+      .template-upload-heading h3 span {
+        color: #89938c;
+        font-size: 9px;
+        font-weight: 500;
+      }
+
+      .template-upload-heading p {
+        max-width: 690px;
+        margin: 0;
+        color: #7d887f;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .template-preview {
+        border: 1px solid #e7ece6;
+        border-radius: 7px;
+        background: #ffffff;
+      }
+
+      .template-preview[hidden] {
+        display: none;
+      }
+
+      .template-preview summary {
+        display: flex;
+        min-height: 38px;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 0 10px;
+        color: #536157;
+        cursor: pointer;
+        font-size: 9px;
+        font-weight: 650;
+        list-style: none;
+      }
+
+      .template-preview summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .template-preview summary span:last-child {
+        color: #8a948c;
+        font-weight: 450;
+      }
+
+      .template-preview pre {
+        max-height: 220px;
+        overflow: auto;
+        margin: 0;
+        padding: 10px;
+        border-top: 1px solid #edf0ec;
+        color: #59655d;
+        font: inherit;
+        font-size: 9px;
+        line-height: 1.6;
+        white-space: pre-wrap;
       }
 
       .meeting-entry-remove {
@@ -2191,6 +2276,59 @@
         margin-bottom: 14px;
         padding-bottom: 14px;
         border-bottom: 1px solid #edf0ec;
+      }
+
+      .extraction-heading-actions {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 7px;
+      }
+
+      .round-view-toggle {
+        min-height: 30px;
+        padding: 0 8px;
+        border: 1px solid #e0e7df;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #58665d;
+        cursor: pointer;
+        font: inherit;
+        font-size: 9px;
+        font-weight: 630;
+        white-space: nowrap;
+      }
+
+      .round-view-toggle:hover {
+        border-color: #bbc9bd;
+        background: #f7faf6;
+      }
+
+      .project-edit-link {
+        display: inline-flex;
+        min-height: 40px;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        padding: 0 12px;
+        border: 1px solid #dfe5df;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #45534a;
+        font-size: 11px;
+        font-weight: 640;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .project-edit-link:hover {
+        border-color: #b7c4b9;
+        background: #f8faf7;
+      }
+
+      .project-edit-link svg {
+        width: 15px;
+        height: 15px;
       }
 
       .extraction-document-icon {
@@ -3475,11 +3613,11 @@
         }
 
         .project-table-head.with-delete-column {
-          grid-template-columns: minmax(145px, 1.4fr) minmax(82px, 0.8fr) minmax(82px, 0.8fr) 60px 36px;
+          grid-template-columns: minmax(145px, 1.4fr) minmax(82px, 0.8fr) minmax(82px, 0.8fr) 60px 76px;
         }
 
         .project-row.with-delete {
-          grid-template-columns: minmax(145px, 1.4fr) minmax(82px, 0.8fr) minmax(82px, 0.8fr) 60px 36px;
+          grid-template-columns: minmax(145px, 1.4fr) minmax(82px, 0.8fr) minmax(82px, 0.8fr) 60px 76px;
         }
 
         .project-count {
@@ -3722,12 +3860,12 @@
         }
 
         .project-table-head.with-delete-column {
-          grid-template-columns: minmax(115px, 1fr) 68px 55px 34px;
+          grid-template-columns: minmax(115px, 1fr) 68px 55px 70px;
           column-gap: 5px;
         }
 
         .project-row.with-delete {
-          grid-template-columns: minmax(115px, 1fr) 68px 55px 34px;
+          grid-template-columns: minmax(115px, 1fr) 68px 55px 70px;
           column-gap: 5px;
         }
 
@@ -3800,6 +3938,12 @@
 
         .project-delete-button {
           width: 32px;
+          height: 36px;
+        }
+
+        .project-edit-button,
+        .project-delete-button {
+          width: 30px;
           height: 36px;
         }
 
@@ -4087,6 +4231,7 @@
             </div>
 
             <form class="panel form-panel" id="project-form">
+              <input id="project-edit-id" type="hidden" value="" />
               <div class="form-section">
                 <div class="form-section-heading">
                   <h2>프로젝트 정보</h2>
@@ -4120,12 +4265,12 @@
                       <section class="meeting-entry" data-meeting-entry>
                         <div class="meeting-entry-heading">
                           <div class="field-group meeting-date-field">
-                            <label for="meeting-date">회의 날짜 <span class="field-required">*</span></label>
+                            <label for="meeting-date">회의 날짜</label>
                         <input id="meeting-date" class="meeting-date" type="date" />
                           </div>
                           <span class="meeting-entry-label">회의 1</span>
                         </div>
-                        <textarea id="meeting-notes" class="meeting-notes" placeholder="예:\n상품 상세 화면에서 찜하기 기능을 제공해 주세요.\n재입고되면 앱 알림을 보내 주세요.\n비회원도 찜한 상품 목록을 볼 수 있어야 합니다." required></textarea>
+                        <textarea id="meeting-notes" class="meeting-notes" placeholder="예:\n상품 상세 화면에서 찜하기 기능을 제공해 주세요.\n재입고되면 앱 알림을 보내 주세요.\n비회원도 찜한 상품 목록을 볼 수 있어야 합니다."></textarea>
                         <span class="field-hint">고객이 요청한 내용을 원문에 가깝게 입력해 주세요.</span>
                         <div class="file-upload">
                           <div class="file-upload-copy">
@@ -4202,6 +4347,34 @@
                     <button class="file-remove" id="spec-file-remove" type="button" data-remove-file="spec" hidden>파일 연결 해제</button>
                   </div>
                 </div>
+
+                <section class="template-upload-panel" aria-labelledby="template-upload-title">
+                  <div class="template-upload-heading">
+                    <div>
+                      <h3 id="template-upload-title">회사별 기획서 양식 <span>(선택)</span></h3>
+                      <p>최종 기획서와 별도입니다. 등록하면 초안·업데이트안에 양식의 목차와 구성을 반영합니다.</p>
+                    </div>
+                    <button class="file-remove" id="template-remove" type="button" hidden>양식 삭제</button>
+                  </div>
+                  <div class="file-upload">
+                    <div class="file-upload-copy">
+                      <strong>기획서 양식 파일 업로드</strong>
+                      <span>TXT, MD, PDF, DOCX · 최대 10MB · 원본 파일은 저장하지 않습니다.</span>
+                    </div>
+                    <label class="file-upload-action" for="template-file">
+                      <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                        <path d="M10 13V3.5m0 0L6.5 7M10 3.5 13.5 7M4 11.5v3.8A1.7 1.7 0 0 0 5.7 17h8.6a1.7 1.7 0 0 0 1.7-1.7v-3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                      </svg>
+                      양식 선택
+                      <input class="file-input" id="template-file" type="file" accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" aria-describedby="template-file-status" />
+                    </label>
+                  </div>
+                  <p class="file-upload-state" id="template-file-status" role="status" aria-live="polite">등록된 양식이 없습니다. 서비스 기본 구성을 사용합니다.</p>
+                  <details class="template-preview" id="template-preview" hidden>
+                    <summary><span id="template-preview-name">양식 미리보기</span><span>목차·구성 텍스트</span></summary>
+                    <pre id="template-preview-content"></pre>
+                  </details>
+                </section>
               </div>
 
               <p class="form-alert" id="form-alert" role="alert" hidden></p>
@@ -4257,7 +4430,10 @@
                     <h2 id="source-extraction-title">회의록 또는 고객 메모</h2>
                     <p id="source-extraction-file">고객이 요청한 중요 요구사항</p>
                   </div>
-                  <span class="requirement-count" id="source-requirement-count">0개</span>
+                  <div class="extraction-heading-actions">
+                    <button class="round-view-toggle" id="toggle-extraction-rounds" type="button" aria-pressed="false">전체 보기</button>
+                    <span class="requirement-count" id="source-requirement-count">0개</span>
+                  </div>
                 </header>
                 <div class="extracted-requirement-list" id="source-extraction-list" aria-live="polite"></div>
               </section>
@@ -4275,7 +4451,7 @@
               </section>
             </div>
 
-            <section class="detail-panel spec-draft-panel" id="spec-draft-panel" hidden aria-labelledby="spec-draft-title">
+              <section class="detail-panel spec-draft-panel" id="spec-draft-panel" hidden aria-labelledby="spec-draft-title">
               <div class="detail-panel-heading">
                 <div>
                   <h2 id="spec-draft-title">AI 기획서 초안</h2>
@@ -4283,8 +4459,26 @@
                 </div>
                 <span class="status-badge review">검토용 초안</span>
               </div>
-              <pre class="spec-draft-content" id="spec-draft-content"></pre>
-            </section>
+                <textarea class="spec-draft-content spec-draft-editable" id="spec-draft-content" aria-label="AI 기획서 초안"></textarea>
+                <div class="spec-draft-actions">
+                  <span id="spec-draft-save-state">초안은 프로젝트에 저장됩니다.</span>
+                  <button class="button-secondary" id="save-spec-draft" type="button">초안 저장</button>
+                </div>
+              </section>
+              <section class="detail-panel spec-update-panel" id="spec-update-panel" hidden aria-labelledby="spec-update-title">
+                <div class="detail-panel-heading">
+                  <div>
+                    <h2 id="spec-update-title">기획서 업데이트안</h2>
+                    <p>기존 기획서와 새 요구사항을 바탕으로 생성한 검토용 제안입니다.</p>
+                  </div>
+                  <span class="status-badge review">검토용 제안</span>
+                </div>
+                <textarea class="spec-draft-content spec-draft-editable" id="spec-update-content" aria-label="기획서 업데이트안"></textarea>
+                <div class="spec-draft-actions">
+                  <span id="spec-update-save-state">업데이트안은 프로젝트에 저장됩니다.</span>
+                  <button class="button-secondary" id="save-spec-update" type="button">업데이트안 저장</button>
+                </div>
+              </section>
 
             <footer class="extraction-footer">
               <p>저장된 회의록 요구사항을 검토하고 확정해 주세요.</p>
@@ -4463,9 +4657,9 @@
           done: "비교 완료",
         };
         const resultLabels = {
-          reflected: "반영 의심",
-          missing: "누락 의심",
-          conflict: "충돌 의심",
+          reflected: "반영",
+          missing: "누락 추정",
+          conflict: "충돌 추정",
           pending: "확인 전",
         };
 
@@ -4563,10 +4757,174 @@
           },
         ];
 
+        function ensureProjectCompatibility(project, projectIndex = 0) {
+          if (!project || typeof project !== "object") return { project, changed: false };
+          let changed = false;
+          const projectId = String(project.id || `legacy-project-${projectIndex + 1}`);
+          if (!project.id) {
+            project.id = projectId;
+            changed = true;
+          }
+
+          if (!Array.isArray(project.documents)) {
+            const documents = [];
+            const legacyMeetingText = [project.meetingNotes, project.notes, project.memo]
+              .filter((value) => typeof value === "string" && value.trim())
+              .join("\n");
+            if (legacyMeetingText) {
+              documents.push({
+                id: `${projectId}-legacy-source-1`,
+                name: "기존 회의록 및 메모",
+                type: "기존 데이터 · 텍스트",
+                kind: "source",
+                date: project.createdAt?.slice(0, 10) || "",
+                content: legacyMeetingText,
+              });
+            }
+            const legacySpecification = [project.specContent, project.specification, project.plan]
+              .find((value) => typeof value === "string" && value.trim());
+            if (legacySpecification) {
+              documents.push({
+                id: `${projectId}-legacy-spec`,
+                name: "기존 최종 기획서",
+                type: "기존 데이터 · 텍스트",
+                kind: "spec",
+                content: legacySpecification,
+              });
+            }
+            project.documents = documents;
+            changed = true;
+          }
+
+          if (!Array.isArray(project.rounds)) {
+            project.rounds = [];
+            changed = true;
+          }
+
+          const sourceDocuments = project.documents.filter((documentItem) => documentItem?.kind === "source");
+          const existingRounds = new Map(project.rounds.filter((round) => round && typeof round.id === "string").map((round) => [round.id, round]));
+          const legacyRoundNumber = project.rounds.length
+            ? Math.min(...project.rounds.map((round) => Number(round.roundNumber || round.number)).filter(Number.isFinite))
+            : 1;
+          const legacyRoundId = [...existingRounds.keys()][0] || `${projectId}-round-${Number.isFinite(legacyRoundNumber) ? legacyRoundNumber : 1}`;
+
+          sourceDocuments.forEach((documentItem, index) => {
+            if (!documentItem.id) {
+              documentItem.id = `${projectId}-source-${index + 1}`;
+              changed = true;
+            }
+            if (!documentItem.roundId) {
+              const existingNumber = Number(documentItem.roundNumber);
+              const matchingRound = Number.isFinite(existingNumber)
+                ? project.rounds.find((round) => Number(round.roundNumber || round.number) === existingNumber)
+                : null;
+              documentItem.roundId = matchingRound?.id || legacyRoundId;
+              changed = true;
+            }
+            const round = project.rounds.find((item) => item.id === documentItem.roundId);
+            const resolvedNumber = Number(documentItem.roundNumber || round?.roundNumber || round?.number || legacyRoundNumber || 1);
+            if (!Number.isInteger(documentItem.roundNumber)) {
+              documentItem.roundNumber = Number.isFinite(resolvedNumber) ? resolvedNumber : 1;
+              changed = true;
+            }
+            const previousStt = documentItem.stt && typeof documentItem.stt === "object" ? documentItem.stt : {};
+            const stt = {
+              fileName: String(previousStt.fileName || documentItem.transcriptFileName || ""),
+              transcript: String(previousStt.transcript || documentItem.transcript || ""),
+              transcribedAt: previousStt.transcribedAt || documentItem.transcribedAt || null,
+              model: previousStt.model || documentItem.transcriptionModel || null,
+            };
+            if (JSON.stringify(previousStt) !== JSON.stringify(stt) || !documentItem.stt) {
+              documentItem.stt = stt;
+              changed = true;
+            }
+          });
+
+          const groupedRounds = new Map();
+          sourceDocuments.forEach((documentItem) => {
+            const roundId = documentItem.roundId;
+            if (!groupedRounds.has(roundId)) {
+              const existing = existingRounds.get(roundId);
+              groupedRounds.set(roundId, {
+                ...(existing || {}),
+                id: roundId,
+                roundNumber: Number(documentItem.roundNumber || existing?.roundNumber || existing?.number || 1),
+                createdAt: existing?.createdAt || documentItem.createdAt || project.createdAt || project.updatedAt || new Date().toISOString(),
+                sourceDocumentIds: [],
+              });
+            }
+            groupedRounds.get(roundId).sourceDocumentIds.push(documentItem.id);
+          });
+
+          for (const existing of project.rounds) {
+            if (!groupedRounds.has(existing.id)) groupedRounds.set(existing.id, { ...existing, sourceDocumentIds: existing.sourceDocumentIds || [] });
+          }
+          const normalizedRounds = [...groupedRounds.values()].sort((first, second) =>
+            Number(first.roundNumber || first.number || 0) - Number(second.roundNumber || second.number || 0)
+          );
+          if (JSON.stringify(project.rounds) !== JSON.stringify(normalizedRounds)) {
+            project.rounds = normalizedRounds;
+            changed = true;
+          }
+
+          if (!Object.hasOwn(project, "specTemplate")) {
+            project.specTemplate = null;
+            changed = true;
+          } else if (project.specTemplate && typeof project.specTemplate === "object") {
+            const template = {
+              fileName: String(project.specTemplate.fileName || ""),
+              content: String(project.specTemplate.content || ""),
+              structure: Array.isArray(project.specTemplate.structure) ? project.specTemplate.structure.filter((item) => typeof item === "string") : [],
+              uploadedAt: project.specTemplate.uploadedAt || null,
+            };
+            if (JSON.stringify(template) !== JSON.stringify(project.specTemplate)) {
+              project.specTemplate = template;
+              changed = true;
+            }
+          }
+
+          const sourceRequirements = project.extractedRequirements?.source;
+          if (Array.isArray(sourceRequirements)) {
+            sourceRequirements.forEach((requirement) => {
+              if (!requirement || typeof requirement !== "object") return;
+              const evidence = Array.isArray(requirement.evidence) ? requirement.evidence : [];
+              const roundIds = [...new Set(evidence.map((entry) => {
+                if (entry?.roundId) return entry.roundId;
+                if (entry?.sourceDocumentId) return sourceDocuments.find((doc) => doc.id === entry.sourceDocumentId)?.roundId;
+                const matchingDocument = sourceDocuments.find((doc) => entry?.documentName && doc.name && (entry.documentName.includes(doc.name) || doc.name.includes(entry.documentName)));
+                return matchingDocument?.roundId;
+              }).filter(Boolean))];
+              if (!Array.isArray(requirement.roundIds) || !requirement.roundIds.length) {
+                requirement.roundIds = roundIds.length ? roundIds : sourceDocuments.length ? [sourceDocuments[0].roundId] : [];
+                changed = true;
+              }
+              if (!requirement.changeType) {
+                requirement.changeType = requirement.updated ? "updated" : "unchanged";
+                changed = true;
+              }
+              if (requirement.previousText === undefined) {
+                requirement.previousText = "";
+                changed = true;
+              }
+            });
+          }
+
+          return { project, changed };
+        }
+
         function loadProjects() {
           try {
             const stored = JSON.parse(localStorage.getItem(storageKey));
-            if (Array.isArray(stored)) return stored;
+            if (Array.isArray(stored)) {
+              let changed = false;
+              const migrated = stored.map((project, index) => {
+                const result = ensureProjectCompatibility(project, index);
+                changed ||= result.changed;
+                return result.project;
+              });
+              if (changed) localStorage.setItem(storageKey, JSON.stringify(migrated));
+              return migrated;
+            }
           } catch (error) {
             console.warn("저장된 프로젝트를 불러오지 못했습니다.", error);
           }
@@ -4594,8 +4952,28 @@
           projectSearch: document.querySelector("#project-search"),
           searchResultCount: document.querySelector("#project-search-count"),
           form: document.querySelector("#project-form"),
+          createTitle: document.querySelector("#create-title"),
+          createDescription: document.querySelector("#create-description"),
+          projectEditId: document.querySelector("#project-edit-id"),
+          saveProjectLabel: document.querySelector("#save-project-label"),
           formAlert: document.querySelector("#form-alert"),
           meetingList: document.querySelector("#meeting-list"),
+          templateFile: document.querySelector("#template-file"),
+          templateStatus: document.querySelector("#template-file-status"),
+          templateRemove: document.querySelector("#template-remove"),
+          templatePreview: document.querySelector("#template-preview"),
+          templatePreviewName: document.querySelector("#template-preview-name"),
+          templatePreviewContent: document.querySelector("#template-preview-content"),
+          extractionRoundToggle: document.querySelector("#toggle-extraction-rounds"),
+          reviewRoundToggle: document.querySelector("#toggle-review-rounds"),
+          specDraftPanel: document.querySelector("#spec-draft-panel"),
+          specDraftContent: document.querySelector("#spec-draft-content"),
+          specDraftSave: document.querySelector("#save-spec-draft"),
+          specDraftSaveState: document.querySelector("#spec-draft-save-state"),
+          specUpdatePanel: document.querySelector("#spec-update-panel"),
+          specUpdateContent: document.querySelector("#spec-update-content"),
+          specUpdateSave: document.querySelector("#save-spec-update"),
+          specUpdateSaveState: document.querySelector("#spec-update-save-state"),
           detailContent: document.querySelector("#detail-content"),
           extractionTitle: document.querySelector("#extraction-title"),
           extractionMeta: document.querySelector("#extraction-project-meta"),
@@ -4662,11 +5040,16 @@
           cancelProjectDelete: document.querySelector("#cancel-project-delete"),
           confirmProjectDelete: document.querySelector("#confirm-project-delete"),
         };
-        const uploadedDocuments = { spec: null };
+        const uploadedDocuments = { spec: null, template: null };
         let nextMeetingIndex = 2;
+        let editingProjectId = null;
+        let formOriginalContentSignature = "";
+        let nextRoundNumber = 1;
         const scriptLoads = new Map();
         let reviewFilter = "all";
         let comparisonFilter = "all";
+        let showAllReviewRounds = false;
+        let showAllExtractionRounds = false;
         let showDeletedReviews = false;
         let editingReviewId = null;
         let pendingDeleteProjectId = null;
@@ -4720,6 +5103,31 @@
           return documentItem.date || project?.createdAt?.slice(0, 10) || project?.updatedAt?.slice(0, 10) || "";
         }
 
+        function latestProjectRoundId(project) {
+          const rounds = Array.isArray(project?.rounds) ? project.rounds : [];
+          if (rounds.length) {
+            return [...rounds].sort((first, second) =>
+              Number(first.roundNumber || first.number || 0) - Number(second.roundNumber || second.number || 0)
+            ).at(-1)?.id || "";
+          }
+          const source = (project?.documents || []).filter((documentItem) => documentItem.kind === "source");
+          return source.at(-1)?.roundId || "";
+        }
+
+        function requirementRoundIds(item) {
+          if (Array.isArray(item?.roundIds) && item.roundIds.length) return item.roundIds;
+          return [...new Set((Array.isArray(item?.evidence) ? item.evidence : []).map((entry) => entry.roundId).filter(Boolean))];
+        }
+
+        function filterRequirementsByRound(project, items, showAll) {
+          if (showAll) return items;
+          const latestRoundId = latestProjectRoundId(project);
+          if (!latestRoundId) return items;
+          return items.filter((item) => item.directlyAdded
+            ? (item.roundId || latestRoundId) === latestRoundId
+            : requirementRoundIds(item).includes(latestRoundId));
+        }
+
         function projectRow(project, withDelete = false) {
           const statusClass = project.status === "done" ? "done" : project.status === "draft" ? "draft" : "";
           const count = project.requirements?.length ?? 0;
@@ -4738,6 +5146,11 @@
               <span class="project-date">${formatShortDate(project.updatedAt)}</span>
               ${withDelete ? `
                 <span class="project-action-cell">
+                  <button class="project-delete-button" type="button" data-edit-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 수정" title="프로젝트 수정">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <path d="m12.8 4.2 3 3M4 16l3.4-.7 8.9-8.9a1.6 1.6 0 0 0-2.3-2.3l-8.9 8.9L4 16Z" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </button>
                   <button class="project-delete-button" type="button" data-delete-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 삭제" title="프로젝트 삭제">
                     <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                       <path d="M4 6h12M8 6V4h4v2m2 0-.7 10H6.7L6 6m2.5 3v4m3-4v4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
@@ -4856,6 +5269,12 @@
               </div>
               <div class="page-actions">
                 ${statusBadge(project.status)}
+                <a class="project-edit-link" href="#/projects/${encodeURIComponent(project.id)}/edit" aria-label="${escapeHtml(project.name)} 프로젝트 수정">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="m12.8 4.2 3 3M4 16l3.4-.7 8.9-8.9a1.6 1.6 0 0 0-2.3-2.3l-8.9 8.9L4 16Z" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  수정
+                </a>
                 <a class="button-secondary" href="#/projects/${encodeURIComponent(project.id)}/extract">요구사항 추출</a>
                 <a class="button-secondary" href="#/projects/${encodeURIComponent(project.id)}/review">검토·확정으로 이동</a>
                 <button class="button-danger" type="button" data-delete-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 삭제">
@@ -4967,27 +5386,26 @@
 
         function renderExtraction(project) {
           const sourceDocuments = (project.documents || [])
-            .filter((documentItem) => documentItem.kind === "source")
-            .sort((first, second) => meetingDateFor(first, project).localeCompare(meetingDateFor(second, project)));
+            .filter((documentItem) => documentItem.kind === "source" && !documentItem.archivedAt)
+            .sort((first, second) => Number(first.roundNumber || 0) - Number(second.roundNumber || 0)
+              || meetingDateFor(first, project).localeCompare(meetingDateFor(second, project)));
           const specDocument = project.documents?.find((documentItem) => documentItem.kind === "spec");
-          const sourceRequirements = project.extractedRequirements?.source || [];
+          const allSourceRequirements = project.extractedRequirements?.source || [];
+          const sourceRequirements = filterRequirementsByRound(project, allSourceRequirements, showAllExtractionRounds);
           const specRequirements = project.extractedRequirements?.spec || [];
-          const hasSourceText = sourceDocuments.some((documentItem) => Boolean(documentItem.content?.trim()));
+          const hasSourceText = sourceDocuments.some((documentItem) => Boolean(documentItem.content?.trim() || documentItem.stt?.transcript?.trim()));
           const hasSpecText = Boolean(specDocument?.content?.trim());
-          const hasBothDocuments = hasSourceText && hasSpecText;
           const latestMeeting = sourceDocuments.at(-1);
-          const extractedMeetingEvidence = sourceRequirements.flatMap((requirement) => Array.isArray(requirement.evidence) ? requirement.evidence : []);
+          const extractedMeetingEvidence = allSourceRequirements.flatMap((requirement) => Array.isArray(requirement.evidence) ? requirement.evidence : []);
           const distinctExtractedMeetings = new Map(extractedMeetingEvidence.map((evidence) => [
-            Number.isInteger(evidence.meetingIndex)
-              ? `meeting-${evidence.meetingIndex}`
-              : `${evidence.date || ""}-${evidence.documentName || ""}`,
+            evidence.sourceDocumentId || `${evidence.roundId || ""}-${evidence.date || ""}-${evidence.documentName || ""}`,
             evidence,
           ]));
           const extractedMeetingDates = [...new Set(extractedMeetingEvidence.map((evidence) => evidence.date).filter(Boolean))].sort();
-          const sourceMeetingCount = Math.max(sourceDocuments.length, distinctExtractedMeetings.size);
+          const sourceMeetingCount = Math.max(project.rounds?.length || 0, distinctExtractedMeetings.size, sourceDocuments.length);
           const latestMeetingDate = extractedMeetingDates.at(-1) || (latestMeeting ? meetingDateFor(latestMeeting, project) : "");
           const sourceDateSummary = sourceMeetingCount
-            ? `${sourceMeetingCount}회 회의 · 최신 회의 ${formatMeetingDate(latestMeetingDate)}`
+            ? `${showAllExtractionRounds ? "전체" : "최근"} · ${sourceMeetingCount}회 회의 · 최신 ${formatMeetingDate(latestMeetingDate)}`
             : "회의록 또는 메모가 입력되지 않았습니다.";
 
           elements.extractionTitle.textContent = `${project.name} 요구사항`;
@@ -4998,10 +5416,20 @@
           elements.specExtractionFile.textContent = specDocument?.name || "최종 기획서가 입력되지 않았습니다.";
           elements.sourceRequirementCount.textContent = `${sourceRequirements.length}개`;
           elements.specRequirementCount.textContent = `${specRequirements.length}개`;
+          elements.extractionRoundToggle.textContent = showAllExtractionRounds ? "최근 회차만 보기" : "전체 보기";
+          elements.extractionRoundToggle.setAttribute("aria-pressed", String(showAllExtractionRounds));
+          elements.extractionRoundToggle.disabled = allSourceRequirements.length === sourceRequirements.length;
           elements.runAnalysisButton.dataset.projectId = project.id;
-          elements.runAnalysisButton.disabled = !hasBothDocuments;
+          elements.runAnalysisButton.disabled = !hasSourceText;
           renderExtractedList(elements.sourceExtractionList, sourceRequirements, hasSourceText, "회의록 또는 고객 메모", "source");
           renderExtractedList(elements.specExtractionList, specRequirements, hasSpecText, "최종 기획서", "spec");
+
+          const draft = typeof project.specDraft === "object" ? project.specDraft?.content || "" : String(project.specDraft || "");
+          const update = typeof project.specUpdateProposal === "object" ? project.specUpdateProposal?.content || "" : String(project.specUpdateProposal || "");
+          elements.specDraftPanel.hidden = !draft;
+          elements.specDraftContent.value = draft;
+          elements.specUpdatePanel.hidden = !update;
+          elements.specUpdateContent.value = update;
 
           if (project.extractionRun) {
             elements.analysisState.textContent = `저장된 LLM 분석 결과 · ${formatDateTime(project.analysisRunAt || project.updatedAt)} · 회의록 ${sourceRequirements.length}개, 기획서 ${specRequirements.length}개 요구사항. 이 결과를 이어서 확인할 수 있습니다.`;
@@ -5615,10 +6043,20 @@
             meetings: [...elements.meetingList.querySelectorAll("[data-meeting-entry]")].map((entry) => ({
               date: entry.querySelector(".meeting-date").value,
               content: entry.querySelector(".meeting-notes").value.trim(),
+              documentId: entry.dataset.documentId || "",
+              roundId: entry.dataset.roundId || "",
+              roundNumber: Number(entry.dataset.roundNumber) || 0,
               name: entry.dataset.uploadName || "회의록 및 고객 메모",
               type: entry.dataset.uploadType || "직접 입력 · 텍스트",
+              stt: {
+                fileName: entry.dataset.sttFileName || "",
+                transcript: entry.querySelector(".meeting-stt-textarea")?.value.trim() || "",
+                transcribedAt: entry.dataset.sttTranscribedAt || null,
+                model: entry.dataset.sttModel || null,
+              },
             })),
             specContent: document.querySelector("#spec-content").value.trim(),
+            specTemplate: uploadedDocuments.template ? { ...uploadedDocuments.template } : null,
           };
         }
 
@@ -5757,18 +6195,159 @@
           }
         }
 
-        function meetingEntryMarkup(index, dateValue = localDateValue()) {
+        function extractTemplateStructure(text) {
+          const lines = String(text || "").split(/\r?\n/u).map((line) => line.trim()).filter(Boolean);
+          const headings = lines.filter((line) =>
+            /^(?:#{1,6}\s+|(?:제\s*)?\d+(?:\.\d+)*[.)]?\s+|[ⅠⅡⅢⅣⅤⅥⅦⅧⅨⅩ]+[.)]?\s+|목차\s*[:：]?\s*$|[가-힣]\s*[.)]\s*)/u.test(line)
+          );
+          return [...new Set((headings.length ? headings : lines.slice(0, 120)).map((line) => line.slice(0, 240))].slice(0, 300);
+        }
+
+        function showTemplateValue(template) {
+          uploadedDocuments.template = template ? {
+            fileName: String(template.fileName || ""),
+            content: String(template.content || ""),
+            structure: Array.isArray(template.structure) ? [...template.structure] : extractTemplateStructure(template.content || ""),
+            uploadedAt: template.uploadedAt || null,
+          } : null;
+          const saved = uploadedDocuments.template;
+          elements.templateRemove.hidden = !saved;
+          elements.templatePreview.hidden = !saved;
+          elements.templatePreviewName.textContent = saved?.fileName || "양식 미리보기";
+          elements.templatePreviewContent.textContent = saved
+            ? (saved.structure.length ? saved.structure.join("\n") : saved.content)
+            : "";
+          elements.templateStatus.textContent = saved
+            ? `${saved.fileName} · 양식 텍스트 ${saved.content.length.toLocaleString("ko-KR")}자 저장됨`
+            : "등록된 양식이 없습니다. 서비스 기본 구성을 사용합니다.";
+          elements.templateStatus.dataset.state = saved ? "success" : "";
+          if (!saved) delete elements.templateStatus.dataset.state;
+        }
+
+        function setMeetingSttStatus(entry, message, state = "") {
+          const status = entry.querySelector(".meeting-stt-status");
+          if (!status) return;
+          status.textContent = message;
+          if (state) status.dataset.state = state;
+          else delete status.dataset.state;
+        }
+
+        async function transcribeMeetingAudio(entry, file = entry.__audioFile) {
+          if (!file || !entry) return;
+          const extension = file.name.split(".").pop()?.toLocaleLowerCase("en-US") || "";
+          if (!["mp3", "wav", "m4a"].includes(extension)) {
+            setMeetingSttStatus(entry, "지원 형식은 MP3, WAV, M4A입니다.", "error");
+            entry.querySelector(".meeting-stt-retry").hidden = true;
+            return;
+          }
+          if (file.size > 25 * 1024 * 1024) {
+            setMeetingSttStatus(entry, "음성 파일은 25MB 이하로 선택해 주세요.", "error");
+            entry.__audioFile = null;
+            entry.querySelector(".meeting-stt-retry").hidden = true;
+            return;
+          }
+
+          entry.__audioFile = file;
+          const input = entry.querySelector(".meeting-audio-file");
+          const retry = entry.querySelector(".meeting-stt-retry");
+          input.disabled = true;
+          retry.disabled = true;
+          retry.hidden = true;
+          setMeetingSttStatus(entry, `${file.name} 음성을 텍스트로 변환 중...`, "loading");
+
+          try {
+            const response = await fetch("/api/transcribe", {
+              method: "POST",
+              headers: {
+                "content-type": "application/octet-stream",
+                "x-audio-filename": encodeURIComponent(file.name),
+              },
+              body: file,
+            });
+            let payload;
+            try {
+              payload = await response.json();
+            } catch {
+              throw new Error("STT 서버가 올바른 응답을 반환하지 않았습니다.");
+            }
+            if (!response.ok) throw new Error(payload.error || "음성 변환에 실패했습니다.");
+
+            const transcript = String(payload.transcript || "").trim();
+            if (!transcript) throw new Error("전사 결과가 비어 있습니다. 다른 파일로 다시 시도해 주세요.");
+            const textarea = entry.querySelector(".meeting-stt-textarea");
+            textarea.value = transcript;
+            entry.dataset.sttFileName = String(payload.fileName || file.name);
+            entry.dataset.sttTranscribedAt = String(payload.transcribedAt || new Date().toISOString());
+            entry.dataset.sttModel = String(payload.model || "whisper-large-v3-turbo");
+            entry.querySelector(".meeting-stt-transcript").hidden = false;
+            entry.__audioFile = null;
+            input.value = "";
+            setMeetingSttStatus(entry, `${entry.dataset.sttFileName} · 전사 완료`, "success");
+          } catch (error) {
+            const message = error instanceof TypeError
+              ? "STT 서버에 연결하지 못했습니다. 서버가 실행 중인지 확인해 주세요."
+              : error instanceof Error ? error.message : "음성 변환에 실패했습니다.";
+            setMeetingSttStatus(entry, `${file.name} · ${message}`, "error");
+            retry.hidden = false;
+          } finally {
+            input.disabled = false;
+            retry.disabled = false;
+          }
+        }
+
+        async function handleTemplateUpload(file) {
+          if (!file) return;
+          const extension = file.name.split(".").pop()?.toLocaleLowerCase("en-US") || "";
+          if (!["txt", "md", "pdf", "docx"].includes(extension)) {
+            setFileStatus(elements.templateStatus, "지원 형식은 TXT, MD, PDF, DOCX입니다.", "error");
+            return;
+          }
+          if (file.size > 10 * 1024 * 1024) {
+            setFileStatus(elements.templateStatus, "양식 파일은 10MB 이하로 선택해 주세요.", "error");
+            return;
+          }
+          elements.templateFile.disabled = true;
+          setFileStatus(elements.templateStatus, `${file.name} 양식 내용을 읽고 있습니다...`, "loading");
+          try {
+            const content = await extractDocumentText(file, extension);
+            if (!content) throw new Error("양식에서 텍스트를 추출하지 못했습니다.");
+            uploadedDocuments.template = {
+              fileName: file.name,
+              content: content.slice(0, 300000),
+              structure: extractTemplateStructure(content),
+              uploadedAt: new Date().toISOString(),
+            };
+            showTemplateValue(uploadedDocuments.template);
+          } catch (error) {
+            setFileStatus(elements.templateStatus, error instanceof Error ? error.message : "양식 파일을 읽지 못했습니다.", "error");
+          } finally {
+            elements.templateFile.disabled = false;
+            elements.templateFile.value = "";
+          }
+        }
+
+        function meetingEntryMarkup(index, dateValue = localDateValue(), documentItem = null) {
           const suffix = String(index);
+          const stt = documentItem?.stt || { fileName: "", transcript: "", transcribedAt: null, model: null };
+          const row = documentItem || {};
           return `
-            <section class="meeting-entry" data-meeting-entry>
+            <section class="meeting-entry" data-meeting-entry
+              ${row.id ? `data-document-id="${escapeHtml(row.id)}"` : ""}
+              ${row.roundId ? `data-round-id="${escapeHtml(row.roundId)}"` : ""}
+              ${Number.isInteger(row.roundNumber) ? `data-round-number="${row.roundNumber}"` : ""}
+              ${row.name ? `data-upload-name="${escapeHtml(row.name)}"` : ""}
+              ${row.type ? `data-upload-type="${escapeHtml(row.type)}"` : ""}
+              ${stt.fileName ? `data-stt-file-name="${escapeHtml(stt.fileName)}"` : ""}
+              ${stt.transcribedAt ? `data-stt-transcribed-at="${escapeHtml(stt.transcribedAt)}"` : ""}
+              ${stt.model ? `data-stt-model="${escapeHtml(stt.model)}"` : ""}>
               <div class="meeting-entry-heading">
                 <div class="field-group meeting-date-field">
                   <label for="meeting-date-${suffix}">회의 날짜</label>
-                  <input id="meeting-date-${suffix}" class="meeting-date" type="date" value="${escapeHtml(dateValue)}" />
+                  <input id="meeting-date-${suffix}" class="meeting-date" type="date" value="${escapeHtml(dateValue || "")}" />
                 </div>
-                <span class="meeting-entry-label">회의 ${suffix}</span>
+                <span class="meeting-entry-label">${row.roundNumber ? `회차 ${row.roundNumber}` : `회의 ${suffix}`}</span>
               </div>
-              <textarea id="meeting-notes-${suffix}" class="meeting-notes" placeholder="이 회의에서 새로 요청되거나 변경된 내용을 적어 주세요."></textarea>
+              <textarea id="meeting-notes-${suffix}" class="meeting-notes" placeholder="이 회의에서 새로 요청되거나 변경된 내용을 적어 주세요.">${escapeHtml(row.content || "")}</textarea>
               <div class="file-upload">
                 <div class="file-upload-copy">
                   <strong>회의록 파일 업로드</strong>
@@ -5782,7 +6361,7 @@
                   <input class="file-input meeting-file" id="meeting-file-${suffix}" type="file" accept=".txt,.md,.pdf,.docx,text/plain,text/markdown,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" />
                 </label>
               </div>
-              <p class="file-upload-state meeting-file-status" role="status" aria-live="polite">문서 내용을 읽어 위 입력란에 채웁니다.</p>
+              <p class="file-upload-state meeting-file-status" role="status" aria-live="polite">${escapeHtml(row.name ? `${row.name} · 저장된 회의록` : "문서 내용을 읽어 위 입력란에 채웁니다.")}</p>
               <details class="meeting-stt">
                 <summary>음성 파일 전사 <span class="stt-summary-hint">선택 · MP3, WAV, M4A</span></summary>
                 <div class="meeting-stt-body">
@@ -5800,11 +6379,11 @@
                       <input class="file-input meeting-audio-file" id="meeting-audio-${suffix}" type="file" accept=".mp3,.wav,.m4a,audio/mpeg,audio/wav,audio/x-wav,audio/mp4" />
                     </label>
                   </div>
-                  <p class="meeting-stt-status" role="status" aria-live="polite">음성을 텍스트로 바꾸려면 파일을 선택하세요.</p>
-                  <button class="button-secondary meeting-stt-retry" type="button" hidden>다시 시도</button>
-                  <div class="meeting-stt-transcript" hidden>
-                    <label for="meeting-transcript-${suffix}">전사 텍스트 <span class="field-hint">필요한 내용을 직접 수정하거나 지울 수 있습니다.</span></label>
-                    <textarea class="meeting-stt-textarea" id="meeting-transcript-${suffix}" rows="5" placeholder="변환된 음성 텍스트가 여기에 표시됩니다."></textarea>
+              <p class="meeting-stt-status" role="status" aria-live="polite">${escapeHtml(stt.fileName ? `${stt.fileName} · 저장된 전사 텍스트` : "음성을 텍스트로 바꾸려면 파일을 선택하세요.")}</p>
+              <button class="button-secondary meeting-stt-retry" type="button" hidden>다시 시도</button>
+              <div class="meeting-stt-transcript" ${stt.transcript ? "" : "hidden"}>
+                <label for="meeting-transcript-${suffix}">전사 텍스트 <span class="field-hint">필요한 내용을 직접 수정하거나 지울 수 있습니다.</span></label>
+                <textarea class="meeting-stt-textarea" id="meeting-transcript-${suffix}" rows="5" placeholder="변환된 음성 텍스트가 여기에 표시됩니다.">${escapeHtml(stt.transcript || "")}</textarea>
                     <div class="meeting-stt-transcript-actions">
                       <span class="meeting-stt-transcript-note">요구사항 분석에 회의 메모와 함께 사용됩니다.</span>
                       <button class="meeting-stt-clear" type="button">전사 텍스트 지우기</button>
