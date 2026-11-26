@@ -1074,6 +1074,68 @@
         height: 15px;
       }
 
+      .project-delete-dialog {
+        width: min(420px, calc(100% - 32px));
+        max-width: none;
+        padding: 0;
+        overflow: hidden;
+        border: 1px solid #e2e8e2;
+        border-radius: 14px;
+        background: #ffffff;
+        color: var(--ink);
+        box-shadow: 0 24px 70px rgba(20, 36, 27, 0.2);
+      }
+
+      .project-delete-dialog::backdrop {
+        background: rgba(21, 37, 29, 0.48);
+        backdrop-filter: blur(2px);
+      }
+
+      .delete-dialog-content {
+        padding: 23px;
+      }
+
+      .delete-dialog-content h2 {
+        margin: 0 0 9px;
+        color: #344139;
+        font-size: 17px;
+        font-weight: 720;
+        letter-spacing: -0.03em;
+      }
+
+      .delete-dialog-content p {
+        margin: 0;
+        color: #758078;
+        font-size: 12px;
+        line-height: 1.7;
+        overflow-wrap: anywhere;
+      }
+
+      .delete-dialog-content strong {
+        color: #3f4d43;
+      }
+
+      .delete-dialog-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+        margin-top: 21px;
+      }
+
+      .delete-dialog-actions button {
+        min-height: 40px;
+      }
+
+      @media (max-width: 480px) {
+        .delete-dialog-content {
+          padding: 19px;
+        }
+
+        .delete-dialog-actions button {
+          flex: 1;
+        }
+      }
+
       .button-secondary svg,
       .button-link svg {
         width: 15px;
@@ -4176,6 +4238,16 @@
         </main>
       </div>
     </div>
+    <dialog class="project-delete-dialog" id="project-delete-dialog" aria-labelledby="project-delete-title" aria-describedby="project-delete-description">
+      <div class="delete-dialog-content">
+        <h2 id="project-delete-title">프로젝트를 삭제할까요?</h2>
+        <p id="project-delete-description"><strong id="project-delete-name"></strong> 프로젝트와 저장된 문서, 요구사항, 분석 결과가 함께 삭제됩니다. 이 작업은 되돌릴 수 없습니다.</p>
+        <div class="delete-dialog-actions">
+          <button class="button-secondary" id="cancel-project-delete" type="button">취소</button>
+          <button class="button-danger" id="confirm-project-delete" type="button">프로젝트 삭제</button>
+        </div>
+      </div>
+    </dialog>
     <script>
       (() => {
         const storageKey = "specguard-projects-v1";
@@ -4379,6 +4451,10 @@
           comparisonFilterCountConflict: document.querySelector("#comparison-filter-count-conflict"),
           comparisonResultList: document.querySelector("#comparison-result-list"),
           comparisonEmptyResults: document.querySelector("#comparison-empty-results"),
+          deleteDialog: document.querySelector("#project-delete-dialog"),
+          deleteProjectName: document.querySelector("#project-delete-name"),
+          cancelProjectDelete: document.querySelector("#cancel-project-delete"),
+          confirmProjectDelete: document.querySelector("#confirm-project-delete"),
         };
         const uploadedDocuments = { spec: null };
         let nextMeetingIndex = 2;
@@ -4387,6 +4463,7 @@
         let comparisonFilter = "all";
         let showDeletedReviews = false;
         let editingReviewId = null;
+        let pendingDeleteProjectId = null;
 
         function escapeHtml(value = "") {
           return String(value).replace(/[&<>"']/g, (character) => ({
@@ -5525,12 +5602,19 @@
           }
         }
 
-        function deleteProject(projectId) {
+        function requestProjectDeletion(projectId) {
           const target = projects.find((project) => project.id === projectId);
           if (!target) return false;
 
-          const confirmed = window.confirm(`“${target.name}” 프로젝트와 저장된 문서, 요구사항, 분석 결과를 삭제할까요? 이 작업은 되돌릴 수 없습니다.`);
-          if (!confirmed) return false;
+          pendingDeleteProjectId = projectId;
+          elements.deleteProjectName.textContent = target.name;
+          if (!elements.deleteDialog.open) elements.deleteDialog.showModal();
+          return true;
+        }
+
+        function deleteProject(projectId) {
+          const target = projects.find((project) => project.id === projectId);
+          if (!target) return false;
 
           const previousProjects = projects;
           projects = projects.filter((project) => project.id !== projectId);
@@ -5667,7 +5751,23 @@
           if (!deleteButton) return;
           event.preventDefault();
           event.stopPropagation();
-          deleteProject(deleteButton.dataset.deleteProjectId);
+          requestProjectDeletion(deleteButton.dataset.deleteProjectId);
+        });
+
+        elements.deleteDialog.addEventListener("cancel", () => {
+          pendingDeleteProjectId = null;
+        });
+
+        elements.cancelProjectDelete.addEventListener("click", () => {
+          pendingDeleteProjectId = null;
+          elements.deleteDialog.close();
+        });
+
+        elements.confirmProjectDelete.addEventListener("click", () => {
+          const projectId = pendingDeleteProjectId;
+          pendingDeleteProjectId = null;
+          elements.deleteDialog.close();
+          if (projectId) deleteProject(projectId);
         });
 
         document.querySelector("#add-meeting").addEventListener("click", () => {
