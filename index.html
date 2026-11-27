@@ -5373,6 +5373,7 @@
     <script>
       (() => {
         const storageKey = "specguard-projects-v1";
+        const legacyImportMarkerKey = "specguard-legacy-import-v1";
         const statusLabels = {
           draft: "작성 중",
           review: "검토 필요",
@@ -5766,6 +5767,22 @@
           }
         }
 
+        function hasLegacyImportMarker() {
+          try {
+            return localStorage.getItem(legacyImportMarkerKey) === "completed";
+          } catch {
+            return false;
+          }
+        }
+
+        function markLegacyImportComplete() {
+          try {
+            localStorage.setItem(legacyImportMarkerKey, "completed");
+          } catch {
+            // Server-side project ID collision checks still prevent duplicate imports.
+          }
+        }
+
         let projects = [];
         const persistedProjectSnapshots = new Map();
         let currentUser = null;
@@ -6027,11 +6044,16 @@
         }
 
         async function maybeImportLegacyProjects(legacyImportCompleted) {
-          if (legacyImportCompleted) return false;
+          if (legacyImportCompleted) {
+            markLegacyImportComplete();
+            return false;
+          }
+          if (hasLegacyImportMarker()) return false;
           const legacy = readLegacyProjectsForImport();
           if (legacy.malformed) {
             console.warn("기존 브라우저 프로젝트 데이터가 JSON 형식이 아니어서 자동 이전하지 않았습니다. 원본은 그대로 보존했습니다.");
             await apiRequest("/api/projects/import-legacy", { method: "POST", body: { confirmOwnership: true, projects: [] } });
+            markLegacyImportComplete();
             return false;
           }
           const eligible = legacy.projects.filter((project) => project
@@ -6039,6 +6061,7 @@
             && (!project.ownerId || project.ownerId === currentUser.id));
           if (!eligible.length) {
             await apiRequest("/api/projects/import-legacy", { method: "POST", body: { confirmOwnership: true, projects: [] } });
+            markLegacyImportComplete();
             return false;
           }
 
@@ -6049,10 +6072,15 @@
             method: "POST",
             body: { confirmOwnership: true, projects: accepted ? eligible : [] },
           });
+          markLegacyImportComplete();
           if (accepted && result.importedCount > 0) {
             await loadProjectsFromDatabase();
             window.alert(`${result.importedCount}개의 이전 프로젝트를 계정에 불러왔습니다. 브라우저의 원본은 그대로 보존했습니다.`);
             return true;
+          }
+          if (accepted && result.skippedCount > 0) {
+            window.alert("이미 다른 계정에 저장된 프로젝트는 중복 복사하지 않았습니다. 기존 계정의 프로젝트는 그대로 보존되어 있습니다.");
+            return false;
           }
           if (!accepted) window.alert("이전 프로젝트는 가져오지 않았습니다. 브라우저 원본 데이터는 그대로 보존했습니다.");
           return false;

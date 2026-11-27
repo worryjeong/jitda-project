@@ -207,6 +207,19 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
     assert.equal(secondUser.response.status, 201);
     const betaCookie = secondUser.cookie;
     const betaCsrf = secondUser.payload.csrfToken;
+
+    const crossAccountLegacyImport = await request("/api/projects/import-legacy", {
+      method: "POST",
+      cookie: betaCookie,
+      csrf: betaCsrf,
+      body: {
+        confirmOwnership: true,
+        projects: [{ id: "legacy-alpha", name: "이전 프로젝트", client: "테스트 고객", isSample: false }],
+      },
+    });
+    assert.equal(crossAccountLegacyImport.payload.importedCount, 0, "legacy projects already owned by another account are not copied");
+    assert.equal(crossAccountLegacyImport.payload.skippedCount, 1);
+
     const betaProjects = await request("/api/projects", { cookie: betaCookie });
     assert.equal(betaProjects.payload.projects.length, 0, "accounts see only their own projects");
     const crossAccountRead = await request("/api/projects/project-alpha", { cookie: betaCookie });

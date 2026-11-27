@@ -625,20 +625,18 @@ function importLegacyProjectsOnce(ownerId, body) {
   try {
     for (const legacyProject of candidates) {
       const prepared = projectObjectForStorage(legacyProject);
-      let projectId = prepared.project.id;
-      const collision = projectsDatabase.prepare("SELECT owner_id FROM projects WHERE id = ?").get(projectId);
-      if (collision && collision.owner_id !== ownerId) projectId = crypto.randomUUID();
-      const ownCollision = projectsDatabase.prepare("SELECT id FROM projects WHERE id = ? AND owner_id = ?").get(projectId, ownerId);
-      if (ownCollision) {
+      const collision = projectsDatabase.prepare("SELECT owner_id FROM projects WHERE id = ?").get(prepared.project.id);
+      if (collision) {
+        // IDs are stable across accounts in the legacy browser store. Never
+        // clone an existing project under a new ID just to bypass ownership.
         skippedCount += 1;
         continue;
       }
-      prepared.project.id = projectId;
       const serialized = JSON.stringify(prepared.project);
       projectsDatabase.prepare(`
         INSERT INTO projects (id, owner_id, version, data_json, created_at, updated_at)
         VALUES (?, ?, 1, ?, ?, ?)
-      `).run(projectId, ownerId, serialized, prepared.project.createdAt || now, now);
+      `).run(prepared.project.id, ownerId, serialized, prepared.project.createdAt || now, now);
       importedCount += 1;
     }
     projectsDatabase.prepare(`
