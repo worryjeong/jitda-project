@@ -613,6 +613,33 @@
         transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
       }
 
+      .sidebar-logout-mobile {
+        display: none;
+        min-height: 38px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 11px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.09);
+        color: #ffffff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .sidebar-logout-mobile:hover {
+        border-color: rgba(255, 255, 255, 0.58);
+        background: rgba(255, 255, 255, 0.16);
+      }
+
+      .sidebar-logout-mobile:focus-visible {
+        outline: 3px solid var(--lime);
+        outline-offset: 3px;
+      }
+
       .sidebar-workspace-mobile:hover,
       .sidebar-workspace-mobile[aria-current="page"] {
         border-color: var(--lime);
@@ -627,7 +654,8 @@
       }
 
       .sidebar-workspace-manage[hidden],
-      .sidebar-workspace-mobile[hidden] {
+      .sidebar-workspace-mobile[hidden],
+      .sidebar-logout-mobile[hidden] {
         display: none !important;
       }
 
@@ -6602,6 +6630,12 @@
           margin: 0;
         }
 
+        .sidebar-logout-mobile {
+          display: inline-flex;
+          flex: 0 0 auto;
+          min-height: 42px;
+        }
+
         .side-nav {
           grid-area: navigation;
           justify-self: end;
@@ -7164,6 +7198,7 @@
             </svg>
             프로젝트 초대 관리
           </a>
+          <button class="sidebar-logout-mobile" id="sidebar-logout-mobile" type="button" hidden>로그아웃</button>
         </div>
 
         <a class="workspace-switcher" id="workspace-switcher" href="#/workspace" aria-label="현재 워크스페이스 및 프로젝트 초대 관리">
@@ -7250,12 +7285,12 @@
                 </div>
                 <div class="field-group">
                   <label for="register-password">비밀번호</label>
-                  <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="7" maxlength="128" required />
-                  <span class="field-hint">7~128자로 입력해 주세요.</span>
+                  <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="7" maxlength="12" required />
+                  <span class="field-hint">7~12자로 입력해 주세요.</span>
                 </div>
                 <div class="field-group">
                   <label for="register-password-confirm">비밀번호 확인</label>
-                  <input id="register-password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="7" maxlength="128" required />
+                  <input id="register-password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="7" maxlength="12" required />
                 </div>
                 <button class="static-button" type="submit">계정 만들기</button>
               </form>
@@ -7467,12 +7502,15 @@
                 <h1 id="projects-title">전체 프로젝트</h1>
                 <p>프로젝트의 입력 문서와 요구사항 검토 상태를 확인하세요.</p>
               </div>
-              <a class="static-button" href="#/projects/new">
-                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
-                </svg>
-                새 프로젝트
-              </a>
+              <div class="page-actions">
+                <a class="button-secondary" href="#/">대시보드로 돌아가기</a>
+                <a class="static-button" href="#/projects/new">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" />
+                  </svg>
+                  새 프로젝트
+                </a>
+              </div>
             </div>
             <div class="panel projects-panel">
               <div class="project-list-toolbar">
@@ -8550,6 +8588,7 @@
           workspaceSwitcher: document.querySelector("#workspace-switcher"),
           workspaceManageLink: document.querySelector("#sidebar-workspace-manage"),
           workspaceManageMobile: document.querySelector("#sidebar-workspace-mobile"),
+          sidebarLogoutMobile: document.querySelector("#sidebar-logout-mobile"),
           sidebarUsername: document.querySelector("#sidebar-username"),
           sidebarAccountStatus: document.querySelector("#sidebar-account-status"),
           sidebarAvatar: document.querySelector("#sidebar-avatar"),
@@ -8780,13 +8819,7 @@
             payload = { error: "서버가 올바른 응답을 반환하지 않았습니다." };
           }
           if (response.status === 401 && currentUser) {
-            currentUser = null;
-            csrfToken = "";
-            projects = [];
-            persistedProjectSnapshots.clear();
-            pendingInvitations = [];
-            renderPendingInvitations();
-            updateSidebarIdentity();
+            clearClientAuthentication();
             renderRoute();
           }
           if (!response.ok) throw new ApiRequestError(response.status, payload);
@@ -8822,6 +8855,7 @@
           elements.sidebarUsername.textContent = username;
           elements.sidebarAccountStatus.textContent = currentUser ? "마이페이지 · 계정 관리" : "로그인해 주세요";
           elements.logoutButton.hidden = !currentUser;
+          elements.sidebarLogoutMobile.hidden = !currentUser;
           elements.workspaceManageLink.hidden = !currentUser;
           elements.workspaceManageMobile.hidden = !currentUser;
           const initials = currentUser?.username?.slice(0, 2).toUpperCase() || "SG";
@@ -9257,7 +9291,7 @@
           const migration = await loadProjectsFromDatabase();
           await maybeImportLegacyProjects(migration.legacyImportCompleted);
           await loadPendingInvitations();
-          if (options.redirectToHome) window.location.hash = "/home";
+          if (options.redirectToHome) replaceRoute("/");
           authBootstrapped = true;
           renderRoute();
         }
@@ -9267,13 +9301,7 @@
             const session = await apiRequest("/api/auth/me");
             await initializeAuthenticatedSession(session);
           } catch (error) {
-            currentUser = null;
-            csrfToken = "";
-            projects = [];
-            persistedProjectSnapshots.clear();
-            pendingInvitations = [];
-            renderPendingInvitations();
-            updateSidebarIdentity();
+            clearClientAuthentication();
             setAuthError(error instanceof Error ? error.message : "로그인 상태를 확인하지 못했습니다.");
             renderRoute();
           }
@@ -11242,6 +11270,59 @@
           window.location.hash = path;
         }
 
+        function replaceRoute(path) {
+          const nextRoute = String(path || "/").startsWith("/") ? String(path || "/") : `/${path}`;
+          const url = new URL(window.location.href);
+          url.hash = nextRoute;
+          window.history.replaceState(window.history.state, "", url);
+        }
+
+        function clearClientAuthentication() {
+          currentUser = null;
+          csrfToken = "";
+          authBootstrapped = false;
+          projects = [];
+          persistedProjectSnapshots.clear();
+          projectSaveQueues.clear();
+          pendingInvitations = [];
+          myPageProfileDirty = false;
+          myPageNoticeMessage = "";
+          myPageNoticeIsError = false;
+          resetExtractionSearch("");
+          renderPendingInvitations();
+          updateSidebarIdentity();
+          setAuthMode("login");
+        }
+
+        function finishLogoutNavigation() {
+          clearClientAuthentication();
+          replaceRoute("/");
+          renderRoute();
+        }
+
+        let logoutInProgress = false;
+
+        async function logoutAndReturnToDashboard() {
+          if (!currentUser || logoutInProgress) return;
+          logoutInProgress = true;
+          elements.logoutButton.disabled = true;
+          elements.mypageLogoutButton.disabled = true;
+          try {
+            await apiRequest("/api/auth/logout", { method: "POST", body: {} });
+            finishLogoutNavigation();
+          } catch (error) {
+            if (error instanceof ApiRequestError && error.status === 401) {
+              finishLogoutNavigation();
+            } else {
+              window.alert(error instanceof Error ? error.message : "로그아웃하지 못했습니다.");
+            }
+          } finally {
+            logoutInProgress = false;
+            elements.logoutButton.disabled = false;
+            elements.mypageLogoutButton.disabled = false;
+          }
+        }
+
         function resetCreateForm() {
           elements.meetingList.innerHTML = meetingEntryMarkup(1, localDateValue());
           elements.form.reset();
@@ -11588,6 +11669,7 @@
           });
 
           if (!currentUser && route !== "/guide") {
+            if (rawRoute && rawRoute !== "/") replaceRoute("/");
             elements.authView.hidden = false;
             document.title = "로그인 | 스펙가드";
             return;
@@ -11750,7 +11832,8 @@
           }
         });
 
-        elements.mypageLogoutButton.addEventListener("click", () => elements.logoutButton.click());
+        elements.mypageLogoutButton.addEventListener("click", logoutAndReturnToDashboard);
+        elements.sidebarLogoutMobile.addEventListener("click", logoutAndReturnToDashboard);
 
         elements.authLoginForm.addEventListener("submit", async (event) => {
           event.preventDefault();
@@ -11809,25 +11892,7 @@
           }
         });
 
-        elements.logoutButton.addEventListener("click", async () => {
-          elements.logoutButton.disabled = true;
-          try {
-            await apiRequest("/api/auth/logout", { method: "POST", body: {} });
-            currentUser = null;
-            csrfToken = "";
-            projects = [];
-            persistedProjectSnapshots.clear();
-            pendingInvitations = [];
-            renderPendingInvitations();
-            updateSidebarIdentity();
-            setAuthMode("login");
-            renderRoute();
-          } catch (error) {
-            window.alert(error instanceof Error ? error.message : "로그아웃하지 못했습니다.");
-          } finally {
-            elements.logoutButton.disabled = false;
-          }
-        });
+        elements.logoutButton.addEventListener("click", logoutAndReturnToDashboard);
 
         elements.pendingInvitationsList.addEventListener("click", async (event) => {
           const button = event.target.closest("[data-accept-invitation]");
@@ -12676,6 +12741,9 @@
         });
 
         window.addEventListener("hashchange", renderRoute);
+        window.addEventListener("pageshow", (event) => {
+          if (event.persisted) bootstrapAuthentication();
+        });
         bootstrapAuthentication();
       })();
     </script>

@@ -80,7 +80,30 @@ test("the review guide stays public while a successful login returns to the home
   assert.match(html, /if \(!currentUser && route !== "\/guide"\)/u);
   assert.match(html, /if \(route === "\/guide"\)\s*\{[\s\S]*?elements\.guide\.hidden = false/u);
   assert.match(html, /initializeAuthenticatedSession\(session, \{ redirectToHome: true \}\)/u);
-  assert.match(html, /if \(options\.redirectToHome\) window\.location\.hash = "\/home"/u);
+  assert.match(html, /if \(options\.redirectToHome\) replaceRoute\("\/"\)/u);
+});
+
+test("logout replaces history with the public root and blocks protected routes after session cleanup", async () => {
+  const html = await fs.readFile(indexPath, "utf8");
+  assert.match(html, /function replaceRoute\(path\)[\s\S]*?window\.history\.replaceState/u);
+  assert.match(html, /function clearClientAuthentication\(\)[\s\S]*?currentUser = null;[\s\S]*?csrfToken = "";[\s\S]*?projects = \[\];[\s\S]*?persistedProjectSnapshots\.clear\(\)/u);
+  assert.match(html, /async function logoutAndReturnToDashboard\(\)[\s\S]*?apiRequest\("\/api\/auth\/logout"[\s\S]*?finishLogoutNavigation\(\)/u);
+  assert.match(html, /function finishLogoutNavigation\(\)[\s\S]*?replaceRoute\("\/"\)[\s\S]*?renderRoute\(\)/u);
+  assert.match(html, /if \(!currentUser && route !== "\/guide"\)\s*\{\s*if \(rawRoute && rawRoute !== "\/"\) replaceRoute\("\/"\)/u);
+  assert.match(html, /elements\.logoutButton\.addEventListener\("click", logoutAndReturnToDashboard\)/u);
+  assert.match(html, /elements\.mypageLogoutButton\.addEventListener\("click", logoutAndReturnToDashboard\)/u);
+  assert.match(html, /id="sidebar-logout-mobile"[^>]*hidden/u);
+  assert.match(html, /elements\.sidebarLogoutMobile\.hidden = !currentUser/u);
+  assert.match(html, /elements\.sidebarLogoutMobile\.addEventListener\("click", logoutAndReturnToDashboard\)/u);
+  assert.match(html, /window\.addEventListener\("pageshow", \(event\) =>\s*\{\s*if \(event\.persisted\) bootstrapAuthentication\(\)/u);
+});
+
+test("new account passwords are limited to twelve characters and projects page links back to dashboard", async () => {
+  const html = await fs.readFile(indexPath, "utf8");
+  assert.match(html, /id="register-password"[^>]*minlength="7" maxlength="12"/u);
+  assert.match(html, /id="register-password-confirm"[^>]*minlength="7" maxlength="12"/u);
+  assert.match(html, /7~12자로 입력해 주세요\./u);
+  assert.match(html, /<a class="button-secondary" href="#\/">대시보드로 돌아가기<\/a>/u);
 });
 
 test("extraction search controls are labeled, ordered beside AI analysis, and use safe DOM text rendering", async () => {

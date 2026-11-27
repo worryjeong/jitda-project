@@ -100,6 +100,18 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
     });
     assert.equal(shortPassword.response.status, 400, "six-character passwords are rejected");
 
+    const overLimitPassword = await request("/api/auth/register", {
+      method: "POST",
+      body: { username: "long_password", password: "1234567890123", passwordConfirm: "1234567890123" },
+    });
+    assert.equal(overLimitPassword.response.status, 400, "new accounts reject passwords longer than twelve characters");
+
+    const twelveCharacterPassword = await request("/api/auth/register", {
+      method: "POST",
+      body: { username: "twelve_chars", password: "123456789012", passwordConfirm: "123456789012" },
+    });
+    assert.equal(twelveCharacterPassword.response.status, 201, "twelve-character passwords are accepted");
+
     const registered = await request("/api/auth/register", {
       method: "POST",
       body: { username: "alpha_user", password: "1234567", passwordConfirm: "1234567" },
@@ -602,7 +614,9 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
 
     const logout = await request("/api/auth/logout", { method: "POST", cookie: alphaCookie, csrf: alphaCsrf, body: {} });
     assert.equal(logout.response.status, 200);
+    assert.match(logout.response.headers.get("set-cookie") || "", /Max-Age=0/u, "logout clears the browser session cookie");
     assert.equal((await request("/api/projects", { cookie: alphaCookie })).response.status, 401);
+    assert.equal((await request("/api/auth/me", { cookie: alphaCookie })).payload.authenticated, false, "logout revokes the server session");
 
     const login = await request("/api/auth/login", {
       method: "POST",

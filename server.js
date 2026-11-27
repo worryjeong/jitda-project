@@ -487,8 +487,11 @@ function validateCredentials(body, isRegistration) {
   if (!/^[A-Za-z0-9_]{3,30}$/.test(username)) {
     throw new HttpError(400, "아이디는 영문, 숫자, 밑줄(_)을 사용한 3~30자로 입력해 주세요.");
   }
-  if (password.length < 7 || password.length > 128) {
-    throw new HttpError(400, "비밀번호는 7~128자로 입력해 주세요.");
+  const maximumPasswordLength = isRegistration ? 12 : 128;
+  if (password.length < 7 || password.length > maximumPasswordLength) {
+    throw new HttpError(400, isRegistration
+      ? "새 비밀번호는 7~12자로 입력해 주세요."
+      : "비밀번호는 7자 이상으로 입력해 주세요.");
   }
   if (isRegistration && body.passwordConfirm !== password) {
     throw new HttpError(400, "비밀번호 확인이 일치하지 않습니다.");
