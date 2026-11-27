@@ -3,14 +3,66 @@
 const http = require("node:http");
 const fs = require("node:fs");
 const path = require("node:path");
+const crypto = require("node:crypto");
+const { DatabaseSync } = require("node:sqlite");
 
 const root = __dirname;
 const port = Number(process.env.PORT || 3000);
+const dataDirectory = path.join(root, "data");
+const sessionCookieName = "specguard_session";
+const sessionLifetimeSeconds = 7 * 24 * 60 * 60;
+const sessionLifetimeMs = sessionLifetimeSeconds * 1000;
+fs.mkdirSync(dataDirectory, { recursive: true });
+
+const usersDatabase = new DatabaseSync(path.join(dataDirectory, "users.sqlite"));
+usersDatabase.exec(`
+  PRAGMA foreign_keys = ON;
+  PRAGMA journal_mode = WAL;
+  CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    username_key TEXT NOT NULL UNIQUE,
+    username TEXT NOT NULL,
+    salt TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL
+  );
+  CREATE TABLE IF NOT EXISTS sessions (
+    session_hash TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    csrf_token TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    expires_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions(user_id);
+  CREATE INDEX IF NOT EXISTS sessions_expires_at_idx ON sessions(expires_at);
+`);
+
+const projectsDatabase = new DatabaseSync(path.join(dataDirectory, "projects.sqlite"));
+projectsDatabase.exec(`
+  PRAGMA foreign_keys = ON;
+  PRAGMA journal_mode = WAL;
+  CREATE TABLE IF NOT EXISTS projects (
+    id TEXT PRIMARY KEY,
+    owner_id TEXT NOT NULL,
+    version INTEGER NOT NULL DEFAULT 1,
+    data_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+  CREATE INDEX IF NOT EXISTS projects_owner_updated_idx ON projects(owner_id, updated_at DESC);
+  CREATE TABLE IF NOT EXISTS legacy_imports (
+    owner_id TEXT PRIMARY KEY,
+    completed_at TEXT NOT NULL,
+    imported_count INTEGER NOT NULL DEFAULT 0,
+    skipped_count INTEGER NOT NULL DEFAULT 0
+  );
+`);
+
 const model = "jitda-chat";
 const sttModel = "whisper-large-v3-turbo";
 const sttEndpoint = "https://api.groq.com/openai/v1/audio/transcriptions";
 const maxAudioBytes = 25 * 1024 * 1024;
-const maxBodyBytes = 2 * 1024 * 1024;
+const maxBodyBytes = 6 * 1024 * 1024;
 const staticFiles = new Set(["index.html", "__preview-bridge.js"]);
 const defaultSpecificationTemplate = {
   fileName: "서비스 기본 기획서 양식",
@@ -305,6 +357,466 @@ function sendJson(response, status, data) {
     "x-content-type-options": "nosniff",
   });
   response.end(JSON.stringify(data));
+}
+
+function sha256(value) {
+  return crypto.createHash("sha256").update(String(value)).digest("hex");
+}
+
+function constantTimeStringEqual(first, second) {
+  const a = Buffer.from(String(first || ""));
+  const b = Buffer.from(String(second || ""));
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function parseCookies(header = "") {
+  const cookies = Object.create(null);
+  for (const segment of String(header).split(";")) {
+    const separator = segment.indexOf("=");
+    if (separator < 0) continue;
+    const name = segment.slice(0, separator).trim();
+    const value = segment.slice(separator + 1).trim();
+    if (!name) continue;
+    try {
+      cookies[name] = decodeURIComponent(value);
+    } catch {
+      cookies[name] = value;
+    }
+  }
+  return cookies;
+}
+
+function requestIsHttps(request) {
+  return Boolean(request.socket?.encrypted)
+    || String(request.headers["x-forwarded-proto"] || "").split(",")[0].trim().toLowerCase() === "https";
+}
+
+function sessionCookie(request, value, maxAge = sessionLifetimeSeconds) {
+  const secure = process.env.NODE_ENV === "production" || requestIsHttps(request);
+  return `${sessionCookieName}=${encodeURIComponent(value)}; HttpOnly; SameSite=Lax; Path=/; Max-Age=${maxAge}${secure ? "; Secure" : ""}`;
+}
+
+function requireSameOrigin(request) {
+  const fetchSite = String(request.headers["sec-fetch-site"] || "").toLowerCase();
+  if (fetchSite === "cross-site") throw new HttpError(403, "요청 출처를 확인할 수 없습니다.");
+  const origin = request.headers.origin;
+  if (!origin) return;
+  try {
+    const originUrl = new URL(origin);
+    const host = String(request.headers["x-forwarded-host"] || request.headers.host || "").split(",")[0].trim().toLowerCase();
+    if (host && originUrl.host.toLowerCase() !== host) throw new HttpError(403, "요청 출처를 확인할 수 없습니다.");
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    throw new HttpError(403, "요청 출처를 확인할 수 없습니다.");
+  }
+}
+
+function passwordHash(password, salt) {
+  return crypto.scryptSync(password, salt, 64, { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 }).toString("hex");
+}
+
+function validateCredentials(body, isRegistration) {
+  const username = typeof body?.username === "string" ? body.username.trim() : "";
+  const password = typeof body?.password === "string" ? body.password : "";
+  if (!/^[A-Za-z0-9_]{3,30}$/.test(username)) {
+    throw new HttpError(400, "아이디는 영문, 숫자, 밑줄(_)을 사용한 3~30자로 입력해 주세요.");
+  }
+  if (password.length < 7 || password.length > 128) {
+    throw new HttpError(400, "비밀번호는 7~128자로 입력해 주세요.");
+  }
+  if (isRegistration && body.passwordConfirm !== password) {
+    throw new HttpError(400, "비밀번호 확인이 일치하지 않습니다.");
+  }
+  return { username, usernameKey: username.toLowerCase(), password };
+}
+
+function sessionContext(request) {
+  const rawToken = parseCookies(request.headers.cookie)[sessionCookieName];
+  if (!rawToken) return null;
+  const sessionHash = sha256(rawToken);
+  const row = usersDatabase.prepare(`
+    SELECT sessions.session_hash, sessions.user_id, sessions.csrf_token, sessions.expires_at,
+           users.username
+    FROM sessions JOIN users ON users.id = sessions.user_id
+    WHERE sessions.session_hash = ?
+  `).get(sessionHash);
+  if (!row) return null;
+  if (Date.parse(row.expires_at) <= Date.now()) {
+    usersDatabase.prepare("DELETE FROM sessions WHERE session_hash = ?").run(sessionHash);
+    return null;
+  }
+  return {
+    sessionHash: row.session_hash,
+    user: { id: row.user_id, username: row.username },
+    csrfToken: row.csrf_token,
+    expiresAt: row.expires_at,
+  };
+}
+
+function requireSession(request, response) {
+  const auth = sessionContext(request);
+  if (!auth) {
+    sendJson(response, 401, { error: "로그인이 필요합니다." });
+    return null;
+  }
+  return auth;
+}
+
+function requireCsrf(request, response, auth) {
+  const supplied = String(request.headers["x-csrf-token"] || "");
+  if (!supplied || !constantTimeStringEqual(sha256(supplied), sha256(auth.csrfToken))) {
+    sendJson(response, 403, { error: "요청 검증에 실패했습니다. 페이지를 새로고침한 뒤 다시 시도해 주세요." });
+    return false;
+  }
+  return true;
+}
+
+function createSession(userId) {
+  const rawToken = crypto.randomBytes(32).toString("base64url");
+  const csrfToken = crypto.randomBytes(32).toString("base64url");
+  const createdAt = new Date();
+  const expiresAt = new Date(createdAt.getTime() + sessionLifetimeMs);
+  usersDatabase.prepare(`
+    INSERT INTO sessions (session_hash, user_id, csrf_token, created_at, expires_at)
+    VALUES (?, ?, ?, ?, ?)
+  `).run(sha256(rawToken), userId, csrfToken, createdAt.toISOString(), expiresAt.toISOString());
+  return { rawToken, csrfToken, expiresAt: expiresAt.toISOString() };
+}
+
+function normalizeStoredProject(project, rowVersion, rowCreatedAt, rowUpdatedAt) {
+  return {
+    ...project,
+    serverVersion: Number(rowVersion),
+    createdAt: rowCreatedAt,
+    updatedAt: rowUpdatedAt,
+  };
+}
+
+function projectObjectForStorage(project) {
+  if (!project || typeof project !== "object" || Array.isArray(project)) {
+    throw new HttpError(400, "프로젝트 데이터가 올바르지 않습니다.");
+  }
+  const copy = JSON.parse(JSON.stringify(project));
+  delete copy.serverVersion;
+  delete copy.ownerId;
+  if (typeof copy.id !== "string" || !copy.id.trim()) throw new HttpError(400, "프로젝트 ID가 없습니다.");
+  if (typeof copy.name !== "string" || !copy.name.trim() || typeof copy.client !== "string" || !copy.client.trim()) {
+    throw new HttpError(400, "프로젝트 이름과 고객사를 입력해 주세요.");
+  }
+  const serialized = JSON.stringify(copy);
+  if (Buffer.byteLength(serialized, "utf8") > 5 * 1024 * 1024) {
+    throw new HttpError(413, "프로젝트 자료가 너무 큽니다.");
+  }
+  return { project: copy, serialized };
+}
+
+function getOwnedProject(ownerId, projectId) {
+  return projectsDatabase.prepare(`
+    SELECT id, owner_id, version, data_json, created_at, updated_at
+    FROM projects WHERE id = ? AND owner_id = ?
+  `).get(projectId, ownerId);
+}
+
+function insertOwnedProject(ownerId, project) {
+  const prepared = projectObjectForStorage(project);
+  const now = new Date().toISOString();
+  projectsDatabase.prepare(`
+    INSERT INTO projects (id, owner_id, version, data_json, created_at, updated_at)
+    VALUES (?, ?, 1, ?, ?, ?)
+  `).run(prepared.project.id, ownerId, prepared.serialized, now, now);
+  return normalizeStoredProject(prepared.project, 1, now, now);
+}
+
+function saveOwnedProject(ownerId, projectId, expectedVersion, project) {
+  if (!Number.isInteger(expectedVersion) || expectedVersion < 1) {
+    throw new HttpError(400, "저장 버전 정보가 없습니다. 프로젝트를 새로고침해 주세요.");
+  }
+  const current = getOwnedProject(ownerId, projectId);
+  if (!current) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
+  if (current.version !== expectedVersion) {
+    throw new HttpError(409, "프로젝트가 다른 창에서 먼저 변경되었습니다. 최신 내용을 다시 불러와 주세요.", { currentVersion: current.version });
+  }
+  const prepared = projectObjectForStorage(project);
+  if (prepared.project.id !== projectId) throw new HttpError(400, "프로젝트 ID는 변경할 수 없습니다.");
+  const now = new Date().toISOString();
+  const result = projectsDatabase.prepare(`
+    UPDATE projects SET version = version + 1, data_json = ?, updated_at = ?
+    WHERE id = ? AND owner_id = ? AND version = ?
+  `).run(prepared.serialized, now, projectId, ownerId, expectedVersion);
+  if (Number(result.changes) !== 1) {
+    throw new HttpError(409, "프로젝트가 다른 창에서 먼저 변경되었습니다. 최신 내용을 다시 불러와 주세요.");
+  }
+  return normalizeStoredProject(prepared.project, expectedVersion + 1, current.created_at, now);
+}
+
+function createAccount(body) {
+  const credentials = validateCredentials(body, true);
+  const id = crypto.randomUUID();
+  const salt = crypto.randomBytes(16).toString("base64url");
+  const hash = passwordHash(credentials.password, salt);
+  const createdAt = new Date().toISOString();
+  try {
+    usersDatabase.prepare(`
+      INSERT INTO users (id, username_key, username, salt, password_hash, created_at)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(id, credentials.usernameKey, credentials.username, salt, hash, createdAt);
+  } catch (error) {
+    if (/unique|constraint/i.test(String(error?.message || ""))) {
+      throw new HttpError(409, "이 아이디는 이미 사용 중입니다.");
+    }
+    throw error;
+  }
+  return { id, username: credentials.username, createdAt };
+}
+
+function authenticateAccount(body) {
+  const credentials = validateCredentials(body, false);
+  const user = usersDatabase.prepare(`
+    SELECT id, username, salt, password_hash, created_at
+    FROM users WHERE username_key = ?
+  `).get(credentials.usernameKey);
+  if (!user) throw new HttpError(401, "아이디 또는 비밀번호가 올바르지 않습니다.");
+  const suppliedHash = passwordHash(credentials.password, user.salt);
+  if (!constantTimeStringEqual(suppliedHash, user.password_hash)) {
+    throw new HttpError(401, "아이디 또는 비밀번호가 올바르지 않습니다.");
+  }
+  return { id: user.id, username: user.username, createdAt: user.created_at };
+}
+
+function makeAuthSessionResponse(request, response, user) {
+  const session = createSession(user.id);
+  response.setHeader("set-cookie", sessionCookie(request, session.rawToken));
+  return {
+    user,
+    csrfToken: session.csrfToken,
+    expiresAt: session.expiresAt,
+  };
+}
+
+function projectRowsForOwner(ownerId) {
+  const rows = projectsDatabase.prepare(`
+    SELECT id, version, data_json, created_at, updated_at
+    FROM projects WHERE owner_id = ? ORDER BY updated_at DESC
+  `).all(ownerId);
+  return rows.map((row) => {
+    let project;
+    try {
+      project = JSON.parse(row.data_json);
+    } catch {
+      throw new HttpError(500, `프로젝트 ${row.id} 데이터를 읽지 못했습니다.`);
+    }
+    return normalizeStoredProject(project, row.version, row.created_at, row.updated_at);
+  });
+}
+
+function importLegacyProjectsOnce(ownerId, body) {
+  if (body?.confirmOwnership !== true) {
+    throw new HttpError(400, "이 브라우저의 프로젝트를 현재 계정으로 이전할지 확인해 주세요.");
+  }
+  const completed = projectsDatabase.prepare("SELECT owner_id FROM legacy_imports WHERE owner_id = ?").get(ownerId);
+  if (completed) return { importedCount: 0, alreadyCompleted: true };
+  if (!Array.isArray(body.projects)) throw new HttpError(400, "가져올 프로젝트 목록이 올바르지 않습니다.");
+
+  const candidates = body.projects.filter((project) => project && project.isSample === false).slice(0, 200);
+  let importedCount = 0;
+  let skippedCount = 0;
+  const now = new Date().toISOString();
+  projectsDatabase.exec("BEGIN IMMEDIATE");
+  try {
+    for (const legacyProject of candidates) {
+      const prepared = projectObjectForStorage(legacyProject);
+      let projectId = prepared.project.id;
+      const collision = projectsDatabase.prepare("SELECT owner_id FROM projects WHERE id = ?").get(projectId);
+      if (collision && collision.owner_id !== ownerId) projectId = crypto.randomUUID();
+      const ownCollision = projectsDatabase.prepare("SELECT id FROM projects WHERE id = ? AND owner_id = ?").get(projectId, ownerId);
+      if (ownCollision) {
+        skippedCount += 1;
+        continue;
+      }
+      prepared.project.id = projectId;
+      const serialized = JSON.stringify(prepared.project);
+      projectsDatabase.prepare(`
+        INSERT INTO projects (id, owner_id, version, data_json, created_at, updated_at)
+        VALUES (?, ?, 1, ?, ?, ?)
+      `).run(projectId, ownerId, serialized, prepared.project.createdAt || now, now);
+      importedCount += 1;
+    }
+    projectsDatabase.prepare(`
+      INSERT INTO legacy_imports (owner_id, completed_at, imported_count, skipped_count)
+      VALUES (?, ?, ?, ?)
+    `).run(ownerId, now, importedCount, skippedCount);
+    projectsDatabase.exec("COMMIT");
+  } catch (error) {
+    projectsDatabase.exec("ROLLBACK");
+    throw error;
+  }
+  return { importedCount, skippedCount, alreadyCompleted: false };
+}
+
+function rejectNoStore(response) {
+  response.setHeader("cache-control", "no-store");
+}
+
+function beginImmediate(database) {
+  database.exec("BEGIN IMMEDIATE");
+}
+
+async function handleAuthRoute(request, response, pathname) {
+  if (pathname === "/api/auth/me" && request.method === "GET") {
+    rejectNoStore(response);
+    const auth = sessionContext(request);
+    sendJson(response, 200, auth
+      ? { authenticated: true, user: auth.user, csrfToken: auth.csrfToken, expiresAt: auth.expiresAt }
+      : { authenticated: false, user: null, csrfToken: null });
+    return true;
+  }
+
+  if (pathname === "/api/auth/register" || pathname === "/api/auth/login") {
+    if (request.method !== "POST") {
+      sendJson(response, 405, { error: "POST 요청만 지원합니다." });
+      return true;
+    }
+    try {
+      requireSameOrigin(request);
+      const value = await readJson(request);
+      const user = pathname.endsWith("/register") ? createAccount(value) : authenticateAccount(value);
+      const session = createSession(user.id);
+      response.setHeader("set-cookie", sessionCookie(request, session.rawToken));
+      rejectNoStore(response);
+      sendJson(response, pathname.endsWith("/register") ? 201 : 200, {
+        authenticated: true,
+        user,
+        csrfToken: session.csrfToken,
+        expiresAt: session.expiresAt,
+      });
+      return true;
+    } catch (error) {
+      const status = error instanceof HttpError ? error.status : 500;
+      const message = error instanceof HttpError ? error.message : "계정을 처리하지 못했습니다.";
+      sendJson(response, status, { error: message });
+      return true;
+    }
+  }
+
+  if (pathname === "/api/auth/logout") {
+    if (request.method !== "POST") {
+      sendJson(response, 405, { error: "POST 요청만 지원합니다." });
+      return true;
+    }
+    try {
+      requireSameOrigin(request);
+      const auth = sessionContext(request);
+      if (!auth) {
+        response.setHeader("set-cookie", sessionCookie(request, "", 0));
+        sendJson(response, 200, { loggedOut: true });
+        return true;
+      }
+      if (!requireCsrf(request, response, auth)) return true;
+      usersDatabase.prepare("DELETE FROM sessions WHERE session_hash = ?").run(auth.sessionHash);
+      response.setHeader("set-cookie", sessionCookie(request, "", 0));
+      rejectNoStore(response);
+      sendJson(response, 200, { loggedOut: true });
+    } catch (error) {
+      const status = error instanceof HttpError ? error.status : 500;
+      sendJson(response, status, { error: error instanceof HttpError ? error.message : "로그아웃하지 못했습니다." });
+    }
+    return true;
+  }
+
+  return false;
+}
+
+function handleProjectApiError(response, error, fallbackMessage) {
+  const status = error instanceof HttpError ? error.status : 500;
+  const message = error instanceof HttpError ? error.message : fallbackMessage;
+  if (!(error instanceof HttpError)) console.error(`Project API failed: ${error?.message || "Unknown error"}`);
+  sendJson(response, status, { error: message, ...(error instanceof HttpError ? error.details : {}) });
+}
+
+async function handleProjectsApi(request, response, requestUrl, auth) {
+  const pathname = requestUrl.pathname;
+  rejectNoStore(response);
+
+  if (pathname === "/api/projects" && request.method === "GET") {
+    const projects = projectRowsForOwner(auth.user.id);
+    const migration = projectsDatabase.prepare("SELECT completed_at FROM legacy_imports WHERE owner_id = ?").get(auth.user.id);
+    sendJson(response, 200, { projects, legacyImportCompleted: Boolean(migration) });
+    return true;
+  }
+
+  if (pathname === "/api/projects/import-legacy" && request.method === "POST") {
+    const result = importLegacyProjectsOnce(auth.user.id, await readJson(request));
+    sendJson(response, 200, result);
+    return true;
+  }
+
+  if (pathname === "/api/projects" && request.method === "POST") {
+    const body = await readJson(request);
+    const project = body?.project;
+    if (!project) throw new HttpError(400, "저장할 프로젝트가 없습니다.");
+    if (projectsDatabase.prepare("SELECT 1 FROM projects WHERE id = ?").get(project.id)) {
+      throw new HttpError(409, "같은 프로젝트 ID가 이미 존재합니다. 새로고침 후 다시 시도해 주세요.");
+    }
+    const savedProject = insertOwnedProject(auth.user.id, project);
+    sendJson(response, 201, { project: savedProject });
+    return true;
+  }
+
+  const projectMatch = pathname.match(/^\/api\/projects\/([^/]+)$/u);
+  if (projectMatch) {
+    let projectId;
+    try {
+      projectId = decodeURIComponent(projectMatch[1]);
+    } catch {
+      throw new HttpError(400, "프로젝트 ID 형식이 올바르지 않습니다.");
+    }
+
+    if (request.method === "GET") {
+      const row = getOwnedProject(auth.user.id, projectId);
+      if (!row) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
+      let project;
+      try {
+        project = JSON.parse(row.data_json);
+      } catch {
+        throw new HttpError(500, "저장된 프로젝트 데이터를 읽지 못했습니다.");
+      }
+      sendJson(response, 200, { project: normalizeStoredProject(project, row.version, row.created_at, row.updated_at) });
+      return true;
+    }
+
+    if (request.method === "PUT") {
+      const body = await readJson(request);
+      const project = body?.project;
+      const expectedVersion = Number(body?.expectedVersion ?? project?.serverVersion);
+      const savedProject = saveOwnedProject(auth.user.id, projectId, expectedVersion, project);
+      sendJson(response, 200, { project: savedProject });
+      return true;
+    }
+
+    if (request.method === "DELETE") {
+      const body = await readJson(request);
+      const expectedVersion = Number(body?.expectedVersion);
+      if (!Number.isInteger(expectedVersion) || expectedVersion < 1) {
+        throw new HttpError(400, "삭제 버전 정보가 없습니다. 프로젝트 목록을 새로고침해 주세요.");
+      }
+      const current = getOwnedProject(auth.user.id, projectId);
+      if (!current) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
+      if (current.version !== expectedVersion) {
+        throw new HttpError(409, "프로젝트가 다른 창에서 변경되었습니다. 새로고침 후 삭제를 다시 시도해 주세요.", { currentVersion: current.version });
+      }
+      const result = projectsDatabase.prepare("DELETE FROM projects WHERE id = ? AND owner_id = ? AND version = ?")
+        .run(projectId, auth.user.id, expectedVersion);
+      if (Number(result.changes) !== 1) throw new HttpError(409, "프로젝트가 변경되어 삭제하지 못했습니다. 새로고침해 주세요.");
+      sendJson(response, 200, { deleted: true, id: projectId });
+      return true;
+    }
+  }
+
+  if (pathname.startsWith("/api/projects")) {
+    sendJson(response, 405, { error: "지원하지 않는 프로젝트 API 요청입니다." });
+    return true;
+  }
+  return false;
 }
 
 async function readJson(request) {
@@ -2286,6 +2798,32 @@ function serveStatic(request, response, pathname) {
 
 const server = http.createServer(async (request, response) => {
   const requestUrl = new URL(request.url, "http://localhost");
+  if (requestUrl.pathname.startsWith("/api/auth/")) {
+    if (await handleAuthRoute(request, response, requestUrl.pathname)) return;
+    sendJson(response, 404, { error: "인증 API를 찾을 수 없습니다." });
+    return;
+  }
+
+  const protectedApi = requestUrl.pathname.startsWith("/api/projects")
+    || requestUrl.pathname === "/api/transcribe"
+    || requestUrl.pathname === "/api/compare"
+    || requestUrl.pathname === "/api/analyze";
+  let auth = null;
+  if (protectedApi) {
+    auth = requireSession(request, response);
+    if (!auth) return;
+    if (!["GET", "HEAD", "OPTIONS"].includes(request.method) && !requireCsrf(request, response, auth)) return;
+  }
+
+  if (requestUrl.pathname.startsWith("/api/projects")) {
+    try {
+      if (await handleProjectsApi(request, response, requestUrl, auth)) return;
+    } catch (error) {
+      handleProjectApiError(response, error, "프로젝트 요청을 처리하지 못했습니다.");
+      return;
+    }
+  }
+
   if (requestUrl.pathname === "/api/transcribe") {
     if (request.method !== "POST") {
       sendJson(response, 405, { error: "POST 요청만 지원합니다." });

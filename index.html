@@ -50,6 +50,429 @@
         min-height: 100vh;
       }
 
+      .auth-card {
+        width: min(100%, 490px);
+        margin: clamp(28px, 8vh, 76px) auto;
+        padding: clamp(22px, 4vw, 34px);
+        border: 1px solid #e2e8e1;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 12px 36px rgba(32, 51, 39, 0.06);
+      }
+
+      .auth-brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 22px;
+      }
+
+      .auth-brand-mark {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        place-items: center;
+        border: 1px solid #dbe5d6;
+        border-radius: 12px;
+        background: #f1f5eb;
+        color: #536943;
+      }
+
+      .auth-brand strong {
+        display: block;
+        color: #23352a;
+        font-size: 17px;
+        letter-spacing: -0.04em;
+      }
+
+      .auth-brand span {
+        display: block;
+        margin-top: 2px;
+        color: #858f88;
+        font-size: 9px;
+        letter-spacing: 0.1em;
+      }
+
+      .auth-card h1 {
+        margin-bottom: 7px;
+        color: #27372d;
+        font-size: 24px;
+        letter-spacing: -0.045em;
+      }
+
+      .auth-description {
+        margin-bottom: 18px;
+        color: #77827a;
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .auth-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+        margin-bottom: 18px;
+        padding: 4px;
+        border: 1px solid #edf0eb;
+        border-radius: 9px;
+        background: #f6f8f4;
+      }
+
+      .auth-tab {
+        min-height: 38px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: #737f76;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 620;
+      }
+
+      .auth-tab.active {
+        border-color: #e5e9e2;
+        background: #ffffff;
+        color: #304236;
+        box-shadow: 0 1px 2px rgba(30, 45, 34, 0.05);
+      }
+
+      .auth-form {
+        display: grid;
+        gap: 13px;
+      }
+
+      .auth-form[hidden] {
+        display: none;
+      }
+
+      .auth-form .static-button {
+        width: 100%;
+        margin-top: 2px;
+      }
+
+      .auth-error {
+        margin: 13px 0 0;
+        padding: 10px 12px;
+        border: 1px solid #f0d5cf;
+        border-radius: 7px;
+        background: #fff7f4;
+        color: #a04d40;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .auth-error[hidden] {
+        display: none;
+      }
+
+      .auth-security-note {
+        margin: 16px 0 0;
+        color: #8a948d;
+        font-size: 9px;
+        line-height: 1.6;
+      }
+
+      .logout-button {
+        min-height: 30px;
+        margin-left: auto;
+        padding: 0 8px;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 6px;
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.82);
+        cursor: pointer;
+        font: inherit;
+        font-size: 9px;
+      }
+
+      .logout-button:hover {
+        background: rgba(255,255,255,0.12);
+        color: #ffffff;
+      }
+
+      .auth-card {
+        width: min(100%, 490px);
+        margin: clamp(28px, 8vh, 76px) auto;
+        padding: clamp(22px, 4vw, 34px);
+        border: 1px solid #e2e8e1;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 12px 36px rgba(32, 51, 39, 0.06);
+      }
+
+      .auth-brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 22px;
+      }
+
+      .auth-brand-mark {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        place-items: center;
+        border: 1px solid #dbe5d6;
+        border-radius: 12px;
+        background: #f1f5eb;
+        color: #536943;
+      }
+
+      .auth-brand strong {
+        display: block;
+        color: #23352a;
+        font-size: 17px;
+        letter-spacing: -0.04em;
+      }
+
+      .auth-brand span {
+        display: block;
+        margin-top: 2px;
+        color: #858f88;
+        font-size: 9px;
+        letter-spacing: 0.1em;
+      }
+
+      .auth-card h1 {
+        margin-bottom: 7px;
+        color: #27372d;
+        font-size: 24px;
+        letter-spacing: -0.045em;
+      }
+
+      .auth-description {
+        margin-bottom: 18px;
+        color: #77827a;
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .auth-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+        margin-bottom: 18px;
+        padding: 4px;
+        border: 1px solid #edf0eb;
+        border-radius: 9px;
+        background: #f6f8f4;
+      }
+
+      .auth-tab {
+        min-height: 38px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: #737f76;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 620;
+      }
+
+      .auth-tab.active {
+        border-color: #e5e9e2;
+        background: #ffffff;
+        color: #304236;
+        box-shadow: 0 1px 2px rgba(30, 45, 34, 0.05);
+      }
+
+      .auth-form {
+        display: grid;
+        gap: 13px;
+      }
+
+      .auth-form[hidden] {
+        display: none;
+      }
+
+      .auth-form .static-button {
+        width: 100%;
+        margin-top: 2px;
+      }
+
+      .auth-error {
+        margin: 13px 0 0;
+        padding: 10px 12px;
+        border: 1px solid #f0d5cf;
+        border-radius: 7px;
+        background: #fff7f4;
+        color: #a04d40;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .auth-error[hidden] {
+        display: none;
+      }
+
+      .auth-security-note {
+        margin: 16px 0 0;
+        color: #8a948d;
+        font-size: 9px;
+        line-height: 1.6;
+      }
+
+      .logout-button {
+        min-height: 30px;
+        margin-left: auto;
+        padding: 0 8px;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 6px;
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.82);
+        cursor: pointer;
+        font: inherit;
+        font-size: 9px;
+      }
+
+      .logout-button:hover {
+        background: rgba(255,255,255,0.12);
+        color: #ffffff;
+      }
+
+      .auth-card {
+        width: min(100%, 490px);
+        margin: clamp(28px, 8vh, 76px) auto;
+        padding: clamp(22px, 4vw, 34px);
+        border: 1px solid #e2e8e1;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 12px 36px rgba(32, 51, 39, 0.06);
+      }
+
+      .auth-brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        margin-bottom: 22px;
+      }
+
+      .auth-brand-mark {
+        display: grid;
+        width: 40px;
+        height: 40px;
+        place-items: center;
+        border: 1px solid #dbe5d6;
+        border-radius: 12px;
+        background: #f1f5eb;
+        color: #536943;
+      }
+
+      .auth-brand strong {
+        display: block;
+        color: #23352a;
+        font-size: 17px;
+        letter-spacing: -0.04em;
+      }
+
+      .auth-brand span {
+        display: block;
+        margin-top: 2px;
+        color: #858f88;
+        font-size: 9px;
+        letter-spacing: 0.1em;
+      }
+
+      .auth-card h1 {
+        margin-bottom: 7px;
+        color: #27372d;
+        font-size: 24px;
+        letter-spacing: -0.045em;
+      }
+
+      .auth-description {
+        margin-bottom: 18px;
+        color: #77827a;
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .auth-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 4px;
+        margin-bottom: 18px;
+        padding: 4px;
+        border: 1px solid #edf0eb;
+        border-radius: 9px;
+        background: #f6f8f4;
+      }
+
+      .auth-tab {
+        min-height: 38px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: #737f76;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 620;
+      }
+
+      .auth-tab.active {
+        border-color: #e5e9e2;
+        background: #ffffff;
+        color: #304236;
+        box-shadow: 0 1px 2px rgba(30, 45, 34, 0.05);
+      }
+
+      .auth-form {
+        display: grid;
+        gap: 13px;
+      }
+
+      .auth-form[hidden] {
+        display: none;
+      }
+
+      .auth-form .static-button {
+        width: 100%;
+        margin-top: 2px;
+      }
+
+      .auth-error {
+        margin: 13px 0 0;
+        padding: 10px 12px;
+        border: 1px solid #f0d5cf;
+        border-radius: 7px;
+        background: #fff7f4;
+        color: #a04d40;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .auth-error[hidden] {
+        display: none;
+      }
+
+      .auth-security-note {
+        margin: 16px 0 0;
+        color: #8a948d;
+        font-size: 9px;
+        line-height: 1.6;
+      }
+
+      .logout-button {
+        min-height: 30px;
+        margin-left: auto;
+        padding: 0 8px;
+        border: 1px solid rgba(255,255,255,0.18);
+        border-radius: 6px;
+        background: rgba(255,255,255,0.06);
+        color: rgba(255,255,255,0.82);
+        cursor: pointer;
+        font: inherit;
+        font-size: 9px;
+      }
+
+      .logout-button:hover {
+        background: rgba(255,255,255,0.12);
+        color: #ffffff;
+      }
+
       .sidebar {
         position: sticky;
         top: 0;
@@ -3947,6 +4370,21 @@
           padding: 23px 17px 36px;
         }
 
+        .auth-card {
+          margin: 20px auto;
+          padding: 20px 17px;
+        }
+
+        .auth-card {
+          margin: 20px auto;
+          padding: 20px 17px;
+        }
+
+        .auth-card {
+          margin: 20px auto;
+          padding: 20px 17px;
+        }
+
         .page-heading {
           align-items: flex-start;
           margin-bottom: 18px;
@@ -4259,8 +4697,8 @@
           <div class="workspace-info">
             <span class="workspace-mark">S</span>
             <span class="workspace-label">
-              <strong>스펙가드 팀</strong>
-              <span>팀 워크스페이스</span>
+              <strong id="workspace-username">내 워크스페이스</strong>
+              <span id="workspace-caption">계정별 프로젝트</span>
             </span>
           </div>
           <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
@@ -4282,18 +4720,65 @@
           <div class="sidebar-footer">
             <span class="team-avatar">SG</span>
             <span class="team-copy">
-              <strong>스펙가드 팀</strong>
-              <span>팀 워크스페이스</span>
+              <strong id="sidebar-username">로그아웃 상태</strong>
+              <span id="sidebar-account-status">로그인해 주세요</span>
             </span>
-            <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true" style="margin-left:auto">
-              <path d="m6 8 4 4 4-4" stroke="rgba(255,255,255,.62)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
+            <button class="logout-button" id="logout-button" type="button" hidden>로그아웃</button>
           </div>
         </div>
       </aside>
 
       <div class="main-area">
         <main class="content">
+          <section class="view" id="auth-view" aria-labelledby="auth-title" hidden>
+            <div class="auth-card">
+              <div class="auth-brand">
+                <span class="auth-brand-mark" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <path d="M12 2.8 20 6v5.3c0 5.1-3.3 8.5-8 10.1-4.7-1.6-8-5-8-10.1V6l8-3.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
+                    <path d="m8.1 12 2.4 2.4 5.5-5.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+                <span><strong>SpecGuard</strong><span>REQUIREMENT CHECK</span></span>
+              </div>
+              <h1 id="auth-title">프로젝트를 안전하게 관리하세요</h1>
+              <p class="auth-description">계정에 로그인하면 내 프로젝트와 요구사항을 불러옵니다.</p>
+              <div class="auth-tabs" role="tablist" aria-label="계정 메뉴">
+                <button class="auth-tab active" id="auth-login-tab" type="button" role="tab" aria-selected="true" data-auth-mode="login">로그인</button>
+                <button class="auth-tab" id="auth-register-tab" type="button" role="tab" aria-selected="false" data-auth-mode="register">회원가입</button>
+              </div>
+              <form class="auth-form" id="login-form" autocomplete="on">
+                <div class="field-group">
+                  <label for="login-username">아이디</label>
+                  <input id="login-username" name="username" type="text" autocomplete="username" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" required />
+                </div>
+                <div class="field-group">
+                  <label for="login-password">비밀번호</label>
+                  <input id="login-password" name="password" type="password" autocomplete="current-password" minlength="7" maxlength="128" required />
+                </div>
+                <button class="static-button" type="submit">로그인</button>
+              </form>
+              <form class="auth-form" id="register-form" autocomplete="on" hidden>
+                <div class="field-group">
+                  <label for="register-username">아이디</label>
+                  <input id="register-username" name="username" type="text" autocomplete="username" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" required />
+                  <span class="field-hint">영문, 숫자, 밑줄(_)을 사용한 3~30자입니다. 대소문자는 구분하지 않습니다.</span>
+                </div>
+                <div class="field-group">
+                  <label for="register-password">비밀번호</label>
+                  <input id="register-password" name="password" type="password" autocomplete="new-password" minlength="7" maxlength="128" required />
+                  <span class="field-hint">7~128자로 입력해 주세요.</span>
+                </div>
+                <div class="field-group">
+                  <label for="register-password-confirm">비밀번호 확인</label>
+                  <input id="register-password-confirm" name="passwordConfirm" type="password" autocomplete="new-password" minlength="7" maxlength="128" required />
+                </div>
+                <button class="static-button" type="submit">계정 만들기</button>
+              </form>
+              <p class="auth-error" id="auth-error" role="alert" hidden></p>
+              <p class="auth-security-note">비밀번호는 서버에서 salt를 적용해 해시로 저장합니다. 프로젝트는 로그인한 계정별로 분리됩니다.</p>
+            </div>
+          </section>
           <section class="view" id="home-view" aria-label="메인 화면">
           <section class="page-heading home-heading" aria-label="프로젝트 안내와 바로 가기">
             <div>
@@ -5265,44 +5750,46 @@
           return { project, changed };
         }
 
-        function loadProjects() {
-          let storedRaw = null;
+        function readLegacyProjectsForImport() {
+          let raw;
           try {
-            storedRaw = localStorage.getItem(storageKey);
-            const stored = storedRaw === null ? null : JSON.parse(storedRaw);
-            if (Array.isArray(stored)) {
-              let changed = false;
-              const migrated = stored.map((project, index) => {
-                const result = ensureProjectCompatibility(project, index);
-                changed ||= result.changed;
-                return result.project;
-              });
-              if (changed) {
-                try {
-                  localStorage.setItem(storageKey, JSON.stringify(migrated));
-                } catch (error) {
-                  console.warn("기존 프로젝트를 읽었지만 마이그레이션 결과를 저장하지 못했습니다. 원본 데이터는 유지됩니다.", error);
-                }
-              }
-              return migrated;
-            }
-          } catch (error) {
-            console.warn("저장된 프로젝트를 불러오지 못했습니다.", error);
-            if (storedRaw !== null) return [];
+            raw = localStorage.getItem(storageKey);
+          } catch {
+            return { projects: [], malformed: true };
           }
-          if (storedRaw !== null) return [];
-          const initialProjects = sampleProjects();
+          if (raw === null) return { projects: [], malformed: false };
           try {
-            localStorage.setItem(storageKey, JSON.stringify(initialProjects));
-          } catch (error) {
-            console.warn("샘플 프로젝트를 브라우저에 저장하지 못했습니다.", error);
+            const parsed = JSON.parse(raw);
+            return { projects: Array.isArray(parsed) ? parsed : [], malformed: !Array.isArray(parsed) };
+          } catch {
+            return { projects: [], malformed: true };
           }
-          return initialProjects;
         }
 
-        let projects = loadProjects();
+        let projects = [];
+        const persistedProjectSnapshots = new Map();
+        let currentUser = null;
+        let csrfToken = "";
+        let authMode = "login";
+        let authBootstrapped = false;
+        let isLoadingProjects = false;
 
         const elements = {
+          authView: document.querySelector("#auth-view"),
+          authLoginForm: document.querySelector("#login-form"),
+          authRegisterForm: document.querySelector("#register-form"),
+          authError: document.querySelector("#auth-error"),
+          authLoginTab: document.querySelector("#auth-login-tab"),
+          authRegisterTab: document.querySelector("#auth-register-tab"),
+          loginUsername: document.querySelector("#login-username"),
+          loginPassword: document.querySelector("#login-password"),
+          registerUsername: document.querySelector("#register-username"),
+          registerPassword: document.querySelector("#register-password"),
+          registerPasswordConfirm: document.querySelector("#register-password-confirm"),
+          workspaceUsername: document.querySelector("#workspace-username"),
+          sidebarUsername: document.querySelector("#sidebar-username"),
+          sidebarAccountStatus: document.querySelector("#sidebar-account-status"),
+          logoutButton: document.querySelector("#logout-button"),
           home: document.querySelector("#home-view"),
           allProjects: document.querySelector("#projects-view"),
           create: document.querySelector("#create-view"),
@@ -5420,6 +5907,189 @@
         let showDeletedReviews = false;
         let editingReviewId = null;
         let pendingDeleteProjectId = null;
+
+        class ApiRequestError extends Error {
+          constructor(status, payload) {
+            super(payload?.error || "서버 요청에 실패했습니다.");
+            this.status = status;
+            this.payload = payload || {};
+          }
+        }
+
+        function isStateChangingMethod(method) {
+          return !["GET", "HEAD", "OPTIONS"].includes(String(method || "GET").toUpperCase());
+        }
+
+        async function apiRequest(url, options = {}) {
+          const method = String(options.method || "GET").toUpperCase();
+          const headers = new Headers(options.headers || {});
+          let body = options.body;
+          if (body !== undefined && body !== null && typeof body !== "string" && !(body instanceof FormData) && !(body instanceof Blob)) {
+            headers.set("content-type", "application/json");
+            body = JSON.stringify(body);
+          }
+          if (currentUser && csrfToken && isStateChangingMethod(method)
+            && !["/api/auth/login", "/api/auth/register"].includes(url)) {
+            headers.set("x-csrf-token", csrfToken);
+          }
+
+          let response;
+          try {
+            response = await fetch(url, {
+              ...options,
+              method,
+              headers,
+              body,
+              credentials: "same-origin",
+              cache: "no-store",
+            });
+          } catch {
+            throw new ApiRequestError(0, { error: "서버에 연결하지 못했습니다. 잠시 후 다시 시도해 주세요." });
+          }
+
+          let payload;
+          try {
+            payload = await response.json();
+          } catch {
+            payload = { error: "서버가 올바른 응답을 반환하지 않았습니다." };
+          }
+          if (response.status === 401 && currentUser) {
+            currentUser = null;
+            csrfToken = "";
+            projects = [];
+            persistedProjectSnapshots.clear();
+            updateSidebarIdentity();
+            renderRoute();
+          }
+          if (!response.ok) throw new ApiRequestError(response.status, payload);
+          return payload;
+        }
+
+        function setAuthError(message) {
+          elements.authError.textContent = message || "";
+          elements.authError.hidden = !message;
+        }
+
+        function setAuthMode(mode) {
+          authMode = mode === "register" ? "register" : "login";
+          const isLogin = authMode === "login";
+          elements.authLoginForm.hidden = !isLogin;
+          elements.authRegisterForm.hidden = isLogin;
+          elements.authLoginTab.classList.toggle("active", isLogin);
+          elements.authRegisterTab.classList.toggle("active", !isLogin);
+          elements.authLoginTab.setAttribute("aria-selected", String(isLogin));
+          elements.authRegisterTab.setAttribute("aria-selected", String(!isLogin));
+          setAuthError("");
+        }
+
+        function updateSidebarIdentity() {
+          const username = currentUser?.username || "로그아웃 상태";
+          elements.workspaceUsername.textContent = currentUser?.username || "내 워크스페이스";
+          elements.sidebarUsername.textContent = username;
+          elements.sidebarAccountStatus.textContent = currentUser ? "계정 프로젝트" : "로그인해 주세요";
+          elements.logoutButton.hidden = !currentUser;
+          document.querySelectorAll(".user-chip .profile-avatar").forEach((avatar) => {
+            avatar.textContent = currentUser?.username?.slice(0, 2).toUpperCase() || "SG";
+          });
+        }
+
+        async function persistProject(project, options = {}) {
+          if (!currentUser) throw new ApiRequestError(401, { error: "로그인이 필요합니다." });
+          const isCreate = Boolean(options.create);
+          const url = isCreate ? "/api/projects" : `/api/projects/${encodeURIComponent(project.id)}`;
+          const payload = isCreate
+            ? await apiRequest(url, { method: "POST", body: { project } })
+            : await apiRequest(url, { method: "PUT", body: { project, expectedVersion: project.serverVersion } });
+          if (!payload?.project) throw new ApiRequestError(500, { error: "저장된 프로젝트 응답이 비어 있습니다." });
+          Object.assign(project, payload.project);
+          persistedProjectSnapshots.set(project.id, projectPersistenceSnapshot(project));
+          return project;
+        }
+
+        function projectPersistenceSnapshot(project) {
+          const snapshot = structuredClone(project);
+          delete snapshot.serverVersion;
+          return snapshot;
+        }
+
+        async function loadProjectsFromDatabase() {
+          const payload = await apiRequest("/api/projects");
+          if (!Array.isArray(payload.projects)) throw new ApiRequestError(500, { error: "프로젝트 목록 응답이 올바르지 않습니다." });
+          const migratedProjects = payload.projects.map((project, index) => ensureProjectCompatibility(project, index));
+          projects = migratedProjects.map((entry) => entry.project);
+          persistedProjectSnapshots.clear();
+          migratedProjects.forEach(({ project }) => persistedProjectSnapshots.set(project.id, projectPersistenceSnapshot(project)));
+          for (let index = 0; index < migratedProjects.length; index += 1) {
+            if (!migratedProjects[index].changed) continue;
+            await persistProject(projects[index]);
+          }
+          return { legacyImportCompleted: Boolean(payload.legacyImportCompleted) };
+        }
+
+        async function maybeImportLegacyProjects(legacyImportCompleted) {
+          if (legacyImportCompleted) return false;
+          const legacy = readLegacyProjectsForImport();
+          if (legacy.malformed) {
+            console.warn("기존 브라우저 프로젝트 데이터가 JSON 형식이 아니어서 자동 이전하지 않았습니다. 원본은 그대로 보존했습니다.");
+            await apiRequest("/api/projects/import-legacy", { method: "POST", body: { confirmOwnership: true, projects: [] } });
+            return false;
+          }
+          const eligible = legacy.projects.filter((project) => project
+            && project.isSample === false
+            && (!project.ownerId || project.ownerId === currentUser.id));
+          if (!eligible.length) {
+            await apiRequest("/api/projects/import-legacy", { method: "POST", body: { confirmOwnership: true, projects: [] } });
+            return false;
+          }
+
+          const accepted = window.confirm(
+            `이 브라우저에는 이전 버전 프로젝트 ${eligible.length}개가 있습니다. localStorage에는 계정 소유자 정보가 없으므로, 직접 만든 프로젝트라고 확인한 자료만 현재 로그인한 계정으로 한 번 이전합니다. 이전 후에도 브라우저 원본은 삭제하지 않습니다. 이전할까요?`
+          );
+          const result = await apiRequest("/api/projects/import-legacy", {
+            method: "POST",
+            body: { confirmOwnership: true, projects: accepted ? eligible : [] },
+          });
+          if (accepted && result.importedCount > 0) {
+            await loadProjectsFromDatabase();
+            window.alert(`${result.importedCount}개의 이전 프로젝트를 계정에 불러왔습니다. 브라우저의 원본은 그대로 보존했습니다.`);
+            return true;
+          }
+          if (!accepted) window.alert("이전 프로젝트는 가져오지 않았습니다. 브라우저 원본 데이터는 그대로 보존했습니다.");
+          return false;
+        }
+
+        async function initializeAuthenticatedSession(sessionPayload) {
+          currentUser = sessionPayload?.authenticated ? sessionPayload.user : null;
+          csrfToken = currentUser && typeof sessionPayload.csrfToken === "string" ? sessionPayload.csrfToken : "";
+          updateSidebarIdentity();
+          if (!currentUser) {
+            projects = [];
+            persistedProjectSnapshots.clear();
+            renderRoute();
+            return;
+          }
+
+          setAuthError("");
+          const migration = await loadProjectsFromDatabase();
+          await maybeImportLegacyProjects(migration.legacyImportCompleted);
+          authBootstrapped = true;
+          renderRoute();
+        }
+
+        async function bootstrapAuthentication() {
+          try {
+            const session = await apiRequest("/api/auth/me");
+            await initializeAuthenticatedSession(session);
+          } catch (error) {
+            currentUser = null;
+            csrfToken = "";
+            projects = [];
+            persistedProjectSnapshots.clear();
+            updateSidebarIdentity();
+            setAuthError(error instanceof Error ? error.message : "로그인 상태를 확인하지 못했습니다.");
+            renderRoute();
+          }
+        }
 
         function escapeHtml(value = "") {
           return String(value).replace(/[&<>"']/g, (character) => ({
@@ -5973,7 +6643,6 @@
           if (!changed) return;
 
           project.requirementReview = { version: 1, ...(review || {}), items };
-          persistProjects();
         }
 
         function reconcileReviewAfterAnalysis(project, meetingRequirements, at) {
@@ -6486,24 +7155,16 @@
           elements.comparison.setAttribute("aria-busy", "true");
 
           try {
-            const response = await fetch("/api/compare", {
+            const payload = await apiRequest("/api/compare", {
               method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({
+              body: {
                 confirmedRequirements: state.confirmedRequirements.map(({ id, text, category }) => ({ id, text, category })),
                 specification: {
                   documentName: specification.name,
                   content: specification.content,
                 },
-              }),
+              },
             });
-            let payload;
-            try {
-              payload = await response.json();
-            } catch {
-              throw new Error("비교 서버가 올바른 응답을 반환하지 않았습니다.");
-            }
-            if (!response.ok) throw new Error(payload.error || "기획서 비교에 실패했습니다.");
 
             const normalizedResults = Array.isArray(payload.results)
               ? payload.results.map((result) => {
@@ -6559,7 +7220,7 @@
             };
             project.updatedAt = comparedAt;
             project.comparisonStale = false;
-            if (!persistProjects()) {
+            if (!await persistProjects()) {
               project.requirementComparison = previousComparison;
               project.requirementComparisonHistory = previousComparisonHistory;
               project.updatedAt = previousUpdatedAt;
@@ -6648,15 +7309,15 @@
             : '<div class="review-list-empty">이 필터에 표시할 요구사항이 없습니다.</div>';
         }
 
-        function persistReviewItems(project, items) {
+        async function persistReviewItems(project, items) {
           const previousReview = project.requirementReview;
           const previousUpdatedAt = project.updatedAt;
           project.requirementReview = { version: 1, ...(previousReview || {}), items };
           project.updatedAt = new Date().toISOString();
-          if (!persistProjects()) {
+          if (!await persistProjects()) {
             project.requirementReview = previousReview;
             project.updatedAt = previousUpdatedAt;
-            window.alert("검토 내용을 저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요.");
+            window.alert("검토 내용을 서버에 저장하지 못했습니다. 다시 시도해 주세요.");
             return false;
           }
           renderProjectLists();
@@ -6681,12 +7342,12 @@
           };
         }
 
-        function saveReviewRecord(project, id, record) {
+        async function saveReviewRecord(project, id, record) {
           const items = { ...(project.requirementReview?.items || {}), [id]: record };
-          return persistReviewItems(project, items);
+          return await persistReviewItems(project, items);
         }
 
-        function recordReviewStatus(project, item, nextStatus) {
+        async function recordReviewStatus(project, item, nextStatus) {
           if (item.status === nextStatus) return;
           const record = currentReviewRecord(project, item);
           const at = new Date().toISOString();
@@ -6697,7 +7358,7 @@
             at,
           });
           record.status = nextStatus;
-          if (saveReviewRecord(project, item.id, record)) renderReviewPage(project);
+          if (await saveReviewRecord(project, item.id, record)) renderReviewPage(project);
         }
 
         function showFormAlert(message) {
@@ -6927,21 +7588,13 @@
           setMeetingSttStatus(entry, `${file.name} 음성을 텍스트로 변환 중...`, "loading");
 
           try {
-            const response = await fetch("/api/transcribe", {
+            const payload = await apiRequest("/api/transcribe", {
               method: "POST",
               headers: {
-                "content-type": "application/octet-stream",
                 "x-audio-filename": encodeURIComponent(file.name),
               },
               body: file,
             });
-            let payload;
-            try {
-              payload = await response.json();
-            } catch {
-              throw new Error("STT 서버가 올바른 응답을 반환하지 않았습니다.");
-            }
-            if (!response.ok) throw new Error(payload.error || "음성 변환에 실패했습니다.");
 
             const transcript = String(payload.transcript || "").trim();
             if (!transcript) throw new Error("전사 결과가 비어 있습니다. 다른 파일로 다시 시도해 주세요.");
@@ -7077,12 +7730,19 @@
           return globalThis.crypto?.randomUUID?.() || `project-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
         }
 
-        function persistProjects() {
+        async function persistProjects() {
+          if (!currentUser) return false;
           try {
-            localStorage.setItem(storageKey, JSON.stringify(projects));
+            for (const project of projects) {
+              const snapshot = projectPersistenceSnapshot(project);
+              const persisted = persistedProjectSnapshots.get(project.id);
+              if (persisted && JSON.stringify(snapshot) === JSON.stringify(persisted)) continue;
+              await persistProject(project, { create: !persisted });
+            }
             return true;
           } catch (error) {
-            console.error("프로젝트 저장에 실패했습니다.", error);
+            console.error("프로젝트 DB 저장에 실패했습니다.", error);
+            window.alert(error instanceof Error ? error.message : "프로젝트를 저장하지 못했습니다.");
             return false;
           }
         }
@@ -7097,21 +7757,21 @@
           return true;
         }
 
-        function deleteProject(projectId) {
+        async function deleteProject(projectId) {
           const target = projects.find((project) => project.id === projectId);
           if (!target) return false;
-
-          const previousProjects = projects;
-          projects = projects.filter((project) => project.id !== projectId);
-          if (!persistProjects()) {
-            projects = previousProjects;
-            renderProjectLists();
-            const currentRoute = decodeURIComponent(window.location.hash.slice(1));
-            if (currentRoute.startsWith(`/projects/${projectId}`)) renderDetail(target);
-            window.alert("프로젝트를 삭제하지 못했습니다. 브라우저 저장 공간을 확인해 주세요.");
+          try {
+            await apiRequest(`/api/projects/${encodeURIComponent(projectId)}`, {
+              method: "DELETE",
+              body: { expectedVersion: target.serverVersion },
+            });
+          } catch (error) {
+            window.alert(error instanceof Error ? error.message : "프로젝트를 삭제하지 못했습니다.");
             return false;
           }
 
+          projects = projects.filter((project) => project.id !== projectId);
+          persistedProjectSnapshots.delete(projectId);
           renderProjectLists();
           const currentRoute = decodeURIComponent(window.location.hash.slice(1));
           if (currentRoute === `/projects/${projectId}` || currentRoute.startsWith(`/projects/${projectId}/`)) {
@@ -7452,10 +8112,16 @@
 
         function renderRoute() {
           const route = decodeURIComponent(window.location.hash.slice(1) || "/home").replace(/\/+$/, "") || "/home";
-          const views = [elements.home, elements.allProjects, elements.create, elements.extraction, elements.review, elements.comparison, elements.detail];
+          const views = [elements.authView, elements.home, elements.allProjects, elements.create, elements.extraction, elements.review, elements.comparison, elements.detail];
           renderProjectLists();
           window.scrollTo(0, 0);
           views.forEach((view) => { view.hidden = true; });
+
+          if (!currentUser) {
+            elements.authView.hidden = false;
+            document.title = "로그인 | 스펙가드";
+            return;
+          }
 
           if (route === "/projects") {
             elements.allProjects.hidden = false;
@@ -7542,6 +8208,84 @@
           renderProjectLists();
         }
 
+        elements.authLoginTab.addEventListener("click", () => setAuthMode("login"));
+        elements.authRegisterTab.addEventListener("click", () => setAuthMode("register"));
+
+        elements.authLoginForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (!elements.authLoginForm.reportValidity()) return;
+          setAuthError("");
+          const submit = elements.authLoginForm.querySelector('[type="submit"]');
+          submit.disabled = true;
+          submit.textContent = "로그인 중...";
+          try {
+            const session = await apiRequest("/api/auth/login", {
+              method: "POST",
+              body: {
+                username: elements.loginUsername.value.trim(),
+                password: elements.loginPassword.value,
+              },
+            });
+            await initializeAuthenticatedSession(session);
+            elements.loginPassword.value = "";
+          } catch (error) {
+            setAuthError(error instanceof Error ? error.message : "로그인하지 못했습니다.");
+          } finally {
+            submit.disabled = false;
+            submit.textContent = "로그인";
+          }
+        });
+
+        elements.authRegisterForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (!elements.authRegisterForm.reportValidity()) return;
+          setAuthError("");
+          if (elements.registerPassword.value !== elements.registerPasswordConfirm.value) {
+            setAuthError("비밀번호 확인이 일치하지 않습니다.");
+            elements.registerPasswordConfirm.focus();
+            return;
+          }
+          const submit = elements.authRegisterForm.querySelector('[type="submit"]');
+          submit.disabled = true;
+          submit.textContent = "계정 만드는 중...";
+          try {
+            const session = await apiRequest("/api/auth/register", {
+              method: "POST",
+              body: {
+                username: elements.registerUsername.value.trim(),
+                password: elements.registerPassword.value,
+                passwordConfirm: elements.registerPasswordConfirm.value,
+              },
+            });
+            await initializeAuthenticatedSession(session);
+            elements.registerPassword.value = "";
+            elements.registerPasswordConfirm.value = "";
+          } catch (error) {
+            setAuthError(error instanceof Error ? error.message : "계정을 만들지 못했습니다.");
+          } finally {
+            submit.disabled = false;
+            submit.textContent = "계정 만들기";
+          }
+        });
+
+        elements.logoutButton.addEventListener("click", async () => {
+          elements.logoutButton.disabled = true;
+          try {
+            await apiRequest("/api/auth/logout", { method: "POST", body: {} });
+            currentUser = null;
+            csrfToken = "";
+            projects = [];
+            persistedProjectSnapshots.clear();
+            updateSidebarIdentity();
+            setAuthMode("login");
+            renderRoute();
+          } catch (error) {
+            window.alert(error instanceof Error ? error.message : "로그아웃하지 못했습니다.");
+          } finally {
+            elements.logoutButton.disabled = false;
+          }
+        });
+
         elements.projectSearch.addEventListener("input", renderProjectLists);
 
         document.addEventListener("click", (event) => {
@@ -7568,11 +8312,11 @@
           elements.deleteDialog.close();
         });
 
-        elements.confirmProjectDelete.addEventListener("click", () => {
+        elements.confirmProjectDelete.addEventListener("click", async () => {
           const projectId = pendingDeleteProjectId;
           pendingDeleteProjectId = null;
           elements.deleteDialog.close();
-          if (projectId) deleteProject(projectId);
+          if (projectId) await deleteProject(projectId);
         });
 
         document.querySelector("#add-meeting").addEventListener("click", () => {
@@ -7597,7 +8341,7 @@
           if (project) renderReviewPage(project);
         });
 
-        elements.specDraftSave.addEventListener("click", () => {
+        elements.specDraftSave.addEventListener("click", async () => {
           const projectId = elements.extraction.dataset.projectId;
           const project = projects.find((item) => item.id === projectId);
           if (!project) return;
@@ -7608,15 +8352,15 @@
             updatedAt: new Date().toISOString(),
             editedByUser: true,
           };
-          if (!persistProjects()) {
+          if (!await persistProjects()) {
             project.specDraft = previous;
-            elements.specDraftSaveState.textContent = "저장하지 못했습니다. 저장 공간을 확인해 주세요.";
+            elements.specDraftSaveState.textContent = "서버에 저장하지 못했습니다. 다시 시도해 주세요.";
             return;
           }
           elements.specDraftSaveState.textContent = "초안을 저장했습니다.";
         });
 
-        elements.specUpdateSave.addEventListener("click", () => {
+        elements.specUpdateSave.addEventListener("click", async () => {
           const projectId = elements.extraction.dataset.projectId;
           const project = projects.find((item) => item.id === projectId);
           if (!project) return;
@@ -7627,9 +8371,9 @@
             updatedAt: new Date().toISOString(),
             editedByUser: true,
           };
-          if (!persistProjects()) {
+          if (!await persistProjects()) {
             project.specUpdateProposal = previous;
-            elements.specUpdateSaveState.textContent = "저장하지 못했습니다. 저장 공간을 확인해 주세요.";
+            elements.specUpdateSaveState.textContent = "서버에 저장하지 못했습니다. 다시 시도해 주세요.";
             return;
           }
           elements.specUpdateSaveState.textContent = "업데이트안을 저장했습니다.";
@@ -7750,7 +8494,7 @@
           if (project) renderReviewPage(project);
         });
 
-        elements.confirmAll.addEventListener("click", () => {
+        elements.confirmAll.addEventListener("click", async () => {
           const project = projects.find((item) => item.id === elements.review.dataset.projectId);
           if (!project) return;
           const pending = filterRequirementsByRound(project, getReviewItems(project), showAllReviewRounds)
@@ -7770,7 +8514,7 @@
             record.status = "confirmed";
             records[item.id] = record;
           }
-          if (persistReviewItems(project, records)) renderReviewPage(project);
+          if (await persistReviewItems(project, records)) renderReviewPage(project);
         });
 
         elements.openDirectAdd.addEventListener("click", () => {
@@ -7785,7 +8529,7 @@
           elements.directAddError.hidden = true;
         });
 
-        elements.directAddForm.addEventListener("submit", (event) => {
+        elements.directAddForm.addEventListener("submit", async (event) => {
           event.preventDefault();
           const project = projects.find((item) => item.id === elements.review.dataset.projectId);
           if (!project) return;
@@ -7808,7 +8552,7 @@
             history: [{ field: "text", previousValue: "", newValue: text, at, action: "added" }],
           };
           const records = { ...(project.requirementReview?.items || {}), [id]: record };
-          if (!persistReviewItems(project, records)) return;
+          if (!await persistReviewItems(project, records)) return;
           editingReviewId = null;
           reviewFilter = "all";
           showDeletedReviews = false;
@@ -7818,7 +8562,7 @@
           renderReviewPage(project);
         });
 
-        elements.reviewList.addEventListener("click", (event) => {
+        elements.reviewList.addEventListener("click", async (event) => {
           const button = event.target.closest("[data-review-action]");
           if (!button) return;
           const project = projects.find((item) => item.id === elements.review.dataset.projectId);
@@ -7863,23 +8607,23 @@
               });
               record.status = "needsReview";
             }
-            if (saveReviewRecord(project, item.id, record)) {
+            if (await saveReviewRecord(project, item.id, record)) {
               editingReviewId = null;
               renderReviewPage(project);
             }
             return;
           }
           if (action === "confirm") {
-            recordReviewStatus(project, item, "confirmed");
+            await recordReviewStatus(project, item, "confirmed");
             return;
           }
           if (action === "delete") {
             if (!window.confirm("이 요구사항을 삭제할까요? 삭제된 항목은 기본 목록에서 숨겨집니다.")) return;
-            recordReviewStatus(project, item, "deleted");
+            await recordReviewStatus(project, item, "deleted");
           }
         });
 
-        elements.form.addEventListener("submit", (event) => {
+        elements.form.addEventListener("submit", async (event) => {
           event.preventDefault();
           if (!elements.form.reportValidity()) return;
           const values = currentFormValues();
@@ -7897,9 +8641,9 @@
             }
             const previousState = structuredClone(project);
             applyProjectFormToExisting(project, values);
-            if (!persistProjects()) {
+            if (!await persistProjects()) {
               Object.assign(project, previousState);
-              showFormAlert("프로젝트를 저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요.");
+              showFormAlert("프로젝트를 서버에 저장하지 못했습니다. 다시 시도해 주세요.");
               return;
             }
             renderProjectLists();
@@ -7911,9 +8655,9 @@
 
           const project = createProjectFromForm(values);
           projects = [project, ...projects];
-          if (!persistProjects()) {
+          if (!await persistProjects()) {
             projects = projects.filter((item) => item.id !== project.id);
-            showFormAlert("프로젝트를 저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요.");
+            showFormAlert("프로젝트를 서버에 저장하지 못했습니다. 다시 시도해 주세요.");
             return;
           }
           setRoute(`/projects/${encodeURIComponent(project.id)}/extract`);
@@ -7947,10 +8691,11 @@
           elements.extraction.setAttribute("aria-busy", "true");
 
           try {
-            const response = await fetch("/api/analyze", {
+            let analysis;
+            try {
+              analysis = await apiRequest("/api/analyze", {
               method: "POST",
-              headers: { "content-type": "application/json" },
-              body: JSON.stringify({
+              body: {
                 project: { name: project.name, client: project.client },
                 meetings: sourceDocuments.map((documentItem) => ({
                   date: meetingDateFor(documentItem, project),
@@ -7981,23 +8726,18 @@
                 reviewMemos: Object.entries(project.requirementReview?.items || {}).flatMap(([requirementId, record]) =>
                   record?.revisionMemo ? [{ requirementId, memo: record.revisionMemo }] : []
                 ),
-              }),
-            });
-            let analysis;
-            try {
-              analysis = await response.json();
-            } catch {
-              throw new Error("LLM 서버가 올바른 응답을 반환하지 않았습니다. 다시 시도해 주세요.");
-            }
-            if (!response.ok) {
-              elements.analysisState.dataset.llmStatus = String(analysis.upstreamStatus ?? response.status);
-              elements.analysisState.dataset.llmStage = String(analysis.stage || "unknown");
-              elements.analysisState.dataset.llmCalls = JSON.stringify(analysis.llmCalls || []);
-              elements.analysisState.dataset.providerError = String(analysis.providerError || "");
-              elements.analysisState.dataset.llmFinishReason = String(analysis.finishReason || "unknown");
-              elements.analysisState.dataset.llmDurationMs = String(analysis.durationMs ?? "unknown");
-              elements.analysisState.dataset.llmUsage = JSON.stringify(analysis.usage || null);
-              throw new Error(analysis.error || "LLM 분석에 실패했습니다. 다시 시도해 주세요.");
+              },
+              });
+            } catch (error) {
+              const failure = error instanceof ApiRequestError ? error.payload : {};
+              elements.analysisState.dataset.llmStatus = String(failure.upstreamStatus ?? failure.status ?? "unknown");
+              elements.analysisState.dataset.llmStage = String(failure.stage || "unknown");
+              elements.analysisState.dataset.llmCalls = JSON.stringify(failure.llmCalls || []);
+              elements.analysisState.dataset.providerError = String(failure.providerError || "");
+              elements.analysisState.dataset.llmFinishReason = String(failure.finishReason || "unknown");
+              elements.analysisState.dataset.llmDurationMs = String(failure.durationMs ?? "unknown");
+              elements.analysisState.dataset.llmUsage = JSON.stringify(failure.usage || null);
+              throw new Error(failure.error || (error instanceof Error ? error.message : "LLM 분석에 실패했습니다."));
             }
             const sourceRequirements = (analysis.meetingRequirements || []).map((item, index) => ({
               id: item.id || `source-${index + 1}`,
@@ -8168,9 +8908,9 @@
               reason: String(item.reason || ""),
             })).filter((item) => item.section) : [],
           };
-          if (!persistProjects()) {
+            if (!await persistProjects()) {
               Object.assign(project, previousState);
-              throw new Error("분석 결과를 저장하지 못했습니다. 브라우저 저장 공간을 확인해 주세요.");
+              throw new Error("분석 결과를 서버에 저장하지 못했습니다. 다시 시도해 주세요.");
             }
 
             renderProjectLists();
@@ -8199,7 +8939,7 @@
         });
 
         window.addEventListener("hashchange", renderRoute);
-        renderRoute();
+        bootstrapAuthentication();
       })();
     </script>
   </body>
