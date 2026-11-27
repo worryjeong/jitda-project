@@ -116,12 +116,6 @@ Node.js 22.13 이상이 필요합니다. 서버 실행 시 `.env` 파일이 자�
 npm start
 ```
 
-### 서비스 접속
-
-웹 브라우저에서 아래 주소로 접속합니다.
-
-http://localhost:3000
-
 ### 인증·프로젝트 저장 테스트
 
 ```bash
@@ -146,3 +140,4 @@ AI가 추출한 요구사항과 비교 결과는 실제 고객의 요청과 다�
 - **팀명:** 스펙가드
 - **팀원:** 강나인, 고민정, 손진효, 이민욱, 라짜코브아리엣
 - **GitHub:** https://github.com/worryjeong/jitda-project
+- **공유주소:** https://rms05yj2ztlaubiw.jitda.io/?reloadCount=3
