@@ -6026,10 +6026,11 @@
             "회의", "회의록", "출석", "출결", "담당", "내용", "양식", "메모", "결과", "자료", "예약금",
           ]);
           return String(text || "")
+            .normalize("NFC")
             .replace(/\\r\\n|\\n|\\r/gu, "\n")
             .split(/\r?\n/u)
             .map((line) => {
-              const match = line.match(/^\s*((?:[가-힣]\s*){2,8}|[A-Za-z][A-Za-z0-9_.-]{0,20})\s*[:：]\s*/u);
+              const match = line.match(/^\s*(?:[-*•]\s*)?["'“”„「」『』(（]?\s*((?:[가-힣]\s*){2,8}|[A-Za-z][A-Za-z0-9_.-]{0,20})\s*[:：]\s*/u);
               if (!match) return line;
               const label = match[1].replace(/\s+/gu, "");
               return nonSpeakerLabels.has(label) ? line : line.slice(match[0].length);
@@ -6160,6 +6161,8 @@
         function meetingChangeTransitions(item) {
           const evidence = (Array.isArray(item?.evidence) ? item.evidence : [])
             .filter((entry) => entry && entry.date && entry.kind !== "spec" && entry.sourceKind !== "spec" && entry.text);
+          const changeType = item?.changeType || (item?.updated ? "updated" : "unchanged");
+          if (!["updated", "conflict"].includes(changeType)) return [];
           const byDate = new Map();
           for (const entry of evidence) {
             const date = String(entry.date).slice(0, 10);
@@ -6169,7 +6172,10 @@
           }
           const versions = [...byDate.entries()].sort(([first], [second]) => first.localeCompare(second)).map(([date, entries]) => {
             const unique = [...new Map(entries.map((entry) => [canonicalEvidenceComparisonText(entry.text), entry])).values()];
-            return { date, entries: unique };
+            return { date, entries: unique.sort((first, second) =>
+              Number(first.roundNumber || 0) - Number(second.roundNumber || 0)
+              || String(first.sourceDocumentId || "").localeCompare(String(second.sourceDocumentId || ""))
+            ) };
           });
           if (versions.length < 2) return [];
 
