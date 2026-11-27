@@ -535,11 +535,100 @@
         min-height: 56px;
         align-items: center;
         justify-content: space-between;
-        margin: 31px 2px 28px;
+        margin: 31px 2px 10px;
         padding: 0 12px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 10px;
         background: rgba(255, 255, 255, 0.045);
+        color: inherit;
+        text-decoration: none;
+        transition: border-color 160ms ease, background-color 160ms ease;
+      }
+
+      .workspace-switcher:hover,
+      .workspace-switcher[aria-current="page"] {
+        border-color: rgba(213, 237, 119, 0.45);
+        background: rgba(255, 255, 255, 0.09);
+      }
+
+      .workspace-switcher:focus-visible,
+      .sidebar-workspace-manage:focus-visible,
+      .sidebar-workspace-mobile:focus-visible {
+        outline: 3px solid var(--lime);
+        outline-offset: 3px;
+      }
+
+      .sidebar-workspace-manage {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        gap: 9px;
+        margin: 0 2px 24px;
+        padding: 0 12px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.075);
+        color: #f5f8f5;
+        font-size: 12px;
+        font-weight: 650;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: border-color 160ms ease, background-color 160ms ease, color 160ms ease;
+      }
+
+      .sidebar-workspace-manage svg {
+        width: 17px;
+        height: 17px;
+        flex: 0 0 auto;
+        color: #d5ed77;
+      }
+
+      .sidebar-workspace-manage:hover,
+      .sidebar-workspace-manage[aria-current="page"] {
+        border-color: rgba(213, 237, 119, 0.75);
+        background: rgba(213, 237, 119, 0.16);
+        color: #f2f8d5;
+        box-shadow: inset 0 0 0 1px rgba(213, 237, 119, 0.13);
+      }
+
+      .sidebar-mobile-links {
+        display: none;
+      }
+
+      .sidebar-workspace-mobile {
+        display: none;
+        min-height: 38px;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 11px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.09);
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+      }
+
+      .sidebar-workspace-mobile:hover,
+      .sidebar-workspace-mobile[aria-current="page"] {
+        border-color: var(--lime);
+        background: rgba(213, 237, 119, 0.18);
+        color: #f2f8d5;
+      }
+
+      .sidebar-workspace-mobile svg {
+        width: 15px;
+        height: 15px;
+        flex: 0 0 auto;
+      }
+
+      .sidebar-workspace-manage[hidden],
+      .sidebar-workspace-mobile[hidden] {
+        display: none !important;
       }
 
       .workspace-info {
@@ -864,6 +953,42 @@
       .home-actions {
         flex-wrap: nowrap;
         gap: 8px;
+      }
+
+      .profile-action-group {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        gap: 7px;
+      }
+
+      .home-mypage-button {
+        display: inline-flex;
+        min-height: 42px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 12px;
+        border: 1px solid #cad8c6;
+        border-radius: 9px;
+        background: #eef4e9;
+        color: #36543c;
+        font-size: 12px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+      }
+
+      .home-mypage-button:hover,
+      .home-mypage-button[aria-current="page"] {
+        border-color: #8ca787;
+        background: #e3edca;
+        color: #294a32;
+      }
+
+      .home-mypage-button:focus-visible {
+        outline: 3px solid rgba(49, 114, 85, 0.35);
+        outline-offset: 2px;
       }
 
       .project-list-toolbar {
@@ -5589,15 +5714,17 @@
         .sidebar {
           position: static;
           z-index: 2;
+          display: grid;
+          grid-template-columns: minmax(0, 1fr) auto;
+          grid-template-areas: "brand navigation" "quick quick";
           height: auto;
-          flex-direction: row;
           align-items: center;
-          justify-content: space-between;
-          gap: 20px;
+          gap: 9px 14px;
           padding: 12px 22px;
         }
 
         .brand-row {
+          grid-area: brand;
           padding: 0;
         }
 
@@ -5609,17 +5736,38 @@
 
         .brand-caption,
         .workspace-switcher,
+        .sidebar-workspace-manage,
         .nav-label,
         .sidebar-bottom {
           display: none;
         }
 
-        .sidebar-mypage-mobile {
+        .sidebar-mobile-links {
+          display: flex;
+          grid-area: quick;
+          align-items: center;
+          gap: 8px;
+          min-width: 0;
+          overflow-x: auto;
+          padding: 2px 1px;
+          scrollbar-width: none;
+        }
+
+        .sidebar-mobile-links::-webkit-scrollbar {
+          display: none;
+        }
+
+        .sidebar-mypage-mobile,
+        .sidebar-workspace-mobile {
           display: inline-flex;
-          margin-left: auto;
+          flex: 0 0 auto;
+          min-height: 42px;
+          margin: 0;
         }
 
         .side-nav {
+          grid-area: navigation;
+          justify-self: end;
           flex-direction: row;
           gap: 4px;
         }
@@ -5652,14 +5800,20 @@
 
       @media (max-width: 620px) {
         .sidebar {
-          gap: 10px;
+          grid-template-columns: minmax(0, 1fr) auto;
+          gap: 8px 9px;
           padding: 10px 14px;
         }
 
-        .sidebar-mypage-mobile {
-          min-height: 35px;
-          padding: 0 9px;
-          font-size: 10px;
+        .sidebar-mobile-links {
+          gap: 7px;
+        }
+
+        .sidebar-mypage-mobile,
+        .sidebar-workspace-mobile {
+          min-height: 42px;
+          padding: 0 11px;
+          font-size: 11px;
         }
 
         .mypage-account-card {
@@ -5780,6 +5934,16 @@
         .home-actions {
           align-self: flex-end;
           gap: 6px;
+        }
+
+        .profile-action-group {
+          gap: 5px;
+        }
+
+        .home-mypage-button {
+          min-height: 40px;
+          padding: 0 10px;
+          font-size: 11px;
         }
 
         .utility-icon,
@@ -6068,9 +6232,17 @@
             <span class="brand-caption">REQUIREMENT CHECK</span>
           </div>
         </a>
-        <a class="sidebar-mypage-mobile" id="sidebar-mypage-mobile" href="#/mypage">마이페이지</a>
+        <div class="sidebar-mobile-links" aria-label="빠른 이동">
+          <a class="sidebar-mypage-mobile" id="sidebar-mypage-mobile" href="#/mypage">마이페이지</a>
+          <a class="sidebar-workspace-mobile" id="sidebar-workspace-mobile" href="#/workspace" hidden>
+            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+              <path d="M3.5 5.5h13v10h-13zM6.5 8.5h7M6.5 11h4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            프로젝트 초대 관리
+          </a>
+        </div>
 
-        <div class="workspace-switcher" aria-label="현재 워크스페이스">
+        <a class="workspace-switcher" id="workspace-switcher" href="#/workspace" aria-label="현재 워크스페이스 및 프로젝트 초대 관리">
           <div class="workspace-info">
             <span class="workspace-mark">S</span>
             <span class="workspace-label">
@@ -6081,7 +6253,15 @@
           <svg viewBox="0 0 20 20" width="15" height="15" fill="none" aria-hidden="true">
             <path d="m6 8 4 4 4-4" stroke="rgba(255,255,255,.65)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
           </svg>
-        </div>
+        </a>
+        <a class="sidebar-workspace-manage" id="sidebar-workspace-manage" href="#/workspace" hidden>
+          <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+            <path d="M3.5 5.5h13v10h-13zM6.5 8.5h7M6.5 11h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+            <path d="m13.2 13.5 1.2 1.2 2.2-2.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+          프로젝트 초대 관리
+          <span aria-hidden="true" style="margin-left:auto">→</span>
+        </a>
 
         <div class="sidebar-bottom">
           <a class="help-card" href="#/guide" aria-label="검토 가이드 보기">
@@ -6177,9 +6357,12 @@
                   <path d="M15.5 7.7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.5h15c0-1.5-2-1.5-2-7.5ZM8 17h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </span>
-              <a class="user-chip" id="home-mypage-link" href="#/mypage" aria-label="마이페이지 보기" title="마이페이지">
-                <span class="profile-avatar">SG</span>
-              </a>
+              <div class="profile-action-group" aria-label="마이페이지 바로 가기">
+                <a class="user-chip" id="home-mypage-link" href="#/mypage" aria-label="마이페이지 보기" title="마이페이지">
+                  <span class="profile-avatar">SG</span>
+                </a>
+                <a class="home-mypage-button" id="home-mypage-button" href="#/mypage">마이페이지</a>
+              </div>
             </div>
           </section>
 
@@ -7385,15 +7568,20 @@
           registerPassword: document.querySelector("#register-password"),
           registerPasswordConfirm: document.querySelector("#register-password-confirm"),
           workspaceUsername: document.querySelector("#workspace-username"),
+          workspaceSwitcher: document.querySelector("#workspace-switcher"),
+          workspaceManageLink: document.querySelector("#sidebar-workspace-manage"),
+          workspaceManageMobile: document.querySelector("#sidebar-workspace-mobile"),
           sidebarUsername: document.querySelector("#sidebar-username"),
           sidebarAccountStatus: document.querySelector("#sidebar-account-status"),
           sidebarAvatar: document.querySelector("#sidebar-avatar"),
           sidebarProfileLink: document.querySelector("#sidebar-profile-link"),
           sidebarMobileLink: document.querySelector("#sidebar-mypage-mobile"),
           homeMypageLink: document.querySelector("#home-mypage-link"),
+          homeMypageButton: document.querySelector("#home-mypage-button"),
           logoutButton: document.querySelector("#logout-button"),
           home: document.querySelector("#home-view"),
           mypage: document.querySelector("#mypage-view"),
+          mypageTitle: document.querySelector("#mypage-title"),
           mypageAccountName: document.querySelector("#mypage-account-name"),
           mypageAccountAvatar: document.querySelector("#mypage-account-avatar"),
           mypageNotice: document.querySelector("#mypage-notice"),
@@ -7623,6 +7811,8 @@
           elements.sidebarUsername.textContent = username;
           elements.sidebarAccountStatus.textContent = currentUser ? "마이페이지 · 계정 관리" : "로그인해 주세요";
           elements.logoutButton.hidden = !currentUser;
+          elements.workspaceManageLink.hidden = !currentUser;
+          elements.workspaceManageMobile.hidden = !currentUser;
           const initials = currentUser?.username?.slice(0, 2).toUpperCase() || "SG";
           elements.sidebarAvatar.textContent = initials;
           document.querySelectorAll(".user-chip .profile-avatar").forEach((avatar) => { avatar.textContent = initials; });
@@ -10168,9 +10358,14 @@
           renderProjectLists();
           window.scrollTo(0, 0);
           views.forEach((view) => { view.hidden = true; });
-          [elements.sidebarProfileLink, elements.sidebarMobileLink, elements.homeMypageLink].forEach((link) => {
+          [elements.sidebarProfileLink, elements.sidebarMobileLink, elements.homeMypageLink, elements.homeMypageButton].forEach((link) => {
             if (!link) return;
-            if (route === "/mypage") link.setAttribute("aria-current", "page");
+            if (currentUser && route === "/mypage") link.setAttribute("aria-current", "page");
+            else link.removeAttribute("aria-current");
+          });
+          [elements.workspaceSwitcher, elements.workspaceManageLink, elements.workspaceManageMobile].forEach((link) => {
+            if (!link) return;
+            if (currentUser && route === "/workspace") link.setAttribute("aria-current", "page");
             else link.removeAttribute("aria-current");
           });
 
@@ -10180,9 +10375,11 @@
             return;
           }
 
-          if (route === "/mypage") {
+          if (route === "/mypage" || route === "/workspace") {
             elements.mypage.hidden = false;
-            document.title = "마이페이지 | 스펙가드";
+            const isWorkspaceRoute = route === "/workspace";
+            elements.mypageTitle.textContent = isWorkspaceRoute ? "프로젝트 초대 관리" : "마이페이지";
+            document.title = isWorkspaceRoute ? "프로젝트 초대 관리 | 스펙가드" : "마이페이지 | 스펙가드";
             loadMyPageData();
             return;
           }

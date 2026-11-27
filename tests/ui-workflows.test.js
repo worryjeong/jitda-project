@@ -40,3 +40,22 @@ test("update plan generation is below comparison results and cites both source t
   assert.match(html, /evidenceExistsInMeetingDocuments\(project, evidence\)\s*\|\|\s*evidenceExistsInSpecificationDocuments\(project, evidence\)/u);
   assert.match(html, /프로젝트 데이터는 계정별로 서버에 저장됩니다\./u);
 });
+
+test("home profile links have a visible My Page button and workspace invitation links reuse the existing view", async () => {
+  const html = await fs.readFile(indexPath, "utf8");
+  const profileGroup = html.match(/<div class="profile-action-group"[\s\S]*?<\/div>\s*<\/div>/u)?.[0];
+  assert.ok(profileGroup, "home header groups the avatar and My Page button");
+  assert.match(profileGroup, /id="home-mypage-link" href="#\/mypage"/u);
+  assert.match(profileGroup, /id="home-mypage-button" href="#\/mypage">마이페이지/u);
+
+  assert.match(html, /id="workspace-switcher" href="#\/workspace"/u);
+  assert.match(html, /id="sidebar-workspace-manage" href="#\/workspace" hidden/u);
+  assert.match(html, /id="sidebar-workspace-mobile" href="#\/workspace" hidden/u);
+  assert.match(html, /elements\.workspaceManageLink\.hidden = !currentUser/u);
+  assert.match(html, /elements\.workspaceManageMobile\.hidden = !currentUser/u);
+  assert.match(html, /currentUser && route === "\/workspace"/u);
+  assert.match(html, /route === "\/mypage" \|\| route === "\/workspace"/u);
+  assert.match(html, /link\.setAttribute\("aria-current", "page"\)/u);
+  assert.match(html, /\.sidebar-workspace-manage\[aria-current="page"\]/u);
+  assert.match(html, /\.sidebar-workspace-mobile\[aria-current="page"\]/u);
+});
