@@ -336,7 +336,18 @@ test("new-project analysis survives a concurrent save and update generation uses
           { id: "missing-requirement", text: "주문 내역을 날짜별로 검색할 수 있습니다.", category: "function" },
           { id: "conflict-requirement", text: "주문 내역은 로그인한 회원만 확인할 수 있습니다.", category: "function" },
         ]),
-        contentSignature: "existing-content-signature",
+        contentSignature: JSON.stringify({
+          source: [{
+            id: "meeting-update",
+            roundId: "",
+            date: "2026-11-27",
+            content: "고객은 주문 내역에서 날짜를 확인해 주세요.\n고객은 로그인한 회원만 주문 내역을 확인하게 해 주세요.",
+            stt: "",
+            sttFileName: "",
+          }],
+          specification: "# 주문 서비스\n\n## 주문 내역\n주문 목록을 확인할 수 있습니다.\n\n## 로그인\n비회원도 주문 내역을 볼 수 있습니다.",
+          template: null,
+        }),
         confirmedRequirements: [
           { id: "keep-requirement", text: "주문 목록을 확인할 수 있습니다.", category: "function" },
           { id: "missing-requirement", text: "주문 내역을 날짜별로 검색할 수 있습니다.", category: "function" },
@@ -349,10 +360,10 @@ test("new-project analysis survives a concurrent save and update generation uses
         ],
       },
       comparisonStale: false,
-      documents: [],
+      specTemplate: null,
     };
     updateProject.documents = [
-      { id: "meeting-update", name: "회의 메모", kind: "source", content: "고객: 주문 내역에서 날짜를 확인해 주세요.\n고객은 로그인한 회원만 주문 내역을 확인하게 해 주세요.", date: "2026-11-27" },
+      { id: "meeting-update", name: "회의 메모", kind: "source", content: "고객은 주문 내역에서 날짜를 확인해 주세요.\n고객은 로그인한 회원만 주문 내역을 확인하게 해 주세요.", date: "2026-11-27", roundId: "" },
       { id: "spec-update", name: "기존 기획서", kind: "spec", content: "# 주문 서비스\n\n## 주문 내역\n주문 목록을 확인할 수 있습니다.\n\n## 로그인\n비회원도 주문 내역을 볼 수 있습니다." },
     ];
     const createUpdateProject = await request("/api/projects", {

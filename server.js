@@ -2287,6 +2287,27 @@ function updateRequirementsWithCurrentComparison(project) {
     || project.comparisonStale) {
     throw new HttpError(409, "현재 확정된 요구사항과 최신 비교 결과가 없습니다. 먼저 기획서 비교를 실행해 주세요.");
   }
+  const activeDocuments = (Array.isArray(project.documents) ? project.documents : [])
+    .filter((documentItem) => !documentItem.archivedAt);
+  const currentContentSignature = JSON.stringify({
+    source: activeDocuments.filter((documentItem) => documentItem.kind === "source").map((documentItem) => ({
+      id: documentItem.id,
+      roundId: documentItem.roundId,
+      date: documentItem.date,
+      content: documentItem.content || "",
+      stt: documentItem.stt?.transcript || "",
+      sttFileName: documentItem.stt?.fileName || "",
+    })),
+    specification: activeDocuments.find((documentItem) => documentItem.kind === "spec")?.content || "",
+    template: project.specTemplate ? {
+      fileName: project.specTemplate.fileName || "",
+      content: project.specTemplate.content || "",
+      structure: project.specTemplate.structure || [],
+    } : null,
+  });
+  if (!comparison.contentSignature || comparison.contentSignature !== currentContentSignature) {
+    throw new HttpError(409, "회의록·기획서가 비교 후 변경되었습니다. 최신 문서로 다시 비교해 주세요.");
+  }
 
   const currentById = new Map(confirmedRequirements.map((requirement) => [requirement.id, requirement]));
   const comparedRequirements = comparison.confirmedRequirements;
