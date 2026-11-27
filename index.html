@@ -6419,8 +6419,9 @@
               confirmedRequirements: state.confirmedRequirements,
               results: completeResults,
               usedFallback: Boolean(payload.usedFallback),
-              fallbackMessage: payload.usedFallback ? "AI 비교 실패로 규칙 기반 결과를 표시합니다" : "",
+              fallbackMessage: payload.usedFallback ? (payload.fallbackMessage || "AI 비교 실패로 규칙 기반 결과를 표시합니다") : "",
               llmStatus: payload.llmStatus ?? null,
+              llmFinishReason: payload.llmFinishReason ?? null,
               model: payload.model || "jitda-chat",
               usage: payload.usage || null,
               remainingBudget: payload.remainingBudget || null,
@@ -7860,6 +7861,8 @@
             if (!response.ok) {
               elements.analysisState.dataset.llmStatus = String(analysis.upstreamStatus ?? response.status);
               elements.analysisState.dataset.providerError = String(analysis.providerError || "");
+              elements.analysisState.dataset.llmFinishReason = String(analysis.finishReason || "unknown");
+              elements.analysisState.dataset.llmUsage = JSON.stringify(analysis.usage || null);
               throw new Error(analysis.error || "LLM 분석에 실패했습니다. 다시 시도해 주세요.");
             }
             const sourceRequirements = (analysis.meetingRequirements || []).map((item, index) => ({
@@ -8040,6 +8043,7 @@
             renderExtraction(project);
             elements.analysisState.dataset.llmStatus = String(analysis.llmStatus ?? "unknown");
             elements.analysisState.dataset.llmModel = String(analysis.model || "unknown");
+            elements.analysisState.dataset.llmFinishReason = String(analysis.llmFinishReason || "unknown");
             elements.analysisState.dataset.llmUsage = JSON.stringify(analysis.usage || null);
             elements.analysisState.dataset.remainingBudget = JSON.stringify(analysis.remainingBudget || null);
           } catch (error) {

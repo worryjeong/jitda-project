@@ -704,6 +704,12 @@ function responseText(message) {
   return "";
 }
 
+function tokenCount(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const numeric = Number(value);
+  return Number.isFinite(numeric) ? numeric : null;
+}
+
 function parseModelJson(text) {
   const trimmed = text.trim().replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "");
   const start = trimmed.indexOf("{");
@@ -731,7 +737,7 @@ async function requestModel(input, options = {}) {
   const payload = {
     model,
     messages,
-    max_completion_tokens: 4000,
+    max_completion_tokens: 16000,
     response_format: options.responseFormat || responseFormat,
   };
 
@@ -775,21 +781,37 @@ async function requestModel(input, options = {}) {
   } catch {
     throw new HttpError(502, "LLM 응답을 읽지 못했습니다. 다시 시도해 주세요.");
   }
-  const content = responseText(body?.choices?.[0]?.message);
-  if (!content) throw new HttpError(502, "LLM 응답에 분석 결과가 없습니다. 다시 시도해 주세요.");
-  const usage = body.usage && typeof body.usage === "object"
-    ? Object.fromEntries(Object.entries(body.usage).filter(([key, value]) =>
-      /^(prompt_tokens|completion_tokens|total_tokens|input_tokens|output_tokens)$/i.test(key)
-      && Number.isFinite(Number(value))
-    ))
-    : null;
+  const choice = body?.choices?.[0] || {};
+  const finishReason = typeof choice.finish_reason === "string" ? choice.finish_reason : null;
+  const rawUsage = body.usage && typeof body.usage === "object" ? body.usage : {};
+  const reasoningDetails = rawUsage.completion_tokens_details || rawUsage.output_tokens_details || {};
+  const usage = {
+    prompt_tokens: tokenCount(rawUsage.prompt_tokens ?? rawUsage.input_tokens),
+    completion_tokens: tokenCount(rawUsage.completion_tokens ?? rawUsage.output_tokens),
+    reasoning_tokens: tokenCount(reasoningDetails.reasoning_tokens ?? rawUsage.reasoning_tokens),
+  };
+  console.info(`LLM response metadata: ${JSON.stringify({
+    status: response.status,
+    finish_reason: finishReason,
+    usage,
+  })}`);
+
+  const content = responseText(choice.message);
+  if (finishReason === "length" || !content.trim()) {
+    throw new HttpError(502, "AI 응답이 길어 중단되었습니다. 다시 시도해 주세요", {
+      upstreamStatus: response.status,
+      finishReason,
+      usage,
+    });
+  }
   const remainingBudget = Object.fromEntries([...response.headers.entries()].filter(([name]) =>
     /budget|remaining|quota|credit/i.test(name)
   ));
   return {
     analysis: parseModelJson(content),
     status: response.status,
-    usage: Object.keys(usage || {}).length ? usage : null,
+    finishReason,
+    usage,
     remainingBudget: Object.keys(remainingBudget).length ? remainingBudget : null,
   };
 }
@@ -1160,6 +1182,7 @@ function normalizeAnalysis(raw, input, requestMetadata) {
     comparison: normalizeComparison(raw.comparison, meetingRequirements),
     model,
     llmStatus: requestMetadata.status,
+    llmFinishReason: requestMetadata.finishReason,
     usage: requestMetadata.usage,
     remainingBudget: requestMetadata.remainingBudget,
   };
@@ -1338,6 +1361,7 @@ const server = http.createServer(async (request, response) => {
         results: normalizeCompareResponse(llmResult.analysis, input),
         usedFallback: false,
         llmStatus: llmResult.status,
+        llmFinishReason: llmResult.finishReason,
         model,
         usage: llmResult.usage,
         remainingBudget: llmResult.remainingBudget,
@@ -1349,11 +1373,18 @@ const server = http.createServer(async (request, response) => {
       const llmStatus = error instanceof HttpError
         ? error.details.upstreamStatus || error.status
         : null;
+      const finishReason = error instanceof HttpError ? error.details.finishReason || null : null;
+      const usage = error instanceof HttpError ? error.details.usage || null : null;
+      const wasTruncated = finishReason === "length" || error?.message === "AI 응답이 길어 중단되었습니다. 다시 시도해 주세요";
       sendJson(response, 200, {
         results: ruleBasedCompare(input),
         usedFallback: true,
-        fallbackMessage: "AI 비교 실패로 규칙 기반 결과를 표시합니다",
+        fallbackMessage: wasTruncated
+          ? "AI 응답이 길어 중단되었습니다. 다시 시도해 주세요 · AI 비교 실패로 규칙 기반 결과를 표시합니다"
+          : "AI 비교 실패로 규칙 기반 결과를 표시합니다",
         llmStatus,
+        llmFinishReason: finishReason,
+        usage,
       });
     }
     return;
