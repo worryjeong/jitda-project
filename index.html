@@ -3021,6 +3021,383 @@
         line-height: 1.55;
       }
 
+      .team-member-list,
+      .change-history-list {
+        display: grid;
+        gap: 9px;
+      }
+
+      .team-member-row {
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 9px;
+        min-width: 0;
+        padding: 10px;
+        border: 1px solid #e8ece7;
+        border-radius: 8px;
+        background: #fcfdfa;
+      }
+
+      .team-member-avatar {
+        display: grid;
+        width: 32px;
+        height: 32px;
+        place-items: center;
+        border: 1px solid #dce7d8;
+        border-radius: 50%;
+        background: #edf5eb;
+        color: #436748;
+        font-size: 11px;
+        font-weight: 750;
+      }
+
+      .team-member-row[data-role="editor"] .team-member-avatar {
+        border-color: #e2e7e3;
+        background: #f1f3f1;
+        color: #647168;
+      }
+
+      .team-member-copy {
+        display: grid;
+        min-width: 0;
+        gap: 3px;
+      }
+
+      .team-member-copy strong {
+        overflow: hidden;
+        color: #35433a;
+        font-size: 12px;
+        font-weight: 680;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .team-member-copy span {
+        color: #7b877e;
+        font-size: 10px;
+      }
+
+      .team-remove-button {
+        min-width: 48px;
+        min-height: 36px;
+        padding: 0 9px;
+        border: 1px solid #ead8d4;
+        border-radius: 7px;
+        background: #fff8f6;
+        color: #a34e42;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 680;
+      }
+
+      .team-remove-button:hover:not(:disabled) {
+        border-color: #dfbcb5;
+        background: #fff1ed;
+      }
+
+      .team-remove-button:disabled,
+      .team-invite-form button:disabled,
+      .invitation-accept:disabled {
+        cursor: wait;
+        opacity: 0.58;
+      }
+
+      .team-pending-list {
+        display: grid;
+        gap: 5px;
+        margin-top: 12px;
+        padding: 11px;
+        border: 1px dashed #e4dfc9;
+        border-radius: 8px;
+        background: #fcfbf6;
+      }
+
+      .team-pending-list strong {
+        color: #716648;
+        font-size: 10px;
+      }
+
+      .team-pending-list span {
+        color: #73776a;
+        font-size: 11px;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+      }
+
+      .team-invite-form {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 7px;
+        margin-top: 12px;
+      }
+
+      .team-invite-form label {
+        grid-column: 1 / -1;
+        color: #626f66;
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      .team-invite-form input {
+        width: 100%;
+        min-width: 0;
+        min-height: 40px;
+        padding: 0 10px;
+        border: 1px solid #dfe5df;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #344139;
+        font: inherit;
+        font-size: 12px;
+      }
+
+      .team-invite-form input:focus {
+        border-color: #78927f;
+        outline: 3px solid rgba(49, 114, 85, 0.12);
+      }
+
+      .team-invite-form button {
+        min-height: 40px;
+        padding: 0 12px;
+        border: 1px solid var(--forest);
+        border-radius: 7px;
+        background: var(--forest);
+        color: #ffffff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 680;
+        white-space: nowrap;
+      }
+
+      .team-invite-form button:hover:not(:disabled) {
+        background: var(--forest-soft);
+      }
+
+      .team-status {
+        margin: 10px 0 0;
+        color: #52734f;
+        font-size: 11px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+      }
+
+      .team-status[data-state="error"] {
+        color: #a34e42;
+      }
+
+      .team-status[hidden],
+      .team-pending-list[hidden],
+      .team-invite-form[hidden],
+      .change-more-button[hidden],
+      .invite-inbox[hidden] {
+        display: none !important;
+      }
+
+      .team-empty,
+      .change-empty {
+        margin: 0;
+        padding: 13px 10px;
+        border: 1px dashed #e0e6df;
+        border-radius: 8px;
+        background: #fafbf9;
+        color: #77837a;
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .change-history-list {
+        gap: 8px;
+      }
+
+      .change-entry {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 8px 10px;
+        padding: 11px;
+        border: 1px solid #e8ece7;
+        border-radius: 8px;
+        background: #fcfdfa;
+      }
+
+      .change-entry-actor {
+        display: flex;
+        min-width: 0;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .change-entry-actor strong {
+        max-width: 100%;
+        color: #39463d;
+        font-size: 11px;
+        font-weight: 690;
+        overflow-wrap: anywhere;
+      }
+
+      .change-role-badge {
+        display: inline-flex;
+        min-height: 21px;
+        align-items: center;
+        padding: 0 6px;
+        border-radius: 5px;
+        background: #edf5eb;
+        color: #4c704d;
+        font-size: 9px;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .change-role-badge.editor {
+        background: #f0f2f0;
+        color: #67716a;
+      }
+
+      .change-entry time {
+        color: #808a82;
+        font-size: 9px;
+        line-height: 1.5;
+        text-align: right;
+      }
+
+      .change-entry-fields {
+        display: flex;
+        flex-wrap: wrap;
+        grid-column: 1;
+        gap: 5px;
+      }
+
+      .change-field-chip {
+        display: inline-flex;
+        min-height: 23px;
+        align-items: center;
+        padding: 0 7px;
+        border: 1px solid #e4e9e3;
+        border-radius: 5px;
+        background: #ffffff;
+        color: #5e6b62;
+        font-size: 9px;
+        font-weight: 620;
+      }
+
+      .change-entry-version {
+        grid-column: 2;
+        grid-row: 2;
+        color: #78847b;
+        font-size: 9px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .change-more-button {
+        width: 100%;
+        min-height: 40px;
+        margin-top: 9px;
+        border: 1px solid #dfe5df;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #4f6155;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 650;
+      }
+
+      .change-more-button:hover {
+        border-color: #bdcbbf;
+        background: #f8faf7;
+      }
+
+      .invite-inbox {
+        margin-bottom: 18px;
+        padding: 17px;
+        border: 1px solid #dbe6d6;
+        border-radius: 10px;
+        background: #f3f7f0;
+      }
+
+      .invite-inbox-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 11px;
+      }
+
+      .invite-inbox-heading h2 {
+        margin: 0 0 4px;
+        color: #314638;
+        font-size: 15px;
+      }
+
+      .invite-inbox-heading p {
+        margin: 0;
+        color: #6a786d;
+        font-size: 12px;
+        line-height: 1.55;
+      }
+
+      .invite-inbox-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .invite-inbox-item {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 12px;
+        border: 1px solid #e0e8dc;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .invite-inbox-item strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #35443a;
+        font-size: 12px;
+      }
+
+      .invite-inbox-item span {
+        color: #77837a;
+        font-size: 10px;
+      }
+
+      .invitation-accept {
+        min-height: 38px;
+        padding: 0 12px;
+        border: 1px solid var(--forest);
+        border-radius: 7px;
+        background: var(--forest);
+        color: #ffffff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 680;
+        white-space: nowrap;
+      }
+
+      .invitation-accept:hover:not(:disabled) {
+        background: var(--forest-soft);
+      }
+
+      .invite-inbox-error {
+        margin: 9px 0 0;
+        color: #a34e42;
+        font-size: 11px;
+        line-height: 1.6;
+      }
+
+      .invite-inbox-error[hidden] {
+        display: none;
+      }
+
       .document-list,
       .requirement-list {
         display: grid;
@@ -5288,6 +5665,17 @@
             </div>
           </section>
 
+          <section class="invite-inbox" id="pending-invitations-panel" aria-labelledby="pending-invitations-title" hidden>
+            <div class="invite-inbox-heading">
+              <div>
+                <h2 id="pending-invitations-title">프로젝트 초대</h2>
+                <p>초대를 수락하면 해당 프로젝트의 공동 편집자로 참여합니다.</p>
+              </div>
+            </div>
+            <div class="invite-inbox-list" id="pending-invitations-list"></div>
+            <p class="invite-inbox-error" id="pending-invitations-error" role="status" hidden></p>
+          </section>
+
           <div class="sample-label">
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M10 2.5 17 6v4.6c0 3.9-2.4 6.2-7 7.9-4.6-1.7-7-4-7-7.9V6l7-3.5Z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round" />
@@ -6414,6 +6802,9 @@
           sidebarAccountStatus: document.querySelector("#sidebar-account-status"),
           logoutButton: document.querySelector("#logout-button"),
           home: document.querySelector("#home-view"),
+          pendingInvitationsPanel: document.querySelector("#pending-invitations-panel"),
+          pendingInvitationsList: document.querySelector("#pending-invitations-list"),
+          pendingInvitationsError: document.querySelector("#pending-invitations-error"),
           guide: document.querySelector("#guide-view"),
           allProjects: document.querySelector("#projects-view"),
           create: document.querySelector("#create-view"),
@@ -6531,6 +6922,9 @@
         let showDeletedReviews = false;
         let editingReviewId = null;
         let pendingDeleteProjectId = null;
+        let pendingInvitations = [];
+        let projectChangeRows = [];
+        let showAllProjectChanges = false;
 
         class ApiRequestError extends Error {
           constructor(status, payload) {
@@ -6582,6 +6976,8 @@
             csrfToken = "";
             projects = [];
             persistedProjectSnapshots.clear();
+            pendingInvitations = [];
+            renderPendingInvitations();
             updateSidebarIdentity();
             renderRoute();
           }
@@ -6617,6 +7013,145 @@
           });
         }
 
+        function accountDisplayName(account) {
+          const username = String(account?.username || "알 수 없는 사용자");
+          const displayName = String(account?.displayName || "").trim();
+          return displayName ? `${displayName} (${username})` : username;
+        }
+
+        function setTeamStatus(projectId, message, isError = false) {
+          if (elements.detail.dataset.projectId !== projectId) return;
+          const status = elements.detailContent.querySelector("#project-team-status");
+          if (!status) return;
+          status.textContent = message || "";
+          status.dataset.state = isError ? "error" : "success";
+          status.hidden = !message;
+        }
+
+        function renderProjectTeam(projectId, payload) {
+          if (elements.detail.dataset.projectId !== projectId) return;
+          const memberList = elements.detailContent.querySelector("#project-team-list");
+          const pendingList = elements.detailContent.querySelector("#project-pending-list");
+          const pendingNames = elements.detailContent.querySelector("#project-pending-names");
+          const inviteForm = elements.detailContent.querySelector("#project-team-invite-form");
+          const members = Array.isArray(payload.members) ? payload.members : [];
+          const editors = members.filter((member) => member.role === "editor");
+
+          memberList.innerHTML = members.map((member) => {
+            const isOwner = member.role === "owner";
+            const name = escapeHtml(accountDisplayName(member));
+            const roleLabel = isOwner ? "소유자" : "공동 편집자";
+            return `
+              <article class="team-member-row" data-role="${isOwner ? "owner" : "editor"}">
+                <span class="team-member-avatar" aria-hidden="true">${isOwner ? "소" : "팀"}</span>
+                <span class="team-member-copy"><strong>${name}</strong><span>${roleLabel}</span></span>
+                ${payload.isOwner && !isOwner ? `<button class="team-remove-button" type="button" data-remove-member="${escapeHtml(member.id)}" data-member-name="${name}">추방</button>` : ""}
+              </article>`;
+          }).join("");
+
+          if (!editors.length) {
+            memberList.insertAdjacentHTML("beforeend", '<p class="team-empty">아직 초대를 수락한 팀원이 없습니다. 아이디로 초대하면 이곳에 표시됩니다.</p>');
+          } else if (!members.length) {
+            memberList.innerHTML = '<p class="team-empty">참여 팀원이 없습니다.</p>';
+          }
+
+          const pending = Array.isArray(payload.pendingInvitations) ? payload.pendingInvitations : [];
+          pendingList.hidden = !payload.isOwner || !pending.length;
+          pendingNames.innerHTML = pending.map((member) => `<span>${escapeHtml(accountDisplayName(member))}</span>`).join("");
+          inviteForm.hidden = !payload.isOwner;
+          setTeamStatus(projectId, "");
+        }
+
+        function renderProjectChangeHistory(rows) {
+          projectChangeRows = Array.isArray(rows) ? rows.slice(0, 50) : [];
+          const list = elements.detailContent.querySelector("#project-change-list");
+          const moreButton = elements.detailContent.querySelector("#project-change-more");
+          const visibleRows = showAllProjectChanges ? projectChangeRows : projectChangeRows.slice(0, 5);
+          if (!projectChangeRows.length) {
+            list.innerHTML = '<p class="change-empty">이 기능 적용 후 저장한 변경부터 표시됩니다.</p>';
+            moreButton.hidden = true;
+            return;
+          }
+
+          list.innerHTML = visibleRows.map((row) => {
+            const role = row.actorRole === "owner" ? "owner" : "editor";
+            const roleLabel = role === "owner" ? "소유자" : "팀원";
+            const actor = escapeHtml(accountDisplayName({ username: row.actorUsername, displayName: row.actorDisplayName }));
+            const fields = (Array.isArray(row.changedFields) ? row.changedFields : [])
+              .map((field) => `<span class="change-field-chip">${escapeHtml(field)}</span>`).join("");
+            return `
+              <article class="change-entry">
+                <div class="change-entry-actor"><strong>${actor}</strong><span class="change-role-badge ${role}">${roleLabel}</span></div>
+                <time datetime="${escapeHtml(row.createdAt)}">${escapeHtml(formatDateTime(row.createdAt))}</time>
+                <div class="change-entry-fields">${fields || '<span class="change-field-chip">프로젝트 변경</span>'}</div>
+                <span class="change-entry-version">버전 ${escapeHtml(row.version)}</span>
+              </article>`;
+          }).join("");
+
+          moreButton.hidden = projectChangeRows.length <= 5;
+          moreButton.textContent = showAllProjectChanges ? "최근 5개만 보기" : "이전 수정 기록 보기";
+        }
+
+        async function loadProjectManagement(project) {
+          const projectId = project.id;
+          showAllProjectChanges = false;
+          const memberList = elements.detailContent.querySelector("#project-team-list");
+          const changeList = elements.detailContent.querySelector("#project-change-list");
+          memberList.innerHTML = '<p class="team-empty">참여 팀원을 불러오는 중입니다.</p>';
+          changeList.innerHTML = '<p class="change-empty">수정 기록을 불러오는 중입니다.</p>';
+          const [teamResult, changesResult] = await Promise.allSettled([
+            apiRequest(`/api/projects/${encodeURIComponent(projectId)}/members`),
+            apiRequest(`/api/projects/${encodeURIComponent(projectId)}/changes`),
+          ]);
+          if (elements.detail.dataset.projectId !== projectId) return;
+
+          if (teamResult.status === "fulfilled") {
+            renderProjectTeam(projectId, teamResult.value);
+          } else {
+            memberList.innerHTML = '<p class="team-empty">팀원 정보를 불러오지 못했습니다.</p>';
+            setTeamStatus(projectId, teamResult.reason instanceof Error ? teamResult.reason.message : "팀원 정보를 불러오지 못했습니다.", true);
+          }
+
+          if (changesResult.status === "fulfilled") {
+            renderProjectChangeHistory(changesResult.value.changes);
+          } else {
+            changeList.innerHTML = '<p class="change-empty">수정 기록을 불러오지 못했습니다. 프로젝트 권한을 확인해 주세요.</p>';
+          }
+        }
+
+        function renderPendingInvitations() {
+          const invitations = pendingInvitations;
+          elements.pendingInvitationsPanel.hidden = invitations.length === 0;
+          elements.pendingInvitationsError.hidden = true;
+          elements.pendingInvitationsList.innerHTML = invitations.map((invitation) => {
+            const inviter = invitation.invitedBy ? accountDisplayName(invitation.invitedBy) : "프로젝트 소유자";
+            return `
+              <article class="invite-inbox-item">
+                <div><strong>${escapeHtml(invitation.projectName)}</strong><span>${escapeHtml(invitation.client || "")} · ${escapeHtml(inviter)}님이 초대했습니다.</span></div>
+                <button class="invitation-accept" type="button" data-accept-invitation="${escapeHtml(invitation.id)}" data-project-id="${escapeHtml(invitation.projectId)}">초대 수락</button>
+              </article>`;
+          }).join("");
+        }
+
+        async function loadPendingInvitations() {
+          if (!currentUser) {
+            pendingInvitations = [];
+            renderPendingInvitations();
+            return;
+          }
+          try {
+            const payload = await apiRequest("/api/invitations");
+            pendingInvitations = Array.isArray(payload.invitations) ? payload.invitations : [];
+            renderPendingInvitations();
+          } catch (error) {
+            pendingInvitations = [];
+            elements.pendingInvitationsPanel.hidden = false;
+            elements.pendingInvitationsList.innerHTML = "";
+            elements.pendingInvitationsError.textContent = error instanceof Error ? error.message : "초대를 불러오지 못했습니다.";
+            elements.pendingInvitationsError.hidden = false;
+          }
+        }
+
         async function persistProject(project, options = {}) {
           if (!currentUser) throw new ApiRequestError(401, { error: "로그인이 필요합니다." });
           const isCreate = Boolean(options.create);
@@ -6633,6 +7168,8 @@
         function projectPersistenceSnapshot(project) {
           const snapshot = structuredClone(project);
           delete snapshot.serverVersion;
+          delete snapshot.ownerId;
+          delete snapshot.memberRole;
           return snapshot;
         }
 
@@ -6643,10 +7180,7 @@
           projects = migratedProjects.map((entry) => entry.project);
           persistedProjectSnapshots.clear();
           migratedProjects.forEach(({ project }) => persistedProjectSnapshots.set(project.id, projectPersistenceSnapshot(project)));
-          for (let index = 0; index < migratedProjects.length; index += 1) {
-            if (!migratedProjects[index].changed) continue;
-            await persistProject(projects[index]);
-          }
+          // 화면 호환용 기본값은 로그인 시점에 사용자가 바꾼 자료로 저장하거나 기록하지 않습니다.
           return { legacyImportCompleted: Boolean(payload.legacyImportCompleted) };
         }
 
@@ -6700,6 +7234,8 @@
           if (!currentUser) {
             projects = [];
             persistedProjectSnapshots.clear();
+            pendingInvitations = [];
+            renderPendingInvitations();
             renderRoute();
             return;
           }
@@ -6707,6 +7243,7 @@
           setAuthError("");
           const migration = await loadProjectsFromDatabase();
           await maybeImportLegacyProjects(migration.legacyImportCompleted);
+          await loadPendingInvitations();
           authBootstrapped = true;
           renderRoute();
         }
@@ -6720,6 +7257,8 @@
             csrfToken = "";
             projects = [];
             persistedProjectSnapshots.clear();
+            pendingInvitations = [];
+            renderPendingInvitations();
             updateSidebarIdentity();
             setAuthError(error instanceof Error ? error.message : "로그인 상태를 확인하지 못했습니다.");
             renderRoute();
@@ -6937,6 +7476,7 @@
         }
 
         function renderDetail(project) {
+          elements.detail.dataset.projectId = project.id;
           const documents = project.documents || [];
           const requirements = project.requirements || [];
           const activeDocuments = documents.filter((documentItem) => !documentItem.archivedAt);
@@ -6979,12 +7519,12 @@
                 </a>
                 <a class="button-secondary" href="#/projects/${encodeURIComponent(project.id)}/extract">요구사항 추출</a>
                 <a class="button-secondary" href="#/projects/${encodeURIComponent(project.id)}/review">검토·확정으로 이동</a>
-                <button class="button-danger" type="button" data-delete-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 삭제">
+                ${project.memberRole === "owner" ? `<button class="button-danger" type="button" data-delete-project-id="${escapeHtml(project.id)}" aria-label="${escapeHtml(project.name)} 프로젝트 삭제">
                   <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                     <path d="M4 6h12M8 6V4h4v2m2 0-.7 10H6.7L6 6m2.5 3v4m3-4v4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
                   </svg>
                   프로젝트 삭제
-                </button>
+                </button>` : ""}
               </div>
             </header>
 
@@ -7020,6 +7560,28 @@
               </div>
 
               <aside class="detail-side-column">
+                <section class="detail-panel" aria-labelledby="team-heading">
+                  <div class="detail-panel-heading">
+                    <div>
+                      <h2 id="team-heading">참여 팀원</h2>
+                      <p>소유자와 초대를 수락한 공동 편집자입니다.</p>
+                    </div>
+                  </div>
+                  <div class="team-member-list" id="project-team-list">
+                    <p class="team-empty">참여 팀원을 불러오는 중입니다.</p>
+                  </div>
+                  <div class="team-pending-list" id="project-pending-list" hidden>
+                    <strong>초대 수락 대기</strong>
+                    <div id="project-pending-names"></div>
+                  </div>
+                  <form class="team-invite-form" id="project-team-invite-form" data-project-id="${escapeHtml(project.id)}" hidden>
+                    <label for="project-team-invite-username">아이디로 팀원 초대</label>
+                    <input id="project-team-invite-username" name="username" type="text" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" placeholder="초대할 아이디" autocomplete="off" required />
+                    <button type="submit">초대 보내기</button>
+                  </form>
+                  <p class="team-status" id="project-team-status" role="status" aria-live="polite" hidden></p>
+                </section>
+
                 <section class="detail-panel" aria-labelledby="progress-heading">
                   <div class="detail-panel-heading">
                     <div>
@@ -7035,8 +7597,22 @@
                 </div>
                   <div class="detail-notice">LLM의 반영·누락·충돌 판단은 참고용입니다. 원문 근거와 함께 검토해 주세요.</div>
                 </section>
+
+                <section class="detail-panel" aria-labelledby="change-history-heading">
+                  <div class="detail-panel-heading">
+                    <div>
+                      <h2 id="change-history-heading">최근 수정 기록</h2>
+                      <p>최신 50개 변경 분야와 저장 버전을 확인합니다.</p>
+                    </div>
+                  </div>
+                  <div class="change-history-list" id="project-change-list">
+                    <p class="change-empty">수정 기록을 불러오는 중입니다.</p>
+                  </div>
+                  <button class="change-more-button" id="project-change-more" type="button" hidden>이전 수정 기록 보기</button>
+                </section>
               </aside>
             </div>`;
+          loadProjectManagement(project);
         }
 
         const requirementCategoryLabels = {
@@ -7793,6 +8369,7 @@
             const payload = await apiRequest("/api/compare", {
               method: "POST",
               body: {
+                projectId: project.id,
                 confirmedRequirements: state.confirmedRequirements.map(({ id, text, category }) => ({ id, text, category })),
                 specification: {
                   documentName: specification.name,
@@ -8227,6 +8804,7 @@
               method: "POST",
               headers: {
                 "x-audio-filename": encodeURIComponent(file.name),
+                ...(editingProjectId ? { "x-project-id": editingProjectId } : {}),
               },
               body: file,
             });
@@ -8924,6 +9502,8 @@
             csrfToken = "";
             projects = [];
             persistedProjectSnapshots.clear();
+            pendingInvitations = [];
+            renderPendingInvitations();
             updateSidebarIdentity();
             setAuthMode("login");
             renderRoute();
@@ -8932,6 +9512,80 @@
           } finally {
             elements.logoutButton.disabled = false;
           }
+        });
+
+        elements.pendingInvitationsList.addEventListener("click", async (event) => {
+          const button = event.target.closest("[data-accept-invitation]");
+          if (!button) return;
+          button.disabled = true;
+          const invitationId = button.dataset.acceptInvitation;
+          const projectId = button.dataset.projectId;
+          try {
+            await apiRequest(`/api/invitations/${encodeURIComponent(invitationId)}/accept`, { method: "POST", body: {} });
+            await loadProjectsFromDatabase();
+            await loadPendingInvitations();
+            setRoute(`/projects/${encodeURIComponent(projectId)}`);
+          } catch (error) {
+            button.disabled = false;
+            elements.pendingInvitationsError.textContent = error instanceof Error ? error.message : "초대를 수락하지 못했습니다.";
+            elements.pendingInvitationsError.hidden = false;
+          }
+        });
+
+        elements.detailContent.addEventListener("submit", async (event) => {
+          const form = event.target.closest("#project-team-invite-form");
+          if (!form) return;
+          event.preventDefault();
+          const projectId = form.dataset.projectId;
+          const project = projects.find((item) => item.id === projectId);
+          const input = form.querySelector("[name='username']");
+          const button = form.querySelector("[type='submit']");
+          if (!project || !input.value.trim()) return;
+          button.disabled = true;
+          setTeamStatus(projectId, "초대를 보내고 있습니다.");
+          try {
+            const result = await apiRequest(`/api/projects/${encodeURIComponent(projectId)}/invitations`, {
+              method: "POST",
+              body: { username: input.value.trim() },
+            });
+            const invitedUsername = result.invitation?.username || input.value.trim();
+            form.reset();
+            await loadProjectManagement(project);
+            setTeamStatus(projectId, `${invitedUsername}님에게 초대를 보냈습니다. 수락 전에는 참여 팀원으로 표시되지 않습니다.`);
+          } catch (error) {
+            setTeamStatus(projectId, error instanceof Error ? error.message : "초대를 보내지 못했습니다.", true);
+          } finally {
+            if (form.isConnected) button.disabled = false;
+          }
+        });
+
+        elements.detailContent.addEventListener("click", async (event) => {
+          const removeButton = event.target.closest("[data-remove-member]");
+          if (removeButton) {
+            const projectId = elements.detail.dataset.projectId;
+            const project = projects.find((item) => item.id === projectId);
+            if (!project) return;
+            const memberName = removeButton.dataset.memberName || "이 팀원";
+            if (!window.confirm(`${memberName}님을 추방하면 이 프로젝트에 접근할 수 없게 됩니다. 기존 작업과 수정 기록은 유지됩니다. 추방할까요?`)) return;
+            removeButton.disabled = true;
+            setTeamStatus(projectId, "팀원 접근 권한을 해제하고 있습니다.");
+            try {
+              await apiRequest(`/api/projects/${encodeURIComponent(projectId)}/members/${encodeURIComponent(removeButton.dataset.removeMember)}`, {
+                method: "DELETE",
+              });
+              await loadProjectManagement(project);
+              setTeamStatus(projectId, `${memberName}님의 접근 권한을 해제했습니다. 기존 수정 기록은 유지됩니다.`);
+            } catch (error) {
+              setTeamStatus(projectId, error instanceof Error ? error.message : "팀원을 추방하지 못했습니다.", true);
+              removeButton.disabled = false;
+            }
+            return;
+          }
+
+          const moreButton = event.target.closest("#project-change-more");
+          if (!moreButton) return;
+          showAllProjectChanges = !showAllProjectChanges;
+          renderProjectChangeHistory(projectChangeRows);
         });
 
         elements.projectSearch.addEventListener("input", renderProjectLists);
@@ -9344,6 +9998,7 @@
               analysis = await apiRequest("/api/analyze", {
               method: "POST",
               body: {
+                projectId: project.id,
                 project: { name: project.name, client: project.client },
                 meetings: sourceDocuments.map((documentItem) => ({
                   date: meetingDateFor(documentItem, project),

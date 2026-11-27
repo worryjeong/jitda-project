@@ -36,6 +36,8 @@ usersDatabase.exec(`
   CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions(user_id);
   CREATE INDEX IF NOT EXISTS sessions_expires_at_idx ON sessions(expires_at);
 `);
+const userColumnNames = new Set(usersDatabase.prepare("PRAGMA table_info(users)").all().map((column) => column.name));
+if (!userColumnNames.has("display_name")) usersDatabase.exec("ALTER TABLE users ADD COLUMN display_name TEXT");
 
 const projectsDatabase = new DatabaseSync(path.join(dataDirectory, "projects.sqlite"));
 projectsDatabase.exec(`
@@ -56,6 +58,41 @@ projectsDatabase.exec(`
     imported_count INTEGER NOT NULL DEFAULT 0,
     skipped_count INTEGER NOT NULL DEFAULT 0
   );
+  CREATE TABLE IF NOT EXISTS project_memberships (
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    user_id TEXT NOT NULL,
+    role TEXT NOT NULL DEFAULT 'editor' CHECK (role = 'editor'),
+    invited_by_user_id TEXT NOT NULL,
+    joined_at TEXT NOT NULL,
+    PRIMARY KEY (project_id, user_id)
+  );
+  CREATE INDEX IF NOT EXISTS project_memberships_user_idx ON project_memberships(user_id, project_id);
+  CREATE TABLE IF NOT EXISTS project_invitations (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    invited_user_id TEXT NOT NULL,
+    invited_by_user_id TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'revoked')),
+    created_at TEXT NOT NULL,
+    accepted_at TEXT
+  );
+  CREATE UNIQUE INDEX IF NOT EXISTS project_invitations_pending_idx
+    ON project_invitations(project_id, invited_user_id) WHERE status = 'pending';
+  CREATE INDEX IF NOT EXISTS project_invitations_user_idx ON project_invitations(invited_user_id, status, created_at DESC);
+  CREATE TABLE IF NOT EXISTS project_change_logs (
+    id TEXT PRIMARY KEY,
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    actor_user_id TEXT NOT NULL,
+    actor_username TEXT NOT NULL,
+    actor_display_name TEXT,
+    actor_role TEXT NOT NULL CHECK (actor_role IN ('owner', 'editor')),
+    project_version INTEGER NOT NULL,
+    changed_fields_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    UNIQUE (project_id, project_version)
+  );
+  CREATE INDEX IF NOT EXISTS project_change_logs_recent_idx
+    ON project_change_logs(project_id, project_version DESC, created_at DESC);
 `);
 
 const model = "jitda-chat";
@@ -436,7 +473,7 @@ function sessionContext(request) {
   const sessionHash = sha256(rawToken);
   const row = usersDatabase.prepare(`
     SELECT sessions.session_hash, sessions.user_id, sessions.csrf_token, sessions.expires_at,
-           users.username
+           users.username, users.display_name
     FROM sessions JOIN users ON users.id = sessions.user_id
     WHERE sessions.session_hash = ?
   `).get(sessionHash);
@@ -447,7 +484,7 @@ function sessionContext(request) {
   }
   return {
     sessionHash: row.session_hash,
-    user: { id: row.user_id, username: row.username },
+    user: { id: row.user_id, username: row.username, displayName: row.display_name || null },
     csrfToken: row.csrf_token,
     expiresAt: row.expires_at,
   };
@@ -483,10 +520,12 @@ function createSession(userId) {
   return { rawToken, csrfToken, expiresAt: expiresAt.toISOString() };
 }
 
-function normalizeStoredProject(project, rowVersion, rowCreatedAt, rowUpdatedAt) {
+function normalizeStoredProject(project, rowVersion, rowCreatedAt, rowUpdatedAt, rowOwnerId = "", memberRole = "owner") {
   return {
     ...project,
     serverVersion: Number(rowVersion),
+    ownerId: rowOwnerId,
+    memberRole,
     createdAt: rowCreatedAt,
     updatedAt: rowUpdatedAt,
   };
@@ -499,6 +538,8 @@ function projectObjectForStorage(project) {
   const copy = JSON.parse(JSON.stringify(project));
   delete copy.serverVersion;
   delete copy.ownerId;
+  delete copy.memberRole;
+  delete copy.role;
   if (typeof copy.id !== "string" || !copy.id.trim()) throw new HttpError(400, "프로젝트 ID가 없습니다.");
   if (typeof copy.name !== "string" || !copy.name.trim() || typeof copy.client !== "string" || !copy.client.trim()) {
     throw new HttpError(400, "프로젝트 이름과 고객사를 입력해 주세요.");
@@ -517,36 +558,162 @@ function getOwnedProject(ownerId, projectId) {
   `).get(projectId, ownerId);
 }
 
-function insertOwnedProject(ownerId, project) {
-  const prepared = projectObjectForStorage(project);
-  const now = new Date().toISOString();
-  projectsDatabase.prepare(`
-    INSERT INTO projects (id, owner_id, version, data_json, created_at, updated_at)
-    VALUES (?, ?, 1, ?, ?, ?)
-  `).run(prepared.project.id, ownerId, prepared.serialized, now, now);
-  return normalizeStoredProject(prepared.project, 1, now, now);
+function getAccessibleProject(userId, projectId) {
+  return projectsDatabase.prepare(`
+    SELECT p.id, p.owner_id, p.version, p.data_json, p.created_at, p.updated_at,
+           CASE WHEN p.owner_id = ? THEN 'owner' ELSE m.role END AS member_role
+    FROM projects p
+    LEFT JOIN project_memberships m ON m.project_id = p.id AND m.user_id = ? AND m.role = 'editor'
+    WHERE p.id = ? AND (p.owner_id = ? OR m.user_id = ?)
+  `).get(userId, userId, projectId, userId, userId);
 }
 
-function saveOwnedProject(ownerId, projectId, expectedVersion, project) {
+function requireOwnedProject(userId, projectId) {
+  const row = getAccessibleProject(userId, projectId);
+  if (!row) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
+  if (row.member_role !== "owner") throw new HttpError(403, "프로젝트 소유자만 팀원을 관리할 수 있습니다.");
+  return row;
+}
+
+function requireAccessibleProject(userId, projectId) {
+  if (typeof projectId !== "string" || !projectId.trim()) {
+    throw new HttpError(400, "프로젝트 식별자가 없어 요청을 확인할 수 없습니다.");
+  }
+  if (!getAccessibleProject(userId, projectId)) {
+    throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
+  }
+}
+
+const projectChangeGroups = [
+  { label: "프로젝트 정보", fields: ["name", "client", "summary", "status"] },
+  { label: "문서", fields: ["documents", "rounds", "specTemplate", "specDraft", "specUpdateProposal", "specDraftHistory", "specUpdateHistory"] },
+  { label: "요구사항", fields: ["requirements", "extractedRequirements", "extractionHistory", "extractionRun", "analysisRun", "analysisRunAt", "analysisModel", "analysisInputSignature", "analysisStale", "specificationTemplateReview"] },
+  { label: "검토·확정", fields: ["requirementReview"] },
+  { label: "기획서 비교", fields: ["requirementComparison", "requirementComparisonHistory", "comparisonStale"] },
+];
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map((item) => stableJson(item)).join(",")}]`;
+  if (value && typeof value === "object") {
+    return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(",")}}`;
+  }
+  return JSON.stringify(value);
+}
+
+function auditComparableValue(value) {
+  if (value === undefined || value === null || value === "") return null;
+  if (Array.isArray(value)) {
+    if (!value.length) return null;
+    return value.map(auditComparableValue);
+  }
+  if (typeof value === "object") {
+    const entries = Object.entries(value)
+      .map(([key, item]) => [key, auditComparableValue(item)])
+      .filter(([, item]) => item !== null);
+    return entries.length ? Object.fromEntries(entries) : null;
+  }
+  return value;
+}
+
+function auditComparableField(field, project) {
+  const value = project?.[field];
+  if (field === "status" && value === "draft") return null;
+  if (["extractionRun", "analysisRun", "analysisStale", "comparisonStale"].includes(field) && value === false) return null;
+  if (field === "requirementReview" && (!value || !value.items || !Object.keys(value.items).length)) return null;
+  return auditComparableValue(value);
+}
+
+function changedProjectAreas(previousProject, nextProject) {
+  return projectChangeGroups.filter(({ fields }) => fields.some((field) =>
+    stableJson(auditComparableField(field, previousProject)) !== stableJson(auditComparableField(field, nextProject))
+  )).map(({ label }) => label);
+}
+
+function insertProjectChangeLog(projectId, actor, actorRole, projectVersion, changedFields, createdAt) {
+  projectsDatabase.prepare(`
+    INSERT INTO project_change_logs (
+      id, project_id, actor_user_id, actor_username, actor_display_name, actor_role,
+      project_version, changed_fields_json, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    crypto.randomUUID(),
+    projectId,
+    actor.id,
+    actor.username,
+    actor.displayName || null,
+    actorRole,
+    projectVersion,
+    JSON.stringify(changedFields),
+    createdAt,
+  );
+}
+
+function insertOwnedProject(ownerId, project, actor) {
+  const prepared = projectObjectForStorage(project);
+  const now = new Date().toISOString();
+  prepared.project.createdAt = now;
+  prepared.project.updatedAt = now;
+  prepared.serialized = JSON.stringify(prepared.project);
+  projectsDatabase.exec("BEGIN IMMEDIATE");
+  try {
+    projectsDatabase.prepare(`
+      INSERT INTO projects (id, owner_id, version, data_json, created_at, updated_at)
+      VALUES (?, ?, 1, ?, ?, ?)
+    `).run(prepared.project.id, ownerId, prepared.serialized, now, now);
+    const changedFields = changedProjectAreas(null, prepared.project);
+    insertProjectChangeLog(prepared.project.id, actor, "owner", 1, changedFields, now);
+    projectsDatabase.exec("COMMIT");
+  } catch (error) {
+    projectsDatabase.exec("ROLLBACK");
+    throw error;
+  }
+  return normalizeStoredProject(prepared.project, 1, now, now, ownerId, "owner");
+}
+
+function saveAccessibleProject(actor, projectId, expectedVersion, project) {
   if (!Number.isInteger(expectedVersion) || expectedVersion < 1) {
     throw new HttpError(400, "저장 버전 정보가 없습니다. 프로젝트를 새로고침해 주세요.");
   }
-  const current = getOwnedProject(ownerId, projectId);
-  if (!current) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
-  if (current.version !== expectedVersion) {
-    throw new HttpError(409, "프로젝트가 다른 창에서 먼저 변경되었습니다. 최신 내용을 다시 불러와 주세요.", { currentVersion: current.version });
-  }
   const prepared = projectObjectForStorage(project);
   if (prepared.project.id !== projectId) throw new HttpError(400, "프로젝트 ID는 변경할 수 없습니다.");
-  const now = new Date().toISOString();
-  const result = projectsDatabase.prepare(`
-    UPDATE projects SET version = version + 1, data_json = ?, updated_at = ?
-    WHERE id = ? AND owner_id = ? AND version = ?
-  `).run(prepared.serialized, now, projectId, ownerId, expectedVersion);
-  if (Number(result.changes) !== 1) {
-    throw new HttpError(409, "프로젝트가 다른 창에서 먼저 변경되었습니다. 최신 내용을 다시 불러와 주세요.");
+  projectsDatabase.exec("BEGIN IMMEDIATE");
+  try {
+    const current = getAccessibleProject(actor.id, projectId);
+    if (!current) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
+    if (current.version !== expectedVersion) {
+      throw new HttpError(409, "프로젝트가 다른 창에서 먼저 변경되었습니다. 최신 내용을 다시 불러와 주세요.", { currentVersion: current.version });
+    }
+
+    let previousProject;
+    try {
+      previousProject = JSON.parse(current.data_json);
+    } catch {
+      throw new HttpError(500, "저장된 프로젝트 데이터를 읽지 못했습니다.");
+    }
+    const changedFields = changedProjectAreas(previousProject, prepared.project);
+    if (!changedFields.length) {
+      projectsDatabase.exec("COMMIT");
+      return normalizeStoredProject(previousProject, current.version, current.created_at, current.updated_at, current.owner_id, current.member_role);
+    }
+
+    const now = new Date().toISOString();
+    prepared.project.createdAt = current.created_at;
+    prepared.project.updatedAt = now;
+    prepared.serialized = JSON.stringify(prepared.project);
+    const result = projectsDatabase.prepare(`
+      UPDATE projects SET version = version + 1, data_json = ?, updated_at = ?
+      WHERE id = ? AND version = ?
+    `).run(prepared.serialized, now, projectId, expectedVersion);
+    if (Number(result.changes) !== 1) {
+      throw new HttpError(409, "프로젝트가 다른 창에서 먼저 변경되었습니다. 최신 내용을 다시 불러와 주세요.");
+    }
+    insertProjectChangeLog(projectId, actor, current.member_role, expectedVersion + 1, changedFields, now);
+    projectsDatabase.exec("COMMIT");
+    return normalizeStoredProject(prepared.project, expectedVersion + 1, current.created_at, now, current.owner_id, current.member_role);
+  } catch (error) {
+    projectsDatabase.exec("ROLLBACK");
+    throw error;
   }
-  return normalizeStoredProject(prepared.project, expectedVersion + 1, current.created_at, now);
 }
 
 function createAccount(body) {
@@ -566,13 +733,13 @@ function createAccount(body) {
     }
     throw error;
   }
-  return { id, username: credentials.username, createdAt };
+  return { id, username: credentials.username, displayName: null, createdAt };
 }
 
 function authenticateAccount(body) {
   const credentials = validateCredentials(body, false);
   const user = usersDatabase.prepare(`
-    SELECT id, username, salt, password_hash, created_at
+    SELECT id, username, display_name, salt, password_hash, created_at
     FROM users WHERE username_key = ?
   `).get(credentials.usernameKey);
   if (!user) throw new HttpError(401, "아이디 또는 비밀번호가 올바르지 않습니다.");
@@ -580,7 +747,7 @@ function authenticateAccount(body) {
   if (!constantTimeStringEqual(suppliedHash, user.password_hash)) {
     throw new HttpError(401, "아이디 또는 비밀번호가 올바르지 않습니다.");
   }
-  return { id: user.id, username: user.username, createdAt: user.created_at };
+  return { id: user.id, username: user.username, displayName: user.display_name || null, createdAt: user.created_at };
 }
 
 function makeAuthSessionResponse(request, response, user) {
@@ -595,9 +762,13 @@ function makeAuthSessionResponse(request, response, user) {
 
 function projectRowsForOwner(ownerId) {
   const rows = projectsDatabase.prepare(`
-    SELECT id, version, data_json, created_at, updated_at
-    FROM projects WHERE owner_id = ? ORDER BY updated_at DESC
-  `).all(ownerId);
+    SELECT p.id, p.owner_id, p.version, p.data_json, p.created_at, p.updated_at,
+           CASE WHEN p.owner_id = ? THEN 'owner' ELSE m.role END AS member_role
+    FROM projects p
+    LEFT JOIN project_memberships m ON m.project_id = p.id AND m.user_id = ? AND m.role = 'editor'
+    WHERE p.owner_id = ? OR m.user_id = ?
+    ORDER BY p.updated_at DESC
+  `).all(ownerId, ownerId, ownerId, ownerId);
   return rows.map((row) => {
     let project;
     try {
@@ -605,8 +776,160 @@ function projectRowsForOwner(ownerId) {
     } catch {
       throw new HttpError(500, `프로젝트 ${row.id} 데이터를 읽지 못했습니다.`);
     }
-    return normalizeStoredProject(project, row.version, row.created_at, row.updated_at);
+    return normalizeStoredProject(project, row.version, row.created_at, row.updated_at, row.owner_id, row.member_role);
   });
+}
+
+function userIdentity(userId) {
+  const user = usersDatabase.prepare("SELECT id, username, display_name FROM users WHERE id = ?").get(userId);
+  if (!user) return null;
+  return { id: user.id, username: user.username, displayName: user.display_name || null };
+}
+
+function projectTeamForUser(userId, projectId) {
+  const access = getAccessibleProject(userId, projectId);
+  if (!access) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
+  const owner = userIdentity(access.owner_id);
+  const memberRows = projectsDatabase.prepare(`
+    SELECT user_id, role, joined_at
+    FROM project_memberships WHERE project_id = ? ORDER BY joined_at ASC, user_id ASC
+  `).all(projectId);
+  const members = [
+    ...(owner ? [{ ...owner, role: "owner", joinedAt: null }] : []),
+    ...memberRows.flatMap((row) => {
+      const identity = userIdentity(row.user_id);
+      return identity ? [{ ...identity, role: row.role, joinedAt: row.joined_at }] : [];
+    }),
+  ];
+  const pendingInvitations = access.member_role === "owner"
+    ? projectsDatabase.prepare(`
+      SELECT i.id, i.invited_user_id, i.created_at
+      FROM project_invitations i
+      WHERE i.project_id = ? AND i.status = 'pending'
+      ORDER BY i.created_at ASC
+    `).all(projectId).map((invitation) => ({
+      id: invitation.id,
+      createdAt: invitation.created_at,
+      ...userIdentity(invitation.invited_user_id),
+    }))
+    : [];
+  return { members, pendingInvitations, isOwner: access.member_role === "owner" };
+}
+
+function projectChangeHistoryForUser(userId, projectId) {
+  if (!getAccessibleProject(userId, projectId)) {
+    throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
+  }
+  const rows = projectsDatabase.prepare(`
+    SELECT id, actor_user_id, actor_username, actor_display_name, actor_role,
+           project_version, changed_fields_json, created_at
+    FROM project_change_logs
+    WHERE project_id = ?
+    ORDER BY project_version DESC, created_at DESC
+    LIMIT 50
+  `).all(projectId);
+  return rows.map((row) => {
+    let changedFields = [];
+    try {
+      const parsed = JSON.parse(row.changed_fields_json);
+      changedFields = Array.isArray(parsed) ? parsed : [];
+    } catch {
+      changedFields = [];
+    }
+    return {
+      id: row.id,
+      actorUserId: row.actor_user_id,
+      actorUsername: row.actor_username,
+      actorDisplayName: row.actor_display_name || null,
+      actorRole: row.actor_role,
+      version: Number(row.project_version),
+      changedFields,
+      createdAt: row.created_at,
+    };
+  });
+}
+
+function createProjectInvitation(actor, projectId, requestedUsername) {
+  const project = requireOwnedProject(actor.id, projectId);
+  const username = typeof requestedUsername === "string" ? requestedUsername.trim() : "";
+  if (!/^[A-Za-z0-9_]{3,30}$/u.test(username)) {
+    throw new HttpError(400, "초대할 아이디를 올바르게 입력해 주세요.");
+  }
+  const invitee = usersDatabase.prepare("SELECT id, username FROM users WHERE username_key = ?").get(username.toLowerCase());
+  if (!invitee) throw new HttpError(404, "해당 아이디로 가입된 계정을 찾을 수 없습니다.");
+  if (invitee.id === project.owner_id) throw new HttpError(400, "프로젝트 소유자는 초대할 수 없습니다.");
+  if (projectsDatabase.prepare("SELECT 1 FROM project_memberships WHERE project_id = ? AND user_id = ?").get(projectId, invitee.id)) {
+    throw new HttpError(409, "이미 참여 중인 팀원입니다.");
+  }
+  const now = new Date().toISOString();
+  try {
+    const id = crypto.randomUUID();
+    projectsDatabase.prepare(`
+      INSERT INTO project_invitations (id, project_id, invited_user_id, invited_by_user_id, status, created_at)
+      VALUES (?, ?, ?, ?, 'pending', ?)
+    `).run(id, projectId, invitee.id, actor.id, now);
+    return { id, username: invitee.username, createdAt: now };
+  } catch (error) {
+    if (/unique|constraint/i.test(String(error?.message || ""))) {
+      throw new HttpError(409, "이미 수락 대기 중인 초대가 있습니다.");
+    }
+    throw error;
+  }
+}
+
+function pendingInvitationsForUser(userId) {
+  const rows = projectsDatabase.prepare(`
+    SELECT i.id, i.project_id, i.invited_by_user_id, i.created_at, p.data_json
+    FROM project_invitations i
+    JOIN projects p ON p.id = i.project_id
+    WHERE i.invited_user_id = ? AND i.status = 'pending'
+    ORDER BY i.created_at DESC
+  `).all(userId);
+  return rows.map((row) => {
+    let project = {};
+    try {
+      project = JSON.parse(row.data_json);
+    } catch {
+      project = {};
+    }
+    return {
+      id: row.id,
+      projectId: row.project_id,
+      projectName: project.name || "이름 없는 프로젝트",
+      client: project.client || "",
+      invitedBy: userIdentity(row.invited_by_user_id),
+      createdAt: row.created_at,
+    };
+  });
+}
+
+function acceptProjectInvitation(userId, invitationId) {
+  projectsDatabase.exec("BEGIN IMMEDIATE");
+  try {
+    const invitation = projectsDatabase.prepare(`
+      SELECT id, project_id, invited_user_id, invited_by_user_id, status
+      FROM project_invitations WHERE id = ?
+    `).get(invitationId);
+    if (!invitation || invitation.invited_user_id !== userId || invitation.status !== "pending") {
+      throw new HttpError(404, "수락할 수 있는 초대를 찾을 수 없습니다.");
+    }
+    const project = projectsDatabase.prepare("SELECT id, owner_id FROM projects WHERE id = ?").get(invitation.project_id);
+    if (!project) throw new HttpError(404, "초대된 프로젝트를 찾을 수 없습니다.");
+    if (project.owner_id === userId) throw new HttpError(400, "프로젝트 소유자는 초대를 수락할 수 없습니다.");
+    const now = new Date().toISOString();
+    projectsDatabase.prepare(`
+      INSERT INTO project_memberships (project_id, user_id, role, invited_by_user_id, joined_at)
+      VALUES (?, ?, 'editor', ?, ?)
+      ON CONFLICT(project_id, user_id) DO NOTHING
+    `).run(invitation.project_id, userId, invitation.invited_by_user_id, now);
+    projectsDatabase.prepare("UPDATE project_invitations SET status = 'accepted', accepted_at = ? WHERE id = ? AND status = 'pending'")
+      .run(now, invitationId);
+    projectsDatabase.exec("COMMIT");
+    return { projectId: invitation.project_id, joinedAt: now };
+  } catch (error) {
+    projectsDatabase.exec("ROLLBACK");
+    throw error;
+  }
 }
 
 function importLegacyProjectsOnce(ownerId, body) {
@@ -755,8 +1078,61 @@ async function handleProjectsApi(request, response, requestUrl, auth) {
     if (projectsDatabase.prepare("SELECT 1 FROM projects WHERE id = ?").get(project.id)) {
       throw new HttpError(409, "같은 프로젝트 ID가 이미 존재합니다. 새로고침 후 다시 시도해 주세요.");
     }
-    const savedProject = insertOwnedProject(auth.user.id, project);
+    const savedProject = insertOwnedProject(auth.user.id, project, auth.user);
     sendJson(response, 201, { project: savedProject });
+    return true;
+  }
+
+  const subresourceMatch = pathname.match(/^\/api\/projects\/([^/]+)\/(members|changes|invitations)(?:\/([^/]+))?$/u);
+  if (subresourceMatch) {
+    let projectId;
+    let targetId = "";
+    try {
+      projectId = decodeURIComponent(subresourceMatch[1]);
+      targetId = subresourceMatch[3] ? decodeURIComponent(subresourceMatch[3]) : "";
+    } catch {
+      throw new HttpError(400, "프로젝트 또는 팀원 식별자 형식이 올바르지 않습니다.");
+    }
+    const resource = subresourceMatch[2];
+
+    if (resource === "members" && !targetId && request.method === "GET") {
+      sendJson(response, 200, projectTeamForUser(auth.user.id, projectId));
+      return true;
+    }
+
+    if (resource === "members" && targetId && request.method === "DELETE") {
+      const project = requireOwnedProject(auth.user.id, projectId);
+      if (targetId === project.owner_id) throw new HttpError(400, "프로젝트 소유자는 추방할 수 없습니다.");
+      projectsDatabase.exec("BEGIN IMMEDIATE");
+      try {
+        const membership = projectsDatabase.prepare(`
+          SELECT user_id FROM project_memberships WHERE project_id = ? AND user_id = ?
+        `).get(projectId, targetId);
+        if (!membership) throw new HttpError(404, "참여 중인 팀원을 찾을 수 없습니다.");
+        projectsDatabase.prepare("DELETE FROM project_memberships WHERE project_id = ? AND user_id = ?")
+          .run(projectId, targetId);
+        projectsDatabase.exec("COMMIT");
+      } catch (error) {
+        projectsDatabase.exec("ROLLBACK");
+        throw error;
+      }
+      sendJson(response, 200, { removed: true, userId: targetId, projectId });
+      return true;
+    }
+
+    if (resource === "changes" && !targetId && request.method === "GET") {
+      sendJson(response, 200, { changes: projectChangeHistoryForUser(auth.user.id, projectId) });
+      return true;
+    }
+
+    if (resource === "invitations" && !targetId && request.method === "POST") {
+      const body = await readJson(request);
+      const invitation = createProjectInvitation(auth.user, projectId, body?.username);
+      sendJson(response, 201, { invitation });
+      return true;
+    }
+
+    sendJson(response, 405, { error: "지원하지 않는 팀 관리 요청입니다." });
     return true;
   }
 
@@ -770,7 +1146,7 @@ async function handleProjectsApi(request, response, requestUrl, auth) {
     }
 
     if (request.method === "GET") {
-      const row = getOwnedProject(auth.user.id, projectId);
+      const row = getAccessibleProject(auth.user.id, projectId);
       if (!row) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
       let project;
       try {
@@ -778,7 +1154,7 @@ async function handleProjectsApi(request, response, requestUrl, auth) {
       } catch {
         throw new HttpError(500, "저장된 프로젝트 데이터를 읽지 못했습니다.");
       }
-      sendJson(response, 200, { project: normalizeStoredProject(project, row.version, row.created_at, row.updated_at) });
+      sendJson(response, 200, { project: normalizeStoredProject(project, row.version, row.created_at, row.updated_at, row.owner_id, row.member_role) });
       return true;
     }
 
@@ -786,7 +1162,7 @@ async function handleProjectsApi(request, response, requestUrl, auth) {
       const body = await readJson(request);
       const project = body?.project;
       const expectedVersion = Number(body?.expectedVersion ?? project?.serverVersion);
-      const savedProject = saveOwnedProject(auth.user.id, projectId, expectedVersion, project);
+      const savedProject = saveAccessibleProject(auth.user, projectId, expectedVersion, project);
       sendJson(response, 200, { project: savedProject });
       return true;
     }
@@ -797,7 +1173,7 @@ async function handleProjectsApi(request, response, requestUrl, auth) {
       if (!Number.isInteger(expectedVersion) || expectedVersion < 1) {
         throw new HttpError(400, "삭제 버전 정보가 없습니다. 프로젝트 목록을 새로고침해 주세요.");
       }
-      const current = getOwnedProject(auth.user.id, projectId);
+      const current = requireOwnedProject(auth.user.id, projectId);
       if (!current) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
       if (current.version !== expectedVersion) {
         throw new HttpError(409, "프로젝트가 다른 창에서 변경되었습니다. 새로고침 후 삭제를 다시 시도해 주세요.", { currentVersion: current.version });
@@ -815,6 +1191,28 @@ async function handleProjectsApi(request, response, requestUrl, auth) {
     return true;
   }
   return false;
+}
+
+async function handleInvitationsApi(request, response, requestUrl, auth) {
+  rejectNoStore(response);
+  if (requestUrl.pathname === "/api/invitations" && request.method === "GET") {
+    sendJson(response, 200, { invitations: pendingInvitationsForUser(auth.user.id) });
+    return true;
+  }
+  const acceptMatch = requestUrl.pathname.match(/^\/api\/invitations\/([^/]+)\/accept$/u);
+  if (acceptMatch && request.method === "POST") {
+    let invitationId;
+    try {
+      invitationId = decodeURIComponent(acceptMatch[1]);
+    } catch {
+      throw new HttpError(400, "초대 식별자 형식이 올바르지 않습니다.");
+    }
+    const result = acceptProjectInvitation(auth.user.id, invitationId);
+    sendJson(response, 200, result);
+    return true;
+  }
+  sendJson(response, 405, { error: "지원하지 않는 초대 요청입니다." });
+  return true;
 }
 
 async function readJson(request) {
@@ -2803,6 +3201,7 @@ const server = http.createServer(async (request, response) => {
   }
 
   const protectedApi = requestUrl.pathname.startsWith("/api/projects")
+    || requestUrl.pathname.startsWith("/api/invitations")
     || requestUrl.pathname === "/api/transcribe"
     || requestUrl.pathname === "/api/compare"
     || requestUrl.pathname === "/api/analyze";
@@ -2822,12 +3221,23 @@ const server = http.createServer(async (request, response) => {
     }
   }
 
+  if (requestUrl.pathname.startsWith("/api/invitations")) {
+    try {
+      if (await handleInvitationsApi(request, response, requestUrl, auth)) return;
+    } catch (error) {
+      handleProjectApiError(response, error, "초대 요청을 처리하지 못했습니다.");
+      return;
+    }
+  }
+
   if (requestUrl.pathname === "/api/transcribe") {
     if (request.method !== "POST") {
       sendJson(response, 405, { error: "POST 요청만 지원합니다." });
       return;
     }
     try {
+      const projectId = String(request.headers["x-project-id"] || "").trim();
+      if (projectId) requireAccessibleProject(auth.user.id, projectId);
       sendJson(response, 200, await transcribeAudio(request));
     } catch (error) {
       const status = error instanceof HttpError ? error.status : 500;
@@ -2847,7 +3257,9 @@ const server = http.createServer(async (request, response) => {
     }
     let input;
     try {
-      input = validateCompareInput(await readJson(request));
+      const body = await readJson(request);
+      requireAccessibleProject(auth.user.id, body?.projectId);
+      input = validateCompareInput(body);
     } catch (error) {
       const status = error instanceof HttpError ? error.status : 500;
       const message = error instanceof HttpError ? error.message : "기획서 비교 요청을 처리하지 못했습니다.";
@@ -2908,7 +3320,9 @@ const server = http.createServer(async (request, response) => {
     const analysisStartedAt = process.hrtime.bigint();
     const overallDurationMs = () => Math.round(Number(process.hrtime.bigint() - analysisStartedAt) / 1_000_000);
     try {
-      const input = validateInput(await readJson(request));
+      const body = await readJson(request);
+      requireAccessibleProject(auth.user.id, body?.projectId);
+      const input = validateInput(body);
       const extractedRequirements = await extractRequirementsByRound(input, llmCalls);
       let generated;
       try {
