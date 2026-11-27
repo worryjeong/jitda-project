@@ -1726,7 +1726,7 @@ async function requestModel(input, options = {}) {
   };
 
   const attempts = [];
-  let reasoningEffort = "minimal";
+  let reasoningEffort = "low";
   let withResponseFormat = Boolean(schema);
   const totalDuration = () => attempts.reduce((sum, attempt) => sum + Number(attempt.durationMs || 0), 0);
 
