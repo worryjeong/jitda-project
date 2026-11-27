@@ -6075,8 +6075,10 @@
           return starts.map((start, index) => {
             const end = starts[index + 1]?.index ?? lines.length;
             const sectionText = lines.slice(start.index, end).join("\n");
-            const date = meetingDateFromText(sectionText.split(/\r?\n/u).slice(0, 18).join("\n"), fallbackDate);
-            return { text: sectionText, date, roundNumber: start.roundNumber };
+            const headerText = sectionText.split(/\r?\n/u).slice(0, 18).join("\n");
+            const explicitDate = meetingDateFromText(headerText, "");
+            const date = explicitDate || String(fallbackDate || "").slice(0, 10);
+            return { text: sectionText, date, explicitDate, roundNumber: start.roundNumber };
           }).filter((section) => section.text.trim());
         }
 
@@ -6091,27 +6093,22 @@
         }
 
         function evidenceExistsInMeetings(project, evidence) {
-          const phrase = normalizedEvidenceText(evidence.text);
+          const phrase = canonicalEvidenceComparisonText(evidence.text);
           if (!phrase) return false;
           const allSourceDocuments = (project.documents || []).filter((documentItem) => documentItem.kind === "source");
+          let matchedByStrongIdentity = false;
           let documents = allSourceDocuments.filter((documentItem) => {
             if (evidence.sourceDocumentId) return documentItem.id === evidence.sourceDocumentId;
             return false;
           });
+          if (documents.length) matchedByStrongIdentity = true;
           if (!documents.length && evidence.roundId) {
             documents = allSourceDocuments.filter((documentItem) => documentItem.roundId === evidence.roundId);
+            if (documents.length) matchedByStrongIdentity = true;
           }
           if (!documents.length && Number.isInteger(evidence.roundNumber)) {
             documents = allSourceDocuments.filter((documentItem) => Number(documentItem.roundNumber) === evidence.roundNumber);
-          }
-          if (!documents.length && evidence.date) {
-            documents = allSourceDocuments.filter((documentItem) => {
-              if (String(documentItem.date || "").slice(0, 10) === evidence.date) return true;
-              const sourceText = evidence.sourceKind === "transcript"
-                ? documentItem.stt?.transcript || ""
-                : documentItem.content || "";
-              return meetingSectionsForEvidence(sourceText, documentItem.date).some((section) => section.date === evidence.date);
-            });
+            if (documents.length) matchedByStrongIdentity = true;
           }
           if (!documents.length && evidence.documentName) {
             documents = allSourceDocuments.filter((documentItem) =>
@@ -6119,33 +6116,44 @@
               || documentItem.name?.startsWith(`${evidence.documentName} ·`)
               || evidence.documentName.startsWith(`${documentItem.name} ·`)
             );
+            if (documents.length) matchedByStrongIdentity = true;
+          }
+          if (!documents.length && evidence.date) {
+            documents = allSourceDocuments.filter((documentItem) => {
+              const sourceTexts = evidence.sourceKind === "transcript"
+                ? [documentItem.stt?.transcript || ""]
+                : [documentItem.content || "", documentItem.stt?.transcript || ""];
+              return String(documentItem.date || "").slice(0, 10) === evidence.date
+                || sourceTexts.some((sourceText) => meetingSectionsForEvidence(sourceText, "").some((section) => section.explicitDate === evidence.date));
+            });
           }
 
           return documents.some((documentItem) => {
-            if (evidence.roundId && documentItem.roundId && evidence.roundId !== documentItem.roundId) return false;
-            const sourceText = evidence.sourceKind === "transcript"
-              ? documentItem.stt?.transcript || ""
-              : documentItem.content || "";
-            if (!sourceText) return false;
-            const sections = meetingSectionsForEvidence(sourceText, documentItem.date || "");
-            let matchingSections = sections;
-            const hasMultipleMeetings = sections.length > 1;
-            if (evidence.date && hasMultipleMeetings) {
-              matchingSections = sections.filter((section) => section.date === evidence.date);
-            }
-            if (!matchingSections.length && Number.isInteger(evidence.roundNumber)) {
-              matchingSections = sections.filter((section) => section.roundNumber === evidence.roundNumber);
-            }
-            if (hasMultipleMeetings && !matchingSections.length) return false;
-            if (!hasMultipleMeetings && Number.isInteger(evidence.roundNumber)
-              && Number.isInteger(documentItem.roundNumber)
-              && evidence.roundNumber !== documentItem.roundNumber) return false;
-            if (!hasMultipleMeetings && evidence.date) {
-              const internalDate = sections[0]?.date || "";
-              if (internalDate && internalDate !== evidence.date) return false;
-            }
+            if (evidence.sourceDocumentId && documentItem.id !== evidence.sourceDocumentId) return false;
+            if (!evidence.sourceDocumentId && evidence.roundId && documentItem.roundId && evidence.roundId !== documentItem.roundId) return false;
+            if (!evidence.sourceDocumentId && !evidence.roundId && Number.isInteger(evidence.roundNumber)
+              && Number.isInteger(documentItem.roundNumber) && evidence.roundNumber !== documentItem.roundNumber) return false;
 
-            return matchingSections.some((section) => canonicalEvidenceComparisonText(section.text).includes(canonicalEvidenceComparisonText(evidence.text)));
+            const preferredKind = evidence.sourceKind === "transcript" ? "transcript" : "meeting";
+            const sources = preferredKind === "transcript"
+              ? [{ kind: "transcript", text: documentItem.stt?.transcript || "" }]
+              : [{ kind: "meeting", text: documentItem.content || "" }, { kind: "transcript", text: documentItem.stt?.transcript || "" }];
+
+            return sources.some((source) => {
+              if (!source.text) return false;
+              const sections = meetingSectionsForEvidence(source.text, "");
+              const matchingSections = sections.filter((section) => {
+                if (evidence.date && section.explicitDate && section.explicitDate !== evidence.date) return false;
+                if (!matchedByStrongIdentity && evidence.date && !section.explicitDate
+                  && String(documentItem.date || "").slice(0, 10) !== evidence.date) return false;
+                if (Number.isInteger(evidence.roundNumber) && Number.isInteger(section.roundNumber)
+                  && evidence.roundNumber !== section.roundNumber) return false;
+                if (!section.explicitDate && Number.isInteger(evidence.roundNumber)
+                  && Number.isInteger(documentItem.roundNumber) && evidence.roundNumber !== documentItem.roundNumber) return false;
+                return true;
+              });
+              return matchingSections.some((section) => canonicalEvidenceComparisonText(section.text).includes(phrase));
+            });
           });
         }
 
@@ -6160,7 +6168,7 @@
             byDate.get(date).push(entry);
           }
           const versions = [...byDate.entries()].sort(([first], [second]) => first.localeCompare(second)).map(([date, entries]) => {
-            const unique = [...new Map(entries.map((entry) => [normalizedEvidenceText(entry.text), entry])).values()];
+            const unique = [...new Map(entries.map((entry) => [canonicalEvidenceComparisonText(entry.text), entry])).values()];
             return { date, entries: unique };
           });
           if (versions.length < 2) return [];
@@ -6170,7 +6178,8 @@
           for (const version of versions) {
             const representative = version.entries.at(-1);
             if (!representative) continue;
-            if (previousVersion && canonicalEvidenceComparisonText(previousVersion.entry.text) !== canonicalEvidenceComparisonText(representative.text)) {
+            if (previousVersion && previousVersion.date !== version.date
+              && canonicalEvidenceComparisonText(previousVersion.entry.text) !== canonicalEvidenceComparisonText(representative.text)) {
               transitions.push({
                 previousText: previousVersion.entry.text,
                 previousDate: previousVersion.date,
