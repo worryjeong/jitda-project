@@ -62,3 +62,11 @@ test("home profile links have a visible My Page button and workspace invitation 
   assert.match(html, /\.sidebar-workspace-manage\[aria-current="page"\]/u);
   assert.match(html, /\.sidebar-workspace-mobile\[aria-current="page"\]/u);
 });
+
+test("the review guide stays public while a successful login returns to the home page", async () => {
+  const html = await fs.readFile(indexPath, "utf8");
+  assert.match(html, /if \(!currentUser && route !== "\/guide"\)/u);
+  assert.match(html, /if \(route === "\/guide"\)\s*\{[\s\S]*?elements\.guide\.hidden = false/u);
+  assert.match(html, /initializeAuthenticatedSession\(session, \{ redirectToHome: true \}\)/u);
+  assert.match(html, /if \(options\.redirectToHome\) window\.location\.hash = "\/home"/u);
+});

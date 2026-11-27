@@ -8199,7 +8199,7 @@
           return false;
         }
 
-        async function initializeAuthenticatedSession(sessionPayload) {
+        async function initializeAuthenticatedSession(sessionPayload, options = {}) {
           currentUser = sessionPayload?.authenticated ? sessionPayload.user : null;
           csrfToken = currentUser && typeof sessionPayload.csrfToken === "string" ? sessionPayload.csrfToken : "";
           myPageNoticeMessage = "";
@@ -8218,6 +8218,7 @@
           const migration = await loadProjectsFromDatabase();
           await maybeImportLegacyProjects(migration.legacyImportCompleted);
           await loadPendingInvitations();
+          if (options.redirectToHome) window.location.hash = "/home";
           authBootstrapped = true;
           renderRoute();
         }
@@ -10366,7 +10367,7 @@
             else link.removeAttribute("aria-current");
           });
 
-          if (!currentUser) {
+          if (!currentUser && route !== "/guide") {
             elements.authView.hidden = false;
             document.title = "로그인 | 스펙가드";
             return;
@@ -10495,7 +10496,7 @@
                 password: elements.loginPassword.value,
               },
             });
-            await initializeAuthenticatedSession(session);
+            await initializeAuthenticatedSession(session, { redirectToHome: true });
             elements.loginPassword.value = "";
           } catch (error) {
             setAuthError(error instanceof Error ? error.message : "로그인하지 못했습니다.");
