@@ -4316,6 +4316,646 @@
         font-size: 11px;
       }
 
+      .extraction-header-actions {
+        display: grid;
+        min-width: 0;
+        grid-template-columns: minmax(220px, 1fr) minmax(130px, 155px) auto auto;
+        align-items: end;
+        gap: 8px;
+      }
+
+      .extraction-search-field,
+      .extraction-search-scope-field {
+        display: grid;
+        min-width: 0;
+        gap: 5px;
+      }
+
+      .extraction-search-field > label,
+      .extraction-search-scope-field > label {
+        color: #526357;
+        font-size: 10px;
+        font-weight: 680;
+      }
+
+      .extraction-search-input-wrap {
+        display: flex;
+        min-width: 0;
+        min-height: 42px;
+        align-items: center;
+        gap: 8px;
+        padding: 0 10px;
+        border: 1px solid #dce4dc;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #7b887e;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+      }
+
+      .extraction-search-input-wrap:focus-within {
+        border-color: #75937a;
+        box-shadow: 0 0 0 3px rgba(49, 114, 85, 0.12);
+      }
+
+      .extraction-search-input-wrap svg {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 auto;
+      }
+
+      .extraction-search-input-wrap input {
+        width: 100%;
+        min-width: 0;
+        height: 38px;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #344238;
+        font: inherit;
+        font-size: 11px;
+      }
+
+      .extraction-search-input-wrap input::placeholder {
+        color: #929b93;
+      }
+
+      .extraction-search-scope-field select {
+        width: 100%;
+        min-height: 42px;
+        padding: 0 28px 0 10px;
+        border: 1px solid #dce4dc;
+        border-radius: 8px;
+        background-color: #ffffff;
+        color: #405046;
+        font: inherit;
+        font-size: 10px;
+      }
+
+      .extraction-search-scope-field select:focus-visible,
+      .extraction-search-clear:focus-visible,
+      .extraction-search-more:focus-visible,
+      .extraction-search-expand:focus-visible {
+        outline: 3px solid rgba(49, 114, 85, 0.24);
+        outline-offset: 2px;
+      }
+
+      .extraction-search-clear {
+        min-height: 42px;
+        padding: 0 10px;
+        border: 1px solid #dce4dc;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #58685c;
+        cursor: pointer;
+        font: inherit;
+        font-size: 10px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .extraction-search-clear:hover {
+        border-color: #afc1ad;
+        background: #f7faf5;
+      }
+
+      .extraction-header-actions > .static-button {
+        min-height: 42px;
+        padding: 0 13px;
+        white-space: nowrap;
+      }
+
+      .extraction-header-actions > .static-button svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .extraction-search-results {
+        margin: 0 0 14px;
+        padding: 16px;
+        border: 1px solid #dfe7dc;
+        border-radius: 10px;
+        background: #ffffff;
+      }
+
+      .extraction-search-results[hidden],
+      .extraction-search-more[hidden] {
+        display: none !important;
+      }
+
+      .extraction-search-results-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #edf0ec;
+      }
+
+      .extraction-search-results-heading h2 {
+        margin: 0 0 4px;
+        color: #344238;
+        font-size: 14px;
+        font-weight: 720;
+      }
+
+      .extraction-search-results-heading p {
+        margin: 0;
+        color: #748078;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .extraction-search-result-list {
+        display: grid;
+        gap: 9px;
+      }
+
+      .extraction-search-result {
+        min-width: 0;
+        padding: 12px;
+        border: 1px solid #e6ebe4;
+        border-radius: 8px;
+        background: #fcfdfa;
+      }
+
+      .extraction-search-result-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .extraction-search-result-title-wrap {
+        display: grid;
+        min-width: 0;
+        gap: 5px;
+      }
+
+      .extraction-search-result-title {
+        margin: 0;
+        color: #344238;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+      }
+
+      .extraction-search-result-badges,
+      .extraction-search-result-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .extraction-search-badge,
+      .extraction-search-meta-chip {
+        display: inline-flex;
+        min-height: 23px;
+        align-items: center;
+        padding: 0 7px;
+        border: 1px solid #e1e8df;
+        border-radius: 5px;
+        background: #ffffff;
+        color: #607066;
+        font-size: 9px;
+        font-weight: 650;
+        line-height: 1.35;
+      }
+
+      .extraction-search-badge.meeting {
+        border-color: #dfe7d4;
+        background: #f0f5e9;
+        color: #516b42;
+      }
+
+      .extraction-search-badge.spec {
+        border-color: #d9e4e7;
+        background: #eef4f5;
+        color: #4d6870;
+      }
+
+      .extraction-search-badge.generated {
+        border-color: #e8dfc7;
+        background: #faf6e9;
+        color: #78663b;
+      }
+
+      .extraction-search-badge.previous {
+        border-color: #e5e1dc;
+        background: #f5f3f0;
+        color: #746b60;
+      }
+
+      .extraction-search-result-match {
+        flex: 0 0 auto;
+        color: #7c887e;
+        font-size: 9px;
+        line-height: 1.5;
+        text-align: right;
+      }
+
+      .extraction-search-result-meta {
+        margin-top: 8px;
+      }
+
+      .extraction-search-result-snippet {
+        margin: 9px 0 0;
+        padding: 9px 10px;
+        border-left: 2px solid #c5d68a;
+        border-radius: 0 6px 6px 0;
+        background: #f7f9f1;
+        color: #58644d;
+        font-size: 10px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .extraction-search-result mark {
+        border-radius: 2px;
+        background: #e3edaa;
+        color: #2c4432;
+        font-weight: 750;
+      }
+
+      .extraction-search-expand {
+        min-height: 36px;
+        margin-top: 9px;
+        padding: 0 9px;
+        border: 1px solid #dfe7de;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #526357;
+        cursor: pointer;
+        font: inherit;
+        font-size: 9px;
+        font-weight: 650;
+      }
+
+      .extraction-search-expand:hover {
+        border-color: #b8c8b6;
+        background: #f8faf7;
+      }
+
+      .extraction-search-full-content {
+        max-height: 310px;
+        overflow: auto;
+        margin: 9px 0 0;
+        padding: 11px;
+        border: 1px solid #e8ede6;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #4b594f;
+        font-family: inherit;
+        font-size: 10px;
+        line-height: 1.75;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .extraction-search-more {
+        display: block;
+        min-height: 42px;
+        margin: 11px auto 0;
+        padding: 0 15px;
+        border: 1px solid #d8e3d6;
+        border-radius: 7px;
+        background: #f8faf6;
+        color: #45644b;
+        cursor: pointer;
+        font: inherit;
+        font-size: 10px;
+        font-weight: 680;
+      }
+
+      .extraction-search-more:hover {
+        border-color: #aabea7;
+        background: #eef4e9;
+      }
+
+      .extraction-header-actions {
+        display: grid;
+        min-width: 0;
+        grid-template-columns: minmax(220px, 1fr) minmax(130px, 155px) auto auto;
+        align-items: end;
+        gap: 8px;
+      }
+
+      .extraction-search-field,
+      .extraction-search-scope-field {
+        display: grid;
+        min-width: 0;
+        gap: 5px;
+      }
+
+      .extraction-search-field > label,
+      .extraction-search-scope-field > label {
+        color: #526357;
+        font-size: 10px;
+        font-weight: 680;
+      }
+
+      .extraction-search-input-wrap {
+        display: flex;
+        min-width: 0;
+        min-height: 42px;
+        align-items: center;
+        gap: 8px;
+        padding: 0 10px;
+        border: 1px solid #dce4dc;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #7b887e;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+      }
+
+      .extraction-search-input-wrap:focus-within {
+        border-color: #75937a;
+        box-shadow: 0 0 0 3px rgba(49, 114, 85, 0.12);
+      }
+
+      .extraction-search-input-wrap svg {
+        width: 16px;
+        height: 16px;
+        flex: 0 0 auto;
+      }
+
+      .extraction-search-input-wrap input {
+        width: 100%;
+        min-width: 0;
+        height: 38px;
+        padding: 0;
+        border: 0;
+        outline: 0;
+        background: transparent;
+        color: #344238;
+        font: inherit;
+        font-size: 11px;
+      }
+
+      .extraction-search-input-wrap input::placeholder {
+        color: #929b93;
+      }
+
+      .extraction-search-scope-field select {
+        width: 100%;
+        min-height: 42px;
+        padding: 0 28px 0 10px;
+        border: 1px solid #dce4dc;
+        border-radius: 8px;
+        background-color: #ffffff;
+        color: #405046;
+        font: inherit;
+        font-size: 10px;
+      }
+
+      .extraction-search-scope-field select:focus-visible,
+      .extraction-search-clear:focus-visible,
+      .extraction-search-more:focus-visible,
+      .extraction-search-expand:focus-visible {
+        outline: 3px solid rgba(49, 114, 85, 0.24);
+        outline-offset: 2px;
+      }
+
+      .extraction-search-clear {
+        min-height: 42px;
+        padding: 0 10px;
+        border: 1px solid #dce4dc;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #58685c;
+        cursor: pointer;
+        font: inherit;
+        font-size: 10px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .extraction-search-clear:hover {
+        border-color: #afc1ad;
+        background: #f7faf5;
+      }
+
+      .extraction-header-actions > .static-button {
+        min-height: 42px;
+        padding: 0 13px;
+        white-space: nowrap;
+      }
+
+      .extraction-header-actions > .static-button svg {
+        width: 16px;
+        height: 16px;
+      }
+
+      .extraction-search-results {
+        margin: 0 0 14px;
+        padding: 16px;
+        border: 1px solid #dfe7dc;
+        border-radius: 10px;
+        background: #ffffff;
+      }
+
+      .extraction-search-results[hidden],
+      .extraction-search-more[hidden] {
+        display: none !important;
+      }
+
+      .extraction-search-results-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #edf0ec;
+      }
+
+      .extraction-search-results-heading h2 {
+        margin: 0 0 4px;
+        color: #344238;
+        font-size: 14px;
+        font-weight: 720;
+      }
+
+      .extraction-search-results-heading p {
+        margin: 0;
+        color: #748078;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .extraction-search-result-list {
+        display: grid;
+        gap: 9px;
+      }
+
+      .extraction-search-result {
+        min-width: 0;
+        padding: 12px;
+        border: 1px solid #e6ebe4;
+        border-radius: 8px;
+        background: #fcfdfa;
+      }
+
+      .extraction-search-result-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .extraction-search-result-title-wrap {
+        display: grid;
+        min-width: 0;
+        gap: 5px;
+      }
+
+      .extraction-search-result-title {
+        margin: 0;
+        color: #344238;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+      }
+
+      .extraction-search-result-badges,
+      .extraction-search-result-meta {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .extraction-search-badge,
+      .extraction-search-meta-chip {
+        display: inline-flex;
+        min-height: 23px;
+        align-items: center;
+        padding: 0 7px;
+        border: 1px solid #e1e8df;
+        border-radius: 5px;
+        background: #ffffff;
+        color: #607066;
+        font-size: 9px;
+        font-weight: 650;
+        line-height: 1.35;
+      }
+
+      .extraction-search-badge.meeting {
+        border-color: #dfe7d4;
+        background: #f0f5e9;
+        color: #516b42;
+      }
+
+      .extraction-search-badge.spec {
+        border-color: #d9e4e7;
+        background: #eef4f5;
+        color: #4d6870;
+      }
+
+      .extraction-search-badge.generated {
+        border-color: #e8dfc7;
+        background: #faf6e9;
+        color: #78663b;
+      }
+
+      .extraction-search-badge.previous {
+        border-color: #e5e1dc;
+        background: #f5f3f0;
+        color: #746b60;
+      }
+
+      .extraction-search-result-match {
+        flex: 0 0 auto;
+        color: #7c887e;
+        font-size: 9px;
+        line-height: 1.5;
+        text-align: right;
+      }
+
+      .extraction-search-result-meta {
+        margin-top: 8px;
+      }
+
+      .extraction-search-result-snippet {
+        margin: 9px 0 0;
+        padding: 9px 10px;
+        border-left: 2px solid #c5d68a;
+        border-radius: 0 6px 6px 0;
+        background: #f7f9f1;
+        color: #58644d;
+        font-size: 10px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .extraction-search-result mark {
+        border-radius: 2px;
+        background: #e3edaa;
+        color: #2c4432;
+        font-weight: 750;
+      }
+
+      .extraction-search-expand {
+        min-height: 36px;
+        margin-top: 9px;
+        padding: 0 9px;
+        border: 1px solid #dfe7de;
+        border-radius: 6px;
+        background: #ffffff;
+        color: #526357;
+        cursor: pointer;
+        font: inherit;
+        font-size: 9px;
+        font-weight: 650;
+      }
+
+      .extraction-search-expand:hover {
+        border-color: #b8c8b6;
+        background: #f8faf7;
+      }
+
+      .extraction-search-full-content {
+        max-height: 310px;
+        overflow: auto;
+        margin: 9px 0 0;
+        padding: 11px;
+        border: 1px solid #e8ede6;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #4b594f;
+        font-family: inherit;
+        font-size: 10px;
+        line-height: 1.75;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .extraction-search-more {
+        display: block;
+        min-height: 42px;
+        margin: 11px auto 0;
+        padding: 0 15px;
+        border: 1px solid #d8e3d6;
+        border-radius: 7px;
+        background: #f8faf6;
+        color: #45644b;
+        cursor: pointer;
+        font: inherit;
+        font-size: 10px;
+        font-weight: 680;
+      }
+
+      .extraction-search-more:hover {
+        border-color: #aabea7;
+        background: #eef4e9;
+      }
+
       .demo-analysis-notice {
         display: flex;
         align-items: flex-start;
@@ -5672,6 +6312,18 @@
         text-align: center;
       }
 
+      @media (max-width: 1100px) {
+        .extraction-heading {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .extraction-header-actions {
+          grid-template-columns: minmax(220px, 1fr) minmax(130px, 155px) auto auto;
+        }
+      }
+
       @media (max-width: 620px) {
         .extraction-heading {
           flex-direction: column;
@@ -5977,6 +6629,16 @@
           grid-template-columns: minmax(0, 1fr) minmax(250px, 0.9fr);
         }
 
+        .extraction-heading {
+          align-items: stretch;
+          flex-direction: column;
+          gap: 13px;
+        }
+
+        .extraction-header-actions {
+          grid-template-columns: minmax(0, 1fr) minmax(130px, 155px) auto auto;
+        }
+
         .detail-layout {
           grid-template-columns: minmax(0, 1.2fr) minmax(245px, 0.8fr);
         }
@@ -5999,6 +6661,51 @@
           min-height: 42px;
           padding: 0 11px;
           font-size: 11px;
+        }
+
+        .extraction-header-actions {
+          grid-template-columns: minmax(0, 1fr) auto minmax(102px, auto);
+          gap: 7px;
+        }
+
+        .extraction-search-field {
+          grid-column: 1 / -1;
+        }
+
+        .extraction-search-field > label,
+        .extraction-search-scope-field > label {
+          font-size: 10px;
+        }
+
+        .extraction-search-input-wrap,
+        .extraction-search-scope-field select,
+        .extraction-search-clear,
+        .extraction-header-actions > .static-button {
+          min-height: 42px;
+        }
+
+        .extraction-header-actions > .static-button {
+          justify-content: center;
+          gap: 5px;
+          padding: 0 8px;
+          font-size: 10px;
+        }
+
+        .extraction-search-results {
+          padding: 12px;
+        }
+
+        .extraction-search-result {
+          padding: 10px;
+        }
+
+        .extraction-search-result-header {
+          flex-direction: column;
+          gap: 7px;
+        }
+
+        .extraction-search-result-match {
+          text-align: left;
         }
 
         .mypage-account-card {
@@ -6978,14 +7685,46 @@
                 <h1 id="extraction-title">프로젝트 요구사항</h1>
                 <p id="extraction-project-meta"></p>
               </div>
-              <button class="static-button" id="run-ai-analysis" type="button">
+              <div class="extraction-header-actions" aria-label="요구사항 추출 도구">
+                <div class="extraction-search-field">
+                  <label for="extraction-search-input">문서·요구사항 검색</label>
+                  <div class="extraction-search-input-wrap">
+                    <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                      <circle cx="8.8" cy="8.8" r="5.6" stroke="currentColor" stroke-width="1.5" />
+                      <path d="m13 13 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                    </svg>
+                    <input id="extraction-search-input" type="search" placeholder="내용, 문서명, 날짜 검색" autocomplete="off" aria-controls="extraction-search-results" aria-describedby="extraction-search-status" />
+                  </div>
+                </div>
+                <div class="extraction-search-scope-field">
+                  <label for="extraction-search-scope">검색 범위</label>
+                  <select id="extraction-search-scope">
+                    <option value="all">전체</option>
+                    <option value="meeting">회의록·메모</option>
+                    <option value="spec">기획서</option>
+                  </select>
+                </div>
+                <button class="extraction-search-clear" id="extraction-search-clear" type="button" aria-label="검색어와 검색 범위 초기화">초기화</button>
+                <button class="static-button" id="run-ai-analysis" type="button">
                 <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path d="m10 2 1.4 4.6L16 8l-4.6 1.4L10 14l-1.4-4.6L4 8l4.6-1.4L10 2Z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round" />
                   <path d="m16 13 .7 2.3L19 16l-2.3.7L16 19l-.7-2.3L13 16l2.3-.7L16 13Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" />
                 </svg>
                 AI 분석
-              </button>
+                </button>
+              </div>
             </header>
+
+            <section class="extraction-search-results" id="extraction-search-results" hidden aria-labelledby="extraction-search-heading">
+              <header class="extraction-search-results-heading">
+                <div>
+                  <h2 id="extraction-search-heading">검색 결과</h2>
+                  <p id="extraction-search-status" role="status" aria-live="polite" aria-atomic="true"></p>
+                </div>
+              </header>
+              <div class="extraction-search-result-list" id="extraction-search-result-list"></div>
+              <button class="extraction-search-more" id="extraction-search-more" type="button" hidden>검색 결과 더 보기</button>
+            </section>
 
             <div class="demo-analysis-notice" role="note">
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -7373,6 +8112,7 @@
         </div>
       </div>
     </dialog>
+    <script src="/extraction-search.js"></script>
     <script>
       (() => {
         const storageKey = "specguard-projects-v1";
@@ -7866,6 +8606,13 @@
           templatePreviewName: document.querySelector("#template-preview-name"),
           templatePreviewContent: document.querySelector("#template-preview-content"),
           extractionRoundToggle: document.querySelector("#toggle-extraction-rounds"),
+          extractionSearchInput: document.querySelector("#extraction-search-input"),
+          extractionSearchScope: document.querySelector("#extraction-search-scope"),
+          extractionSearchClear: document.querySelector("#extraction-search-clear"),
+          extractionSearchResults: document.querySelector("#extraction-search-results"),
+          extractionSearchStatus: document.querySelector("#extraction-search-status"),
+          extractionSearchResultList: document.querySelector("#extraction-search-result-list"),
+          extractionSearchMore: document.querySelector("#extraction-search-more"),
           reviewRoundToggle: document.querySelector("#toggle-review-rounds"),
           specDraftPanel: document.querySelector("#spec-draft-panel"),
           specDraftContent: document.querySelector("#spec-draft-content"),
@@ -7961,6 +8708,14 @@
         let comparisonFilter = "all";
         let showAllReviewRounds = false;
         let showAllExtractionRounds = false;
+        let extractionSearchProjectId = "";
+        let extractionSearchTimer = 0;
+        let extractionSearchQuery = "";
+        let extractionSearchScope = "all";
+        let extractionSearchVisibleCount = 20;
+        let extractionSearchMatches = [];
+        const extractionSearchPageSize = 20;
+        const extractionSearchExpanded = new Set();
         let lastReviewRoundProjectId = "";
         let lastExtractionRoundProjectId = "";
         let showDeletedReviews = false;
@@ -8936,12 +9691,192 @@
             : `<div class="analysis-empty-state"><strong>입력 문서가 없습니다.</strong>새 프로젝트 화면에서 ${label} 내용을 입력하거나 문서를 업로드해 주세요.</div>`;
         }
 
+        function appendSearchHighlight(parent, value, query, suppliedMatch = null) {
+          const text = String(value ?? "").normalize("NFC");
+          const match = suppliedMatch || window.SpecGuardExtractionSearch.findTextMatch(text, query);
+          if (!match || match.index < 0 || match.index + match.length > text.length) {
+            parent.textContent = text;
+            return;
+          }
+          parent.append(document.createTextNode(text.slice(0, match.index)));
+          const mark = document.createElement("mark");
+          mark.textContent = text.slice(match.index, match.index + match.length);
+          parent.append(mark);
+          parent.append(document.createTextNode(text.slice(match.index + match.length)));
+        }
+
+        function appendSearchBadge(parent, text, className = "") {
+          const badge = document.createElement("span");
+          badge.className = `extraction-search-badge${className ? ` ${className}` : ""}`;
+          badge.textContent = text;
+          parent.append(badge);
+        }
+
+        function renderExtractionSearchResult(item, visibleIndex, query) {
+          const article = document.createElement("article");
+          article.className = "extraction-search-result";
+
+          const header = document.createElement("header");
+          header.className = "extraction-search-result-header";
+          const titleWrap = document.createElement("div");
+          titleWrap.className = "extraction-search-result-title-wrap";
+          const badges = document.createElement("div");
+          badges.className = "extraction-search-result-badges";
+          appendSearchBadge(badges, item.documentKindLabel, item.group === "meeting" ? "meeting" : "spec");
+          appendSearchBadge(badges, item.itemTypeLabel, item.itemTypeLabel === "생성 문서" ? "generated" : "");
+          if (item.previousVersion || item.matchedPreviousVersion) appendSearchBadge(badges, "이전 버전", "previous");
+
+          const title = document.createElement("h3");
+          title.className = "extraction-search-result-title";
+          appendSearchHighlight(title, item.title, query);
+          titleWrap.append(badges, title);
+
+          const matchLabel = document.createElement("span");
+          matchLabel.className = "extraction-search-result-match";
+          matchLabel.textContent = `일치: ${item.matchFieldLabel}`;
+          header.append(titleWrap, matchLabel);
+          article.append(header);
+
+          const metadataValues = [];
+          if (item.documentName && item.itemTypeLabel !== "원문") {
+            metadataValues.push({ label: "근거 문서", value: item.documentName });
+          }
+          if (item.date) metadataValues.push({ label: "날짜", value: item.date });
+          if (Number.isInteger(item.roundNumber)) metadataValues.push({ label: "회차", value: `${item.roundNumber}회차` });
+          if (metadataValues.length) {
+            const metadata = document.createElement("div");
+            metadata.className = "extraction-search-result-meta";
+            metadataValues.forEach(({ label, value }) => {
+              const chip = document.createElement("span");
+              chip.className = "extraction-search-meta-chip";
+              const prefix = document.createElement("span");
+              prefix.textContent = `${label}: `;
+              const highlighted = document.createElement("span");
+              appendSearchHighlight(highlighted, value, query);
+              chip.append(prefix, highlighted);
+              metadata.append(chip);
+            });
+            article.append(metadata);
+          }
+
+          const snippet = document.createElement("p");
+          snippet.className = "extraction-search-result-snippet";
+          appendSearchHighlight(snippet, item.preview, query, item.previewMatchIndex >= 0
+            ? { index: item.previewMatchIndex, length: item.previewMatchLength }
+            : null);
+          article.append(snippet);
+
+          const expansionKey = String(visibleIndex);
+          const contentId = `extraction-search-full-${visibleIndex}`;
+          const expand = document.createElement("button");
+          expand.type = "button";
+          expand.className = "extraction-search-expand";
+          expand.dataset.searchExpand = expansionKey;
+          expand.setAttribute("aria-controls", contentId);
+          expand.setAttribute("aria-expanded", String(extractionSearchExpanded.has(expansionKey)));
+          expand.textContent = extractionSearchExpanded.has(expansionKey) ? "전체 내용 접기" : "전체 내용 보기";
+          article.append(expand);
+
+          const fullContent = document.createElement("pre");
+          fullContent.className = "extraction-search-full-content";
+          fullContent.id = contentId;
+          fullContent.hidden = !extractionSearchExpanded.has(expansionKey);
+          if (!fullContent.hidden) {
+            fullContent.textContent = item.fullContent;
+          }
+          article.append(fullContent);
+          return article;
+        }
+
+        function renderExtractionSearchResults() {
+          const resultsElement = elements.extractionSearchResults;
+          const list = elements.extractionSearchResultList;
+          const query = extractionSearchQuery;
+          if (!query) {
+            resultsElement.hidden = true;
+            elements.extractionSearchStatus.textContent = "";
+            list.replaceChildren();
+            elements.extractionSearchMore.hidden = true;
+            return;
+          }
+
+          resultsElement.hidden = false;
+          list.replaceChildren();
+          const total = extractionSearchMatches.length;
+          const displayed = Math.min(total, extractionSearchVisibleCount);
+          if (!total) {
+            elements.extractionSearchStatus.textContent = "검색 결과가 없습니다. 검색어 또는 검색 범위를 바꿔 확인해 보세요.";
+            const empty = document.createElement("p");
+            empty.className = "analysis-empty-state";
+            empty.textContent = "검색어와 일치하는 문서나 요구사항을 찾지 못했습니다.";
+            list.append(empty);
+            elements.extractionSearchMore.hidden = true;
+            return;
+          }
+
+          elements.extractionSearchStatus.textContent = `${total}개 항목 일치 · ${displayed}개 표시 (전체 회차·이전 문서 포함)`;
+          extractionSearchMatches.slice(0, displayed).forEach((item, index) => {
+            list.append(renderExtractionSearchResult(item, index, query));
+          });
+          elements.extractionSearchMore.hidden = displayed >= total;
+          if (!elements.extractionSearchMore.hidden) {
+            elements.extractionSearchMore.textContent = `검색 결과 더 보기 (${Math.min(extractionSearchPageSize, total - displayed)}개)`;
+          }
+        }
+
+        function runExtractionSearch(project, { resetPagination = false } = {}) {
+          if (!project || project.id !== extractionSearchProjectId) return;
+          extractionSearchQuery = elements.extractionSearchInput.value.trim();
+          extractionSearchScope = elements.extractionSearchScope.value;
+          const result = window.SpecGuardExtractionSearch.searchProject(
+            project,
+            extractionSearchQuery,
+            extractionSearchScope,
+          );
+          extractionSearchMatches = result.results;
+          if (resetPagination) {
+            extractionSearchVisibleCount = extractionSearchPageSize;
+            extractionSearchExpanded.clear();
+          }
+          renderExtractionSearchResults();
+        }
+
+        function resetExtractionSearch(projectId) {
+          if (extractionSearchTimer) window.clearTimeout(extractionSearchTimer);
+          extractionSearchTimer = 0;
+          extractionSearchProjectId = projectId || "";
+          extractionSearchQuery = "";
+          extractionSearchScope = "all";
+          extractionSearchVisibleCount = extractionSearchPageSize;
+          extractionSearchMatches = [];
+          extractionSearchExpanded.clear();
+          elements.extractionSearchInput.value = "";
+          elements.extractionSearchScope.value = "all";
+          renderExtractionSearchResults();
+        }
+
+        function scheduleExtractionSearch({ resetPagination = true, immediate = false } = {}) {
+          if (extractionSearchTimer) window.clearTimeout(extractionSearchTimer);
+          const projectId = extractionSearchProjectId;
+          const run = () => {
+            extractionSearchTimer = 0;
+            const route = decodeURIComponent(window.location.hash.slice(1).split("#", 1)[0] || "");
+            const project = projects.find((item) => item.id === projectId);
+            if (!project || route !== `/projects/${projectId}/extract`) return;
+            runExtractionSearch(project, { resetPagination });
+          };
+          if (immediate) run();
+          else extractionSearchTimer = window.setTimeout(run, 160);
+        }
+
         function renderExtraction(project) {
           if (lastExtractionRoundProjectId !== project.id) {
             showAllExtractionRounds = false;
             lastExtractionRoundProjectId = project.id;
+            resetExtractionSearch(project.id);
           }
           elements.extraction.dataset.projectId = project.id;
+          if (!extractionSearchProjectId) resetExtractionSearch(project.id);
           const sourceDocuments = (project.documents || [])
             .filter((documentItem) => documentItem.kind === "source" && !documentItem.archivedAt)
             .sort((first, second) => Number(first.roundNumber || 0) - Number(second.roundNumber || 0)
@@ -8981,6 +9916,7 @@
           elements.runAnalysisButton.disabled = !hasSourceText;
           renderExtractedList(elements.sourceExtractionList, sourceRequirements, hasSourceText, "회의록 또는 고객 메모", "source");
           renderExtractedList(elements.specExtractionList, specRequirements, hasSpecText, "최종 기획서", "spec");
+          runExtractionSearch(project);
 
           const draft = typeof project.specDraft === "object" ? project.specDraft?.content || "" : String(project.specDraft || "");
           const update = typeof project.specUpdateProposal === "object" ? project.specUpdateProposal?.content || "" : String(project.specUpdateProposal || "");
@@ -11012,6 +11948,40 @@
           showAllExtractionRounds = !showAllExtractionRounds;
           const project = projects.find((item) => item.id === elements.extraction.dataset.projectId);
           if (project) renderExtraction(project);
+        });
+
+        elements.extractionSearchInput.addEventListener("input", () => {
+          scheduleExtractionSearch({ resetPagination: true });
+        });
+
+        elements.extractionSearchInput.addEventListener("keydown", (event) => {
+          if (event.key !== "Escape") return;
+          event.preventDefault();
+          elements.extractionSearchInput.value = "";
+          scheduleExtractionSearch({ resetPagination: true, immediate: true });
+        });
+
+        elements.extractionSearchScope.addEventListener("change", () => {
+          scheduleExtractionSearch({ resetPagination: true, immediate: true });
+        });
+
+        elements.extractionSearchClear.addEventListener("click", () => {
+          resetExtractionSearch(elements.extraction.dataset.projectId);
+          elements.extractionSearchInput.focus();
+        });
+
+        elements.extractionSearchMore.addEventListener("click", () => {
+          extractionSearchVisibleCount += extractionSearchPageSize;
+          renderExtractionSearchResults();
+        });
+
+        elements.extractionSearchResultList.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-search-expand]");
+          if (!button) return;
+          const key = button.dataset.searchExpand;
+          if (extractionSearchExpanded.has(key)) extractionSearchExpanded.delete(key);
+          else extractionSearchExpanded.add(key);
+          renderExtractionSearchResults();
         });
 
         elements.reviewRoundToggle.addEventListener("click", () => {

@@ -9,6 +9,7 @@ const { setTimeout: delay } = require("node:timers/promises");
 
 const port = Number(process.env.PORT || 3000);
 const projectId = "analysis-race-preview-project";
+const searchProjectId = "extraction-search-preview-project";
 const username = "analysis_preview";
 const password = "TestPass7";
 const dataDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "specguard-preview-regression-"));
@@ -247,7 +248,134 @@ providerServer.listen(0, "127.0.0.1", () => {
       },
     });
     if (created.response.status !== 201) throw new Error(`Test project setup failed: ${created.response.status}`);
-    fs.writeFileSync(stateFile, JSON.stringify({ username, password, projectId, providerPort, dataDirectory }));
+
+    const longMeetingText = `${"초기 회의 내용입니다. ".repeat(260)}\nLongTailSearchNeedle 4천 자 이후의 회의 원문입니다.\nXssSearchNeedle <img src=x onerror=\"window.__searchXss=1\">`;
+    const searchProject = {
+      id: searchProjectId,
+      name: "검색 기능 브라우저 검증",
+      client: "격리 검색 테스트 고객사",
+      summary: "문서와 요구사항 검색 범위를 확인합니다.",
+      status: "review",
+      documents: [
+        {
+          id: "search-meeting-current",
+          name: "검색 검증 2차 회의록.md",
+          kind: "source",
+          type: "text/markdown",
+          content: longMeetingText,
+          stt: { fileName: "동일 전사.wav", transcript: "TranscriptSearchNeedle 상담 통화에서 나온 검색 확인 문장입니다." },
+          date: "2026-11-26",
+          roundId: "search-round-2",
+          roundNumber: 2,
+        },
+        {
+          id: "search-meeting-old",
+          name: "검색 검증 이전 메모.txt",
+          kind: "source",
+          type: "text/plain",
+          content: "ArchivedMeetingNeedle 보관된 이전 버전 회의 내용입니다.",
+          date: "2026-11-20",
+          roundId: "search-round-1",
+          roundNumber: 1,
+          archivedAt: "2026-11-26T10:00:00.000Z",
+        },
+        {
+          id: "search-meeting-duplicate",
+          name: "중복 전사 확인.txt",
+          kind: "source",
+          type: "text/plain",
+          content: "DeduplicatedTranscriptNeedle 본문과 전사가 같은 문장입니다.",
+          stt: { fileName: "same.wav", transcript: "DeduplicatedTranscriptNeedle 본문과 전사가 같은 문장입니다." },
+          date: "2026-11-25",
+          roundId: "search-round-2",
+          roundNumber: 2,
+        },
+        {
+          id: "search-spec-current",
+          name: "검색 검증 최종 기획서 2026-11-27.md",
+          kind: "spec",
+          type: "text/markdown",
+          content: "SpecOnlySearchNeedle 최종 기획서에서만 검색되는 문장입니다.\n로그인한 사용자는 주문 내역을 조회합니다.",
+          date: "2026-11-27",
+        },
+        {
+          id: "search-spec-old",
+          name: "검색 검증 이전 기획서.pdf",
+          kind: "spec",
+          type: "application/pdf",
+          content: "ArchivedSpecNeedle 보관된 이전 기획서 내용입니다.",
+          date: "2026-11-18",
+          archivedAt: "2026-11-27T09:00:00.000Z",
+        },
+        ...Array.from({ length: 25 }, (_, index) => ({
+          id: `search-pagination-${index + 1}`,
+          name: `결과 페이지 ${index + 1}.txt`,
+          kind: "source",
+          type: "text/plain",
+          content: `PaginationSearchNeedle 결과 항목 ${index + 1}`,
+          date: "2026-11-27",
+          roundId: "search-round-2",
+          roundNumber: 2,
+        })),
+      ],
+      rounds: [
+        { id: "search-round-1", roundNumber: 1, date: "2026-11-20" },
+        { id: "search-round-2", roundNumber: 2, date: "2026-11-26" },
+      ],
+      extractedRequirements: {
+        source: [{
+          id: "search-source-requirement",
+          text: "SourceRequirementNeedle 장바구니 항목 수를 보여 주세요.",
+          category: "function",
+          evidence: [{
+            text: "SourceEvidenceNeedle 장바구니 상품 개수를 표시해 주세요.",
+            date: "2026-11-26",
+            documentName: "검색 검증 2차 회의록.md",
+            sourceDocumentId: "search-meeting-current",
+            sourceKind: "meeting",
+            roundId: "search-round-2",
+            roundNumber: 2,
+          }],
+        }],
+        spec: [{
+          id: "search-spec-requirement",
+          text: "SpecRequirementNeedle 회원은 주문 내역을 확인합니다.",
+          category: "function",
+          evidence: [{
+            text: "SpecEvidenceNeedle 로그인한 사용자는 주문 내역을 조회합니다.",
+            date: "2026-11-27",
+            documentName: "검색 검증 최종 기획서 2026-11-27.md",
+            sourceDocumentId: "search-spec-current",
+            sourceKind: "spec",
+          }],
+        }],
+      },
+      requirementReview: {
+        version: 1,
+        items: {
+          "search-direct-requirement": {
+            directlyAdded: true,
+            status: "confirmed",
+            text: "DirectSearchNeedle 직접 추가한 테스트 요구사항입니다.",
+            category: "other",
+            roundId: "search-round-2",
+          },
+        },
+      },
+      requirements: [],
+      extractionRun: true,
+      analysisRun: true,
+      specDraft: { content: "DraftSearchNeedle 현재 AI 기획서 초안입니다.", generatedAt: "2026-11-27T09:00:00.000Z" },
+      specDraftHistory: [{ content: "OldDraftSearchNeedle 이전 AI 초안입니다.", generatedAt: "2026-11-26T09:00:00.000Z", archivedAt: "2026-11-27T09:00:00.000Z" }],
+      specUpdateProposal: { content: "UpdateSearchNeedle 현재 AI 업데이트안입니다.", generatedAt: "2026-11-27T09:30:00.000Z" },
+      specUpdateHistory: [{ content: "OldUpdateSearchNeedle 이전 AI 업데이트안입니다.", generatedAt: "2026-11-26T09:30:00.000Z", archivedAt: "2026-11-27T09:30:00.000Z" }],
+    };
+    const searchCreated = await appRequest("/api/projects", {
+      method: "POST",
+      body: { project: searchProject },
+    });
+    if (searchCreated.response.status !== 201) throw new Error(`Search fixture setup failed: ${searchCreated.response.status}`);
+    fs.writeFileSync(stateFile, JSON.stringify({ username, password, projectId, searchProjectId, providerPort, dataDirectory }));
   }).catch((error) => {
     console.error(`Mock analysis preview setup failed: ${error.message}`);
     process.exit(1);

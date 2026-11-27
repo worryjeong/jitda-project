@@ -101,7 +101,7 @@ const sttModel = "whisper-large-v3-turbo";
 const sttEndpoint = "https://api.groq.com/openai/v1/audio/transcriptions";
 const maxAudioBytes = 25 * 1024 * 1024;
 const maxBodyBytes = 6 * 1024 * 1024;
-const staticFiles = new Set(["index.html", "__preview-bridge.js"]);
+const staticFiles = new Set(["index.html", "extraction-search.js", "__preview-bridge.js"]);
 const defaultSpecificationTemplate = {
   fileName: "서비스 기본 기획서 양식",
   content: "# 서비스 기획서\n## 1. 프로젝트 개요\n## 2. 사용자 및 권한\n## 3. 기능 요구사항\n## 4. 화면 및 이용 흐름\n## 5. 예외 상황 및 정책\n## 6. 일정 및 검수 기준",

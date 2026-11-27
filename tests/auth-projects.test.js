@@ -22,6 +22,7 @@ async function unusedPort() {
 test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30_000 }, async (t) => {
   const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), "specguard-auth-test-"));
   await fs.copyFile(path.join(__dirname, "..", "server.js"), path.join(temporaryRoot, "server.js"));
+  await fs.copyFile(path.join(__dirname, "..", "extraction-search.js"), path.join(temporaryRoot, "extraction-search.js"));
   t.after(async () => fs.rm(temporaryRoot, { recursive: true, force: true }));
 
   const port = await unusedPort();
@@ -84,6 +85,9 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
 
   await startServer();
   try {
+    const searchScript = await fetch(`${origin}/extraction-search.js`);
+    assert.equal(searchScript.status, 200, "the dedicated search module is served as an existing static asset");
+    assert.match(await searchScript.text(), /function searchProject/u);
     assert.equal((await request("/api/projects")).response.status, 401, "project data requires a session");
     assert.equal((await request("/api/analyze", { method: "POST", body: {} })).response.status, 401);
     assert.equal((await request("/api/compare", { method: "POST", body: {} })).response.status, 401);

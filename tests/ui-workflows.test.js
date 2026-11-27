@@ -82,3 +82,31 @@ test("the review guide stays public while a successful login returns to the home
   assert.match(html, /initializeAuthenticatedSession\(session, \{ redirectToHome: true \}\)/u);
   assert.match(html, /if \(options\.redirectToHome\) window\.location\.hash = "\/home"/u);
 });
+
+test("extraction search controls are labeled, ordered beside AI analysis, and use safe DOM text rendering", async () => {
+  const html = await fs.readFile(indexPath, "utf8");
+  const toolbarStart = html.indexOf('<div class="extraction-header-actions"');
+  const resultsStart = html.indexOf('<section class="extraction-search-results"', toolbarStart);
+  assert.ok(toolbarStart >= 0 && resultsStart > toolbarStart);
+  const toolbar = html.slice(toolbarStart, resultsStart);
+  const searchInputIndex = toolbar.indexOf('id="extraction-search-input" type="search"');
+  const scopeIndex = toolbar.indexOf('id="extraction-search-scope"');
+  const clearIndex = toolbar.indexOf('id="extraction-search-clear"');
+  const analysisIndex = toolbar.indexOf('id="run-ai-analysis"');
+  assert.ok(searchInputIndex >= 0 && searchInputIndex < scopeIndex && scopeIndex < clearIndex && clearIndex < analysisIndex);
+  assert.match(toolbar, /<label for="extraction-search-input">문서·요구사항 검색<\/label>/u);
+  assert.match(toolbar, /<label for="extraction-search-scope">검색 범위<\/label>/u);
+  assert.match(toolbar, /placeholder="내용, 문서명, 날짜 검색"/u);
+  assert.match(html, /role="status" aria-live="polite" aria-atomic="true"/u);
+  assert.match(html, /검색 결과 더 보기/u);
+  assert.match(html, /<script src="\/extraction-search\.js"><\/script>/u);
+
+  const rendererStart = html.indexOf("function appendSearchHighlight");
+  const rendererEnd = html.indexOf("function renderExtractionSearchResults", rendererStart);
+  const safeRenderer = html.slice(rendererStart, rendererEnd);
+  assert.match(safeRenderer, /document\.createElement\("mark"\)/u);
+  assert.match(safeRenderer, /textContent\s*=/u);
+  assert.doesNotMatch(safeRenderer, /innerHTML|insertAdjacentHTML/u);
+  assert.match(html, /window\.setTimeout\(run, 160\)/u);
+  assert.match(html, /event\.key !== "Escape"/u);
+});
