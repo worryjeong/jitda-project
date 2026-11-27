@@ -637,10 +637,46 @@
       }
 
       .help-card {
+        display: block;
         padding: 14px 13px 13px;
         border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 10px;
         background: rgba(255, 255, 255, 0.045);
+        color: inherit;
+        text-decoration: none;
+        transition: border-color 160ms ease, background-color 160ms ease;
+      }
+
+      .help-card:hover {
+        border-color: rgba(213, 237, 119, 0.42);
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .help-card:focus-visible,
+      .sidebar-guide-mobile:focus-visible {
+        outline: 3px solid var(--lime);
+        outline-offset: 3px;
+      }
+
+      .sidebar-guide-mobile {
+        display: none;
+        min-height: 42px;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 0 12px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 8px;
+        color: #f5f8f5;
+        font-size: 12px;
+        font-weight: 650;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .sidebar-guide-mobile:hover {
+        border-color: rgba(213, 237, 119, 0.5);
+        color: var(--lime);
       }
 
       .help-card-label {
@@ -1604,6 +1640,455 @@
       .back-link svg {
         width: 15px;
         height: 15px;
+      }
+
+      .guide-view {
+        width: min(100%, 1180px);
+        margin: 0 auto;
+      }
+
+      .guide-back {
+        margin-bottom: 18px;
+      }
+
+      .guide-hero {
+        margin-bottom: 18px;
+        padding: clamp(23px, 4vw, 38px);
+        border: 1px solid #dce7d9;
+        border-radius: 14px;
+        background: #edf3e9;
+      }
+
+      .guide-kicker {
+        display: inline-flex;
+        min-height: 27px;
+        align-items: center;
+        margin-bottom: 13px;
+        padding: 0 9px;
+        border: 1px solid #d7e2d0;
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.62);
+        color: #52704f;
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0.08em;
+      }
+
+      .guide-hero h1 {
+        margin: 0 0 10px;
+        color: #243a2c;
+        font-size: clamp(29px, 4vw, 40px);
+        font-weight: 760;
+        letter-spacing: -0.055em;
+        line-height: 1.2;
+      }
+
+      .guide-hero > p {
+        max-width: 720px;
+        margin: 0;
+        color: #53645a;
+        font-size: 16px;
+        line-height: 1.75;
+      }
+
+      .guide-principle {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr);
+        align-items: start;
+        gap: 13px;
+        margin-bottom: 22px;
+        padding: 17px 19px;
+        border: 1px solid #dfe8da;
+        border-left: 4px solid #668b60;
+        border-radius: 10px;
+        background: #ffffff;
+      }
+
+      .guide-principle-icon {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        place-items: center;
+        border-radius: 9px;
+        background: #edf5eb;
+        color: #46734e;
+      }
+
+      .guide-principle-icon svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .guide-principle strong {
+        display: block;
+        margin: 0 0 3px;
+        color: #34463a;
+        font-size: 15px;
+      }
+
+      .guide-principle p {
+        margin: 0;
+        color: #5e6e63;
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .guide-layout {
+        display: grid;
+        grid-template-columns: minmax(175px, 0.28fr) minmax(0, 1fr);
+        align-items: start;
+        gap: 18px;
+      }
+
+      .guide-toc {
+        position: sticky;
+        top: 20px;
+        display: grid;
+        gap: 5px;
+        padding: 15px;
+        border: 1px solid var(--line);
+        border-radius: 10px;
+        background: #ffffff;
+      }
+
+      .guide-toc-title {
+        margin: 0 0 5px;
+        padding: 0 8px;
+        color: #78847b;
+        font-size: 11px;
+        font-weight: 750;
+        letter-spacing: 0.06em;
+      }
+
+      .guide-toc a {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        gap: 9px;
+        padding: 0 8px;
+        border-radius: 7px;
+        color: #526158;
+        font-size: 13px;
+        font-weight: 620;
+        text-decoration: none;
+      }
+
+      .guide-toc a:hover,
+      .guide-toc a:focus-visible {
+        outline: none;
+        background: #f0f5ed;
+        color: #31583d;
+      }
+
+      .guide-toc a:focus-visible {
+        box-shadow: 0 0 0 3px rgba(49, 114, 85, 0.2);
+      }
+
+      .guide-toc a span {
+        color: #6f8a64;
+        font-size: 11px;
+        font-weight: 750;
+      }
+
+      .guide-article {
+        display: grid;
+        min-width: 0;
+        gap: 14px;
+      }
+
+      .guide-section {
+        min-width: 0;
+        padding: clamp(18px, 3vw, 25px);
+        scroll-margin-top: 22px;
+        border: 1px solid var(--line);
+        border-radius: 11px;
+        background: #ffffff;
+      }
+
+      .guide-section-heading {
+        display: flex;
+        align-items: flex-start;
+        gap: 13px;
+        margin-bottom: 15px;
+      }
+
+      .guide-step-number {
+        display: grid;
+        width: 36px;
+        height: 36px;
+        flex: 0 0 auto;
+        place-items: center;
+        border: 1px solid #dce7d8;
+        border-radius: 10px;
+        background: #f0f5ed;
+        color: #436748;
+        font-size: 14px;
+        font-weight: 760;
+      }
+
+      .guide-section-heading h2 {
+        margin: 1px 0 4px;
+        color: #2c3c31;
+        font-size: clamp(19px, 2.5vw, 23px);
+        font-weight: 730;
+        letter-spacing: -0.04em;
+        line-height: 1.35;
+      }
+
+      .guide-section-heading p {
+        margin: 0;
+        color: #77837a;
+        font-size: 14px;
+        line-height: 1.65;
+      }
+
+      .guide-section p,
+      .guide-section li {
+        color: #59675d;
+        font-size: 15px;
+        line-height: 1.8;
+      }
+
+      .guide-section p:last-child {
+        margin-bottom: 0;
+      }
+
+      .guide-check-list {
+        display: grid;
+        gap: 9px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .guide-check-list li {
+        position: relative;
+        margin: 0;
+        padding-left: 25px;
+      }
+
+      .guide-check-list li::before {
+        position: absolute;
+        top: 0.38em;
+        left: 1px;
+        width: 14px;
+        height: 14px;
+        border: 2px solid #7a9b72;
+        border-radius: 50%;
+        content: "";
+      }
+
+      .guide-check-list li::after {
+        position: absolute;
+        top: 0.58em;
+        left: 5px;
+        width: 6px;
+        height: 3px;
+        transform: rotate(-45deg);
+        border-bottom: 1.5px solid #527b54;
+        border-left: 1.5px solid #527b54;
+        content: "";
+      }
+
+      .guide-note {
+        margin: 14px 0 0;
+        padding: 12px 14px;
+        border: 1px solid #e8e8d6;
+        border-radius: 8px;
+        background: #fafaf3;
+        color: #62664e !important;
+        font-size: 14px !important;
+      }
+
+      .guide-status-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 15px;
+      }
+
+      .guide-status-card {
+        min-width: 0;
+        padding: 15px;
+        border: 1px solid #e4e9e3;
+        border-top: 3px solid #d8b66e;
+        border-radius: 9px;
+        background: #fbfcfa;
+      }
+
+      .guide-status-card.confirmed {
+        border-top-color: #69a17a;
+      }
+
+      .guide-status-card.deleted {
+        border-top-color: #a7ada8;
+      }
+
+      .guide-status-label {
+        display: inline-flex;
+        min-height: 27px;
+        align-items: center;
+        margin-bottom: 9px;
+        padding: 0 9px;
+        border-radius: 6px;
+        background: #fbf1e6;
+        color: #925c2d;
+        font-size: 12px;
+        font-weight: 750;
+      }
+
+      .guide-status-card.confirmed .guide-status-label {
+        background: #edf5ef;
+        color: #317255;
+      }
+
+      .guide-status-card.deleted .guide-status-label {
+        background: #f0f2f0;
+        color: #67716a;
+      }
+
+      .guide-status-card h3 {
+        margin: 0 0 6px;
+        color: #39463d;
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      .guide-status-card p {
+        margin: 0;
+        color: #68756c;
+        font-size: 14px;
+        line-height: 1.7;
+      }
+
+      .guide-action-steps {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 9px;
+        margin-top: 14px;
+      }
+
+      .guide-action-step {
+        padding: 14px;
+        border: 1px solid #e5eae4;
+        border-radius: 8px;
+        background: #fafbf9;
+      }
+
+      .guide-action-step span {
+        display: block;
+        margin-bottom: 5px;
+        color: #66815f;
+        font-size: 11px;
+        font-weight: 750;
+      }
+
+      .guide-action-step strong {
+        display: block;
+        color: #3a483e;
+        font-size: 14px;
+        line-height: 1.55;
+      }
+
+      .guide-finish {
+        border-color: #d9e5d5;
+        background: #f4f8f1;
+      }
+
+      .guide-finish .guide-step-number {
+        border-color: #d2e1cc;
+        background: #e7f0e2;
+      }
+
+      .guide-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 9px;
+        margin-top: 18px;
+      }
+
+      .guide-actions a {
+        min-height: 44px;
+      }
+
+      @media (max-width: 860px) {
+        .sidebar-guide-mobile {
+          display: inline-flex;
+        }
+
+        .guide-layout {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .guide-toc {
+          position: static;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .guide-toc-title {
+          grid-column: 1 / -1;
+        }
+      }
+
+      @media (max-width: 620px) {
+        .sidebar-guide-mobile {
+          min-height: 39px;
+          padding: 0 9px;
+          font-size: 11px;
+        }
+
+        .guide-hero {
+          padding: 21px 17px;
+        }
+
+        .guide-hero > p,
+        .guide-principle p,
+        .guide-section p,
+        .guide-section li {
+          font-size: 14px;
+        }
+
+        .guide-principle {
+          grid-template-columns: 32px minmax(0, 1fr);
+          gap: 10px;
+          padding: 14px 12px;
+        }
+
+        .guide-principle-icon {
+          width: 31px;
+          height: 31px;
+        }
+
+        .guide-toc {
+          gap: 3px;
+          padding: 10px;
+        }
+
+        .guide-toc a {
+          min-height: 42px;
+          gap: 6px;
+          padding: 0 6px;
+          font-size: 12px;
+        }
+
+        .guide-status-grid,
+        .guide-action-steps {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .guide-status-card,
+        .guide-action-step {
+          padding: 13px;
+        }
+
+        .guide-actions {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .guide-actions a {
+          width: 100%;
+        }
       }
 
       .form-panel {
@@ -4707,7 +5192,7 @@
         </div>
 
         <div class="sidebar-bottom">
-          <div class="help-card">
+          <a class="help-card" href="#/guide" aria-label="검토 가이드 보기">
             <div class="help-card-label">
               <svg viewBox="0 0 20 20" width="13" height="13" fill="none" aria-hidden="true">
                 <path d="m10 2 1.4 4.6L16 8l-4.6 1.4L10 14l-1.4-4.6L4 8l4.6-1.4L10 2ZM16 13l.7 2.3L19 16l-2.3.7L16 19l-.7-2.3L13 16l2.3-.7L16 13Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round" />
@@ -4716,7 +5201,8 @@
             </div>
             <p>요구사항을 원문 근거와 함께 확인하는 방법을 알아보세요.</p>
             <span class="help-link">가이드 보기 <span aria-hidden="true">→</span></span>
-          </div>
+          </a>
+          <a class="sidebar-guide-mobile" href="#/guide">검토 가이드 <span aria-hidden="true">→</span></a>
           <div class="sidebar-footer">
             <span class="team-avatar">SG</span>
             <span class="team-copy">
@@ -5357,6 +5843,126 @@
             </a>
             <div id="detail-content"></div>
           </section>
+
+          <section class="view guide-view" id="guide-view" aria-labelledby="guide-title" hidden>
+            <a class="back-link guide-back" href="#/home">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M15 10H5m0 0 4-4m-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              대시보드로 돌아가기
+            </a>
+
+            <header class="guide-hero">
+              <span class="guide-kicker">REVIEW GUIDE · 검토 안내</span>
+              <h1 id="guide-title">요구사항 검토 가이드</h1>
+              <p>AI가 정리한 문장을 회의 원문과 비교해 보세요. 근거를 확인하고, 상태를 선택하고, 필요한 수정 사항을 메모하면 됩니다.</p>
+            </header>
+
+            <aside class="guide-principle" aria-label="검토할 때 기억할 원칙">
+              <span class="guide-principle-icon" aria-hidden="true">
+                <svg viewBox="0 0 20 20" fill="none">
+                  <path d="M10 2.4 16.5 5v4.4c0 4.1-2.7 6.8-6.5 8.2-3.8-1.4-6.5-4.1-6.5-8.2V5L10 2.4Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                  <path d="m7 9.8 2 2 4.1-4.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </span>
+              <div>
+                <strong>검토의 기준은 AI가 아니라 원문과 실제 합의입니다.</strong>
+                <p>AI 결과는 확인을 돕는 초안이에요. 확실하지 않다면 서둘러 확정하지 말고 원문을 더 살펴보세요.</p>
+              </div>
+            </aside>
+
+            <div class="guide-layout">
+              <nav class="guide-toc" aria-label="검토 가이드 목차">
+                <p class="guide-toc-title">이 페이지에서</p>
+                <a href="#/guide#guide-source"><span>01</span> 원문 근거 확인</a>
+                <a href="#/guide#guide-status"><span>02</span> 상태 선택하기</a>
+                <a href="#/guide#guide-update"><span>03</span> 수정 의견 남기기</a>
+                <a href="#/guide#guide-finish"><span>04</span> 검토 마무리</a>
+              </nav>
+
+              <div class="guide-article">
+                <section class="guide-section" id="guide-source" aria-labelledby="guide-source-title">
+                  <div class="guide-section-heading">
+                    <span class="guide-step-number" aria-hidden="true">01</span>
+                    <div>
+                      <h2 id="guide-source-title">먼저 원문 근거를 확인하세요</h2>
+                      <p>요구사항 문장만 읽지 말고, 어디에서 나온 내용인지 함께 살펴봅니다.</p>
+                    </div>
+                  </div>
+                  <ul class="guide-check-list">
+                    <li>인용된 회의 내용이 원문에도 실제로 있는지 확인합니다.</li>
+                    <li>회의 날짜와 회차를 보고, 나중에 변경되거나 취소된 요청은 아닌지 살펴봅니다.</li>
+                    <li>“근거 확인 불가”가 표시되면 원문에서 직접 확인하기 전까지 확정하지 않습니다.</li>
+                  </ul>
+                  <p class="guide-note">이전 회의 내용도 비교하고 싶다면 “전체 보기”를 눌러 모든 회차를 확인하세요. 최근 회차만 보는 화면에서는 최신 내용에 집중할 수 있습니다.</p>
+                </section>
+
+                <section class="guide-section" id="guide-status" aria-labelledby="guide-status-title">
+                  <div class="guide-section-heading">
+                    <span class="guide-step-number" aria-hidden="true">02</span>
+                    <div>
+                      <h2 id="guide-status-title">확인한 내용에 맞춰 상태를 고르세요</h2>
+                      <p>상태는 최종 기획서와 비교할 항목을 정하는 데 사용됩니다.</p>
+                    </div>
+                  </div>
+                  <div class="guide-status-grid">
+                    <article class="guide-status-card">
+                      <span class="guide-status-label">검토 필요</span>
+                      <h3>아직 판단하기 어려워요</h3>
+                      <p>요청이 모호하거나 근거·변경 내용을 더 확인해야 할 때 그대로 두세요.</p>
+                    </article>
+                    <article class="guide-status-card confirmed">
+                      <span class="guide-status-label">확정</span>
+                      <h3>비교 기준에 포함해요</h3>
+                      <p>원문과 고객 합의에서 확인했고, 최종 기획서에 반영되어야 하는 항목만 확정하세요.</p>
+                    </article>
+                    <article class="guide-status-card deleted">
+                      <span class="guide-status-label">삭제</span>
+                      <h3>기준에서 제외해요</h3>
+                      <p>중복·오인식이거나 최종 요청이 아닌 항목을 제외합니다. 필요하면 “삭제된 항목 보기”로 다시 확인할 수 있어요.</p>
+                    </article>
+                  </div>
+                  <p class="guide-note">기획서 비교는 “확정”된 요구사항만 사용합니다. 상태를 확신하기 어렵다면 확정 대신 검토 필요로 남겨두세요.</p>
+                </section>
+
+                <section class="guide-section" id="guide-update" aria-labelledby="guide-update-title">
+                  <div class="guide-section-heading">
+                    <span class="guide-step-number" aria-hidden="true">03</span>
+                    <div>
+                      <h2 id="guide-update-title">요구사항이 달라졌다면 수정 메모를 남기세요</h2>
+                      <p>원래 추출 문장을 덮어쓰기보다, 어떻게 바뀌어야 하는지 기록합니다.</p>
+                    </div>
+                  </div>
+                  <div class="guide-action-steps" aria-label="수정 의견 반영 순서">
+                    <div class="guide-action-step"><span>먼저</span><strong>“메모로 수정” 선택</strong></div>
+                    <div class="guide-action-step"><span>다음</span><strong>변경 내용과 이유를 적고 저장</strong></div>
+                    <div class="guide-action-step"><span>마지막</span><strong>추출 화면에서 “요구사항 다시 확인”</strong></div>
+                  </div>
+                  <p class="guide-note">예: “비회원도 이용” 요청이 “로그인한 회원만 이용”으로 바뀌었다면, 새 조건과 변경된 회차를 메모에 적어주세요. 다시 확인하면 기존 내용과 수정 의견을 함께 분석합니다.</p>
+                </section>
+
+                <section class="guide-section guide-finish" id="guide-finish" aria-labelledby="guide-finish-title">
+                  <div class="guide-section-heading">
+                    <span class="guide-step-number" aria-hidden="true">04</span>
+                    <div>
+                      <h2 id="guide-finish-title">마지막으로 한 번 더 점검하세요</h2>
+                      <p>확정 버튼을 누르기 전에 아래 항목을 확인하면 좋아요.</p>
+                    </div>
+                  </div>
+                  <ul class="guide-check-list">
+                    <li>확정한 항목마다 원문 근거와 요청 의도가 분명한가요?</li>
+                    <li>변경·취소된 요청이나 중복 항목을 구분했나요?</li>
+                    <li>아직 불확실한 항목은 검토 필요로 남겨두었나요?</li>
+                  </ul>
+                  <p class="guide-note">“전체 확정”은 현재 검토 목록을 한 번에 확정합니다. 모든 문장을 확인한 뒤에 사용하고, 애매한 항목이 있으면 각각 확인해 주세요.</p>
+                  <div class="guide-actions">
+                    <a class="static-button" href="#/projects">프로젝트 목록으로 가기</a>
+                    <a class="button-secondary" href="#/home">대시보드로 돌아가기</a>
+                  </div>
+                </section>
+              </div>
+            </div>
+          </section>
         </main>
       </div>
     </div>
@@ -5808,6 +6414,7 @@
           sidebarAccountStatus: document.querySelector("#sidebar-account-status"),
           logoutButton: document.querySelector("#logout-button"),
           home: document.querySelector("#home-view"),
+          guide: document.querySelector("#guide-view"),
           allProjects: document.querySelector("#projects-view"),
           create: document.querySelector("#create-view"),
           extraction: document.querySelector("#extraction-view"),
@@ -8139,8 +8746,10 @@
         }
 
         function renderRoute() {
-          const route = decodeURIComponent(window.location.hash.slice(1) || "/home").replace(/\/+$/, "") || "/home";
-          const views = [elements.authView, elements.home, elements.allProjects, elements.create, elements.extraction, elements.review, elements.comparison, elements.detail];
+          const [rawRoute, rawAnchor] = window.location.hash.slice(1).split("#", 2);
+          const route = decodeURIComponent(rawRoute || "/home").replace(/\/+$/, "") || "/home";
+          const anchor = rawAnchor ? decodeURIComponent(rawAnchor) : "";
+          const views = [elements.authView, elements.home, elements.guide, elements.allProjects, elements.create, elements.extraction, elements.review, elements.comparison, elements.detail];
           renderProjectLists();
           window.scrollTo(0, 0);
           views.forEach((view) => { view.hidden = true; });
@@ -8148,6 +8757,17 @@
           if (!currentUser) {
             elements.authView.hidden = false;
             document.title = "로그인 | 스펙가드";
+            return;
+          }
+
+          if (route === "/guide") {
+            elements.guide.hidden = false;
+            document.title = "검토 가이드 | 스펙가드";
+            if (anchor) {
+              window.requestAnimationFrame(() => {
+                document.getElementById(anchor)?.scrollIntoView({ behavior: "smooth", block: "start" });
+              });
+            }
             return;
           }
 
