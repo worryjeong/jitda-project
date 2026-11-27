@@ -45,8 +45,11 @@ test("home profile links have a visible My Page button and workspace invitation 
   const html = await fs.readFile(indexPath, "utf8");
   const profileGroup = html.match(/<div class="profile-action-group"[\s\S]*?<\/div>\s*<\/div>/u)?.[0];
   assert.ok(profileGroup, "home header groups the avatar and My Page button");
-  assert.match(profileGroup, /id="home-mypage-link" href="#\/mypage"/u);
+  assert.match(profileGroup, /<span class="user-chip" aria-hidden="true">/u);
+  assert.doesNotMatch(profileGroup, /user-chip[^>]*href/u);
   assert.match(profileGroup, /id="home-mypage-button" href="#\/mypage">마이페이지/u);
+  assert.match(html, /<div class="sidebar-profile-display" id="sidebar-profile-display">/u);
+  assert.doesNotMatch(html, /id="sidebar-profile-link" href="#\/mypage"/u);
 
   assert.match(html, /id="workspace-switcher" href="#\/workspace"/u);
   assert.match(html, /id="sidebar-workspace-manage" href="#\/workspace" hidden/u);

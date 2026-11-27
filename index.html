@@ -6276,14 +6276,13 @@
           </a>
           <a class="sidebar-guide-mobile" href="#/guide">검토 가이드 <span aria-hidden="true">→</span></a>
           <div class="sidebar-footer">
-            <a class="sidebar-profile-link" id="sidebar-profile-link" href="#/mypage" aria-label="마이페이지 열기">
+            <div class="sidebar-profile-display" id="sidebar-profile-display">
               <span class="team-avatar" id="sidebar-avatar">SG</span>
               <span class="team-copy">
                 <strong id="sidebar-username">로그아웃 상태</strong>
                 <span id="sidebar-account-status">로그인해 주세요</span>
               </span>
-              <span class="sidebar-profile-arrow" aria-hidden="true">↗</span>
-            </a>
+            </div>
             <button class="logout-button" id="logout-button" type="button" hidden>로그아웃</button>
           </div>
         </div>
@@ -6358,9 +6357,9 @@
                 </svg>
               </span>
               <div class="profile-action-group" aria-label="마이페이지 바로 가기">
-                <a class="user-chip" id="home-mypage-link" href="#/mypage" aria-label="마이페이지 보기" title="마이페이지">
+                <span class="user-chip" aria-hidden="true">
                   <span class="profile-avatar">SG</span>
-                </a>
+                </span>
                 <a class="home-mypage-button" id="home-mypage-button" href="#/mypage">마이페이지</a>
               </div>
             </div>
@@ -7574,9 +7573,7 @@
           sidebarUsername: document.querySelector("#sidebar-username"),
           sidebarAccountStatus: document.querySelector("#sidebar-account-status"),
           sidebarAvatar: document.querySelector("#sidebar-avatar"),
-          sidebarProfileLink: document.querySelector("#sidebar-profile-link"),
           sidebarMobileLink: document.querySelector("#sidebar-mypage-mobile"),
-          homeMypageLink: document.querySelector("#home-mypage-link"),
           homeMypageButton: document.querySelector("#home-mypage-button"),
           logoutButton: document.querySelector("#logout-button"),
           home: document.querySelector("#home-view"),
@@ -10358,7 +10355,7 @@
           renderProjectLists();
           window.scrollTo(0, 0);
           views.forEach((view) => { view.hidden = true; });
-          [elements.sidebarProfileLink, elements.sidebarMobileLink, elements.homeMypageLink, elements.homeMypageButton].forEach((link) => {
+          [elements.sidebarMobileLink, elements.homeMypageButton].forEach((link) => {
             if (!link) return;
             if (currentUser && route === "/mypage") link.setAttribute("aria-current", "page");
             else link.removeAttribute("aria-current");
