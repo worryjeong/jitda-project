@@ -719,10 +719,19 @@ function summarizeLLMCall(stage, result) {
     durationMs: result.durationMs,
     finishReason: result.finishReason,
     usage: result.usage,
+    schemaFallbackUsed: Boolean(result.schemaFallbackUsed),
+    attempts: Array.isArray(result.llmCalls) ? result.llmCalls : [],
   };
 }
 
 function combineLLMCallMetadata(calls) {
+  const attempts = calls.flatMap((call) => call.attempts?.length ? call.attempts : [{
+    stage: call.stage,
+    status: call.status,
+    durationMs: call.durationMs,
+    finishReason: call.finishReason,
+    usage: call.usage,
+  }]);
   const addUsage = (key) => {
     const values = calls.map((call) => call.usage?.[key]).filter(Number.isFinite);
     return values.length ? values.reduce((sum, value) => sum + value, 0) : null;
@@ -738,6 +747,8 @@ function combineLLMCallMetadata(calls) {
     },
     remainingBudget: calls.at(-1)?.remainingBudget || null,
     llmCalls: calls,
+    llmAttempts: attempts,
+    schemaFallbackUsed: calls.some((call) => call.schemaFallbackUsed),
   };
 }
 
@@ -890,6 +901,186 @@ function parseModelJson(text) {
   }
 }
 
+function validateJsonSchemaValue(value, schema, path = "$", issues = []) {
+  const types = Array.isArray(schema?.type) ? schema.type : [schema?.type];
+  const matchesType = (type) => {
+    if (type === "null") return value === null;
+    if (type === "object") return value !== null && typeof value === "object" && !Array.isArray(value);
+    if (type === "array") return Array.isArray(value);
+    if (type === "integer") return Number.isInteger(value);
+    if (type === "number") return typeof value === "number" && Number.isFinite(value);
+    if (type === "string") return typeof value === "string";
+    if (type === "boolean") return typeof value === "boolean";
+    return true;
+  };
+
+  if (types.length && !types.some(matchesType)) {
+    issues.push(`${path}:type`);
+    return issues;
+  }
+  if (Array.isArray(schema?.enum) && !schema.enum.includes(value)) {
+    issues.push(`${path}:enum`);
+    return issues;
+  }
+  if (schema?.type === "object" && value && typeof value === "object" && !Array.isArray(value)) {
+    for (const required of schema.required || []) {
+      if (!Object.hasOwn(value, required)) issues.push(`${path}.${required}:required`);
+    }
+    const properties = schema.properties || {};
+    if (schema.additionalProperties === false) {
+      for (const key of Object.keys(value)) {
+        if (!Object.hasOwn(properties, key)) issues.push(`${path}.${key}:additional`);
+      }
+    }
+    for (const [key, childSchema] of Object.entries(properties)) {
+      if (Object.hasOwn(value, key)) validateJsonSchemaValue(value[key], childSchema, `${path}.${key}`, issues);
+    }
+  }
+  if (schema?.type === "array" && Array.isArray(value) && schema.items) {
+    value.forEach((item, index) => validateJsonSchemaValue(item, schema.items, `${path}[${index}]`, issues));
+  }
+  return issues;
+}
+
+function assertJsonSchemaValue(value, schema) {
+  const issues = validateJsonSchemaValue(value, schema);
+  if (issues.length) {
+    const safeIssues = issues.slice(0, 8).join(", ");
+    throw new HttpError(502, `LLM JSON 응답이 필요한 스키마와 일치하지 않습니다 (${safeIssues}).`);
+  }
+}
+
+function isJsonSchemaUnsupported(status, providerError, responseFormat) {
+  if (!responseFormat?.json_schema || ![200, 400].includes(status)) return false;
+  const message = String(providerError || "").toLowerCase();
+  return /response_format|json_schema|json schema|structured output/.test(message)
+    && /unsupported|not supported|does not support|not available|unknown parameter|unrecognized|streaming|only supports|invalid parameter/.test(message);
+}
+
+function messagesWithSchemaInstruction(messages, schema) {
+  const instruction = `\n\n응답 모드 호환 안내: API에서 response_format JSON Schema를 지원하지 않아 서버가 응답을 검증합니다. 아래 JSON Schema에 맞는 JSON object만 반환하세요. 모든 required 필드를 포함하고 additionalProperties를 추가하지 마세요. 다른 설명이나 마크다운은 쓰지 마세요.\nJSON Schema:\n${JSON.stringify(schema)}`;
+  const next = messages.map((message) => ({ ...message }));
+  const systemIndex = next.findIndex((message) => message.role === "system");
+  if (systemIndex >= 0) next[systemIndex].content = `${next[systemIndex].content}${instruction}`;
+  else next.unshift({ role: "system", content: instruction.trim() });
+  return next;
+}
+
+function streamDeltaText(delta) {
+  if (typeof delta === "string") return delta;
+  if (Array.isArray(delta)) return responseText({ content: delta });
+  if (delta && typeof delta === "object") return responseText(delta);
+  return "";
+}
+
+function providerStreamError(message, status, elapsed, apiKey, input, requestStage, responseFormat) {
+  const rawMessage = typeof message === "string" ? message : JSON.stringify(message || "Unknown streaming error");
+  const safeMessage = redactApiKey(redactRequestText(rawMessage, input), apiKey);
+  const schemaUnsupported = isJsonSchemaUnsupported(status, safeMessage, responseFormat);
+  const htmlResponse = /<\s*!doctype\s+html|<\s*html[\s>]/iu.test(safeMessage);
+  console.error(`LLM stream error: ${JSON.stringify({
+    stage: requestStage,
+    upstream_status: status,
+    duration_ms: Math.round(elapsed),
+    error_body: shortProviderError(safeMessage, 1600),
+  })}`);
+  const publicMessage = schemaUnsupported
+    ? "Streaming JSON Schema가 지원되지 않습니다. 프롬프트 JSON 모드로 전환합니다."
+    : status === 502 || status === 504 || htmlResponse || /bad gateway|gateway timeout|timed out|timeout/i.test(safeMessage)
+      ? "AI 분석 시간이 초과되었습니다. 다시 시도해 주세요"
+      : `LLM HTTP ${status}: ${shortProviderError(safeMessage)}`;
+  return new HttpError(502, publicMessage, {
+    upstreamStatus: status,
+    durationMs: Math.round(elapsed),
+    stage: requestStage,
+    schemaUnsupported,
+    providerError: safeMessage,
+  });
+}
+
+async function readStreamingCompletion(response, context) {
+  const contentType = response.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().includes("text/event-stream")) {
+    let body;
+    try {
+      body = await response.json();
+    } catch {
+      const text = await response.text().catch(() => "");
+      throw providerStreamError(text || "Non-streaming response was not JSON", response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+    }
+    if (body?.error) {
+      throw providerStreamError(body.error.message || body.error, response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+    }
+    return {
+      content: responseText(body?.choices?.[0]?.message),
+      finishReason: body?.choices?.[0]?.finish_reason || null,
+      usage: body?.usage || null,
+    };
+  }
+
+  if (!response.body?.getReader) {
+    throw providerStreamError("Streaming body reader is unavailable", response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let content = "";
+  let finishReason = null;
+  let usage = null;
+
+  const consumeEvent = (eventText) => {
+    const data = eventText.split(/\r?\n/u)
+      .filter((line) => line.startsWith("data:"))
+      .map((line) => line.slice(5).replace(/^ /u, ""))
+      .join("\n")
+      .trim();
+    if (!data || data === "[DONE]") return;
+
+    let event;
+    try {
+      event = JSON.parse(data);
+    } catch {
+      throw providerStreamError("Invalid JSON in streaming data event", response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+    }
+    if (event?.error) {
+      throw providerStreamError(event.error.message || event.error, response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+    }
+    const choice = event?.choices?.[0];
+    if (choice) {
+      const delta = choice.delta || choice.message;
+      content += streamDeltaText(delta?.content);
+      if (typeof choice.finish_reason === "string") finishReason = choice.finish_reason;
+    }
+    if (event?.usage && typeof event.usage === "object") usage = event.usage;
+  };
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (value) buffer += decoder.decode(value, { stream: !done });
+      if (done) buffer += decoder.decode();
+
+      let boundary;
+      while ((boundary = /\r?\n\r?\n/u.exec(buffer))) {
+        const eventText = buffer.slice(0, boundary.index);
+        buffer = buffer.slice(boundary.index + boundary[0].length);
+        consumeEvent(eventText);
+      }
+      if (done) break;
+    }
+    if (buffer.trim()) consumeEvent(buffer);
+  } catch (error) {
+    if (error instanceof HttpError) throw error;
+    const timeout = error?.name === "TimeoutError" || error?.name === "AbortError";
+    const message = timeout ? "Streaming request timed out" : error?.message || "Streaming response read failed";
+    throw providerStreamError(message, timeout ? 504 : 502, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+  } finally {
+    reader.releaseLock();
+  }
+
+  return { content, finishReason, usage };
+}
+
 async function requestModel(input, options = {}) {
   const apiKey = process.env.LLM_API_KEY;
   const baseUrl = process.env.LLM_BASE_URL;
@@ -900,104 +1091,203 @@ async function requestModel(input, options = {}) {
   const headers = {
     authorization: `Bearer ${apiKey}`,
     "content-type": "application/json",
+    accept: "text/event-stream",
   };
-  const messages = options.messages || buildMessages(input);
-  const payload = {
-    model,
-    messages,
-    max_completion_tokens: 16000,
-    reasoning_effort: "low",
-    response_format: options.responseFormat || responseFormat,
-  };
-
   const requestStage = options.stage || "llm";
-  const requestStartedAt = process.hrtime.bigint();
-  const durationMs = () => Number(process.hrtime.bigint() - requestStartedAt) / 1_000_000;
-  let response;
-  try {
-    response = await fetch(url, {
-      method: "POST",
-      headers,
-      body: JSON.stringify(payload),
-      signal: AbortSignal.timeout(90_000),
-    });
-  } catch (error) {
-    const duration = Math.round(durationMs());
-    const errorBody = redactApiKey(redactRequestText(error?.message || "LLM request failed", input), apiKey);
-    console.error(`LLM request failed: ${JSON.stringify({ stage: requestStage, upstream_status: null, duration_ms: duration, error_body: errorBody })}`);
-    if (error?.name === "TimeoutError" || error?.name === "AbortError") {
-      throw new HttpError(504, "LLM 응답 시간이 초과되었습니다. 다시 시도해 주세요.", { durationMs: duration, stage: requestStage });
-    }
-    throw new HttpError(502, "LLM API에 연결하지 못했습니다. 서버와 API 주소를 확인해 주세요.", { durationMs: duration, stage: requestStage });
-  }
+  const responseFormatForRequest = options.responseFormat || responseFormat;
+  const schema = responseFormatForRequest?.json_schema?.schema || null;
+  const baseMessages = options.messages || buildMessages(input);
 
-  if (!response.ok) {
-    let upstreamError = "";
+  const sendAttempt = async ({ messages, withResponseFormat }) => {
+    const requestStartedAt = process.hrtime.bigint();
+    const durationMs = () => Number(process.hrtime.bigint() - requestStartedAt) / 1_000_000;
+    const roundedDuration = () => Math.round(durationMs());
+    const payload = {
+      model,
+      messages,
+      max_completion_tokens: 16000,
+      reasoning_effort: "low",
+      stream: true,
+      stream_options: { include_usage: true },
+      ...(withResponseFormat ? { response_format: responseFormatForRequest } : {}),
+    };
+    let response;
     try {
-      upstreamError = await response.text();
-    } catch {
-      // Keep the upstream error private and use a generic message.
+      response = await fetch(url, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(payload),
+        signal: AbortSignal.timeout(90_000),
+      });
+    } catch (error) {
+      const duration = roundedDuration();
+      const errorBody = redactApiKey(redactRequestText(error?.message || "LLM request failed", input), apiKey);
+      console.error(`LLM request failed: ${JSON.stringify({ stage: requestStage, upstream_status: null, duration_ms: duration, error_body: shortProviderError(errorBody, 1600) })}`);
+      const isTimeout = error?.name === "TimeoutError" || error?.name === "AbortError";
+      const failed = new HttpError(isTimeout ? 504 : 502,
+        "AI 분석 시간이 초과되었습니다. 다시 시도해 주세요",
+        { durationMs: duration, stage: requestStage, providerError: errorBody }
+      );
+      failed.details.llmCalls = [{ stage: requestStage, status: null, durationMs: duration, finishReason: null, usage: null, schemaMode: withResponseFormat ? "json_schema" : "prompt_json" }];
+      throw failed;
     }
-    const rawProviderError = extractProviderErrorMessage(upstreamError) || upstreamError || response.statusText || "Unknown upstream error";
-    const providerError = redactApiKey(redactRequestText(rawProviderError, input), apiKey);
-    const duration = Math.round(durationMs());
-    console.error(`LLM upstream error: ${JSON.stringify({ stage: requestStage, upstream_status: response.status, duration_ms: duration, error_body: shortProviderError(providerError, 1600) })}`);
-    const message = providerError
-      ? `LLM HTTP ${response.status}: ${shortProviderError(providerError)}`
-      : safeProviderError(response.status, upstreamError);
-    throw new HttpError(502, message, {
-      upstreamStatus: response.status,
-      durationMs: duration,
-      stage: requestStage,
-      ...(providerError ? { providerError } : {}),
-    });
-  }
-  let body;
-  try {
-    body = await response.json();
-  } catch {
-    const duration = Math.round(durationMs());
-    console.error(`LLM upstream response error: ${JSON.stringify({ stage: requestStage, upstream_status: response.status, duration_ms: duration, error_body: "Response body was not valid JSON" })}`);
-    throw new HttpError(502, "LLM 응답을 읽지 못했습니다. 다시 시도해 주세요.", { upstreamStatus: response.status, durationMs: duration, stage: requestStage });
-  }
-  const choice = body?.choices?.[0] || {};
-  const finishReason = typeof choice.finish_reason === "string" ? choice.finish_reason : null;
-  const rawUsage = body.usage && typeof body.usage === "object" ? body.usage : {};
-  const reasoningDetails = rawUsage.completion_tokens_details || rawUsage.output_tokens_details || {};
-  const usage = {
-    prompt_tokens: tokenCount(rawUsage.prompt_tokens ?? rawUsage.input_tokens),
-    completion_tokens: tokenCount(rawUsage.completion_tokens ?? rawUsage.output_tokens),
-    reasoning_tokens: tokenCount(reasoningDetails.reasoning_tokens ?? rawUsage.reasoning_tokens),
-  };
-  console.info(`LLM response metadata: ${JSON.stringify({
-    stage: requestStage,
-    status: response.status,
-    duration_ms: Math.round(durationMs()),
-    finish_reason: finishReason,
-    usage,
-  })}`);
 
-  const content = responseText(choice.message);
-  if (finishReason === "length" || !content.trim()) {
-    throw new HttpError(502, "AI 응답이 길어 중단되었습니다. 다시 시도해 주세요", {
-      upstreamStatus: response.status,
-      durationMs: Math.round(durationMs()),
+    if (!response.ok) {
+      let upstreamError = "";
+      try {
+        upstreamError = await response.text();
+      } catch {
+        upstreamError = response.statusText || "Unable to read upstream error body";
+      }
+      const rawProviderError = extractProviderErrorMessage(upstreamError) || upstreamError || response.statusText || "Unknown upstream error";
+      const providerError = redactApiKey(redactRequestText(rawProviderError, input), apiKey);
+      const duration = roundedDuration();
+      console.error(`LLM upstream error: ${JSON.stringify({ stage: requestStage, upstream_status: response.status, duration_ms: duration, error_body: shortProviderError(providerError, 1600) })}`);
+      const schemaUnsupported = withResponseFormat && isJsonSchemaUnsupported(response.status, providerError, responseFormatForRequest);
+      const htmlGateway = /<\s*!doctype\s+html|<\s*html[\s>]/iu.test(upstreamError)
+        || /text\/html/i.test(response.headers.get("content-type") || "");
+      const publicMessage = response.status === 502 || response.status === 504 || htmlGateway
+        ? "AI 분석 시간이 초과되었습니다. 다시 시도해 주세요"
+        : schemaUnsupported
+          ? "Streaming JSON Schema가 지원되지 않아 JSON 형식 지시와 서버 검증으로 전환합니다."
+          : providerError
+            ? `LLM HTTP ${response.status}: ${shortProviderError(providerError)}`
+            : safeProviderError(response.status, upstreamError);
+      const failed = new HttpError(502, publicMessage, {
+        upstreamStatus: response.status,
+        durationMs: duration,
+        stage: requestStage,
+        schemaUnsupported,
+        providerError,
+      });
+      failed.details.llmCalls = [{ stage: requestStage, status: response.status, durationMs: duration, finishReason: null, usage: null, schemaMode: withResponseFormat ? "json_schema" : "prompt_json" }];
+      throw failed;
+    }
+
+    let streamed;
+    try {
+      streamed = await readStreamingCompletion(response, {
+        durationMs,
+        apiKey,
+        input,
+        stage: requestStage,
+        responseFormat: withResponseFormat ? responseFormatForRequest : null,
+      });
+    } catch (error) {
+      const duration = roundedDuration();
+      if (error instanceof HttpError) {
+        error.details.durationMs ??= duration;
+        error.details.stage ??= requestStage;
+        error.details.upstreamStatus ??= response.status;
+        error.details.llmCalls ||= [{
+          stage: requestStage,
+          status: response.status,
+          durationMs: duration,
+          finishReason: error.details.finishReason || null,
+          usage: error.details.usage || null,
+          schemaMode: withResponseFormat ? "json_schema" : "prompt_json",
+        }];
+        throw error;
+      }
+      const safeError = redactApiKey(redactRequestText(error?.message || "Streaming response failed", input), apiKey);
+      console.error(`LLM stream parse failed: ${JSON.stringify({ stage: requestStage, upstream_status: response.status, duration_ms: duration, error_body: shortProviderError(safeError, 1200) })}`);
+      const failed = new HttpError(502, "AI 분석 시간이 초과되었습니다. 다시 시도해 주세요", {
+        upstreamStatus: response.status,
+        durationMs: duration,
+        stage: requestStage,
+        providerError: safeError,
+      });
+      failed.details.llmCalls = [{ stage: requestStage, status: response.status, durationMs: duration, finishReason: null, usage: null, schemaMode: withResponseFormat ? "json_schema" : "prompt_json" }];
+      throw failed;
+    }
+
+    const finishReason = streamed.finishReason;
+    const rawUsage = streamed.usage && typeof streamed.usage === "object" ? streamed.usage : {};
+    const reasoningDetails = rawUsage.completion_tokens_details || rawUsage.output_tokens_details || {};
+    const usage = {
+      prompt_tokens: tokenCount(rawUsage.prompt_tokens ?? rawUsage.input_tokens),
+      completion_tokens: tokenCount(rawUsage.completion_tokens ?? rawUsage.output_tokens),
+      reasoning_tokens: tokenCount(reasoningDetails.reasoning_tokens ?? rawUsage.reasoning_tokens),
+    };
+    const duration = roundedDuration();
+    const attemptSummary = { stage: requestStage, status: response.status, durationMs: duration, finishReason, usage, schemaMode: withResponseFormat ? "json_schema" : "prompt_json" };
+    console.info(`LLM response metadata: ${JSON.stringify({ ...attemptSummary, stream: true })}`);
+
+    if (finishReason === "length" || !streamed.content.trim()) {
+      const failed = new HttpError(502, "AI 분석 시간이 초과되었습니다. 다시 시도해 주세요", {
+        upstreamStatus: response.status,
+        durationMs: duration,
+        finishReason,
+        usage,
+        stage: requestStage,
+      });
+      failed.details.llmCalls = [attemptSummary];
+      throw failed;
+    }
+
+    let analysis;
+    try {
+      analysis = parseModelJson(streamed.content);
+      if (schema) assertJsonSchemaValue(analysis, schema);
+    } catch (error) {
+      const safeError = redactApiKey(error?.message || "Invalid JSON response", apiKey);
+      console.error(`LLM streamed JSON validation failed: ${JSON.stringify({ stage: requestStage, upstream_status: response.status, duration_ms: duration, finish_reason: finishReason, error: shortProviderError(safeError, 600) })}`);
+      if (error instanceof HttpError) {
+        error.details.llmCalls = [attemptSummary];
+        error.details.upstreamStatus = response.status;
+        error.details.durationMs = duration;
+        error.details.finishReason = finishReason;
+        error.details.usage = usage;
+        error.details.stage = requestStage;
+        throw error;
+      }
+      const invalid = new HttpError(502, "AI 분석 응답을 확인할 수 없습니다. 다시 시도해 주세요", {
+        upstreamStatus: response.status,
+        durationMs: duration,
+        finishReason,
+        usage,
+        stage: requestStage,
+      });
+      invalid.details.llmCalls = [attemptSummary];
+      throw invalid;
+    }
+
+    const remainingBudget = Object.fromEntries([...response.headers.entries()].filter(([name]) => /budget|remaining|quota|credit/i.test(name)));
+    return {
+      analysis,
+      status: response.status,
+      durationMs: duration,
       finishReason,
       usage,
-      stage: requestStage,
-    });
-  }
-  const remainingBudget = Object.fromEntries([...response.headers.entries()].filter(([name]) =>
-    /budget|remaining|quota|credit/i.test(name)
-  ));
-  return {
-    analysis: parseModelJson(content),
-    status: response.status,
-    durationMs: Math.round(durationMs()),
-    finishReason,
-    usage,
-    remainingBudget: Object.keys(remainingBudget).length ? remainingBudget : null,
+      remainingBudget: Object.keys(remainingBudget).length ? remainingBudget : null,
+      schemaFallbackUsed: !withResponseFormat,
+      llmCalls: [attemptSummary],
+    };
   };
+
+  try {
+    return await sendAttempt({ messages: baseMessages, withResponseFormat: Boolean(schema) });
+  } catch (error) {
+    if (!(error instanceof HttpError) || !error.details.schemaUnsupported || !schema) throw error;
+    console.warn(`LLM response_format unsupported; retrying ${requestStage} with JSON prompt and server schema validation.`);
+    const fallbackMessages = messagesWithSchemaInstruction(baseMessages, schema);
+    try {
+      const fallback = await sendAttempt({ messages: fallbackMessages, withResponseFormat: false });
+      return {
+        ...fallback,
+        schemaFallbackUsed: true,
+        llmCalls: [...(error.details.llmCalls || []), ...(fallback.llmCalls || [])],
+        durationMs: Number(error.details.durationMs || 0) + Number(fallback.durationMs || 0),
+      };
+    } catch (fallbackError) {
+      if (fallbackError instanceof HttpError) {
+        fallbackError.details.llmCalls = [...(error.details.llmCalls || []), ...(fallbackError.details.llmCalls || [])];
+        fallbackError.details.schemaFallbackUsed = true;
+        fallbackError.details.durationMs = Number(error.details.durationMs || 0) + Number(fallbackError.details.durationMs || 0);
+      }
+      throw fallbackError;
+    }
+  }
 }
 
 function cleanCategory(category, text = "") {
@@ -1371,6 +1661,7 @@ function normalizeAnalysis(raw, input, requestMetadata) {
     usage: requestMetadata.usage,
     remainingBudget: requestMetadata.remainingBudget,
     llmCalls: requestMetadata.llmCalls || [],
+    schemaFallbackUsed: Boolean(requestMetadata.schemaFallbackUsed),
   };
 }
 
@@ -1550,6 +1841,8 @@ const server = http.createServer(async (request, response) => {
         llmStatus: llmResult.status,
         llmFinishReason: llmResult.finishReason,
         llmDurationMs: llmResult.durationMs,
+        schemaFallbackUsed: Boolean(llmResult.schemaFallbackUsed),
+        llmCalls: llmResult.llmCalls || [],
         model,
         usage: llmResult.usage,
         remainingBudget: llmResult.remainingBudget,
@@ -1629,6 +1922,8 @@ const server = http.createServer(async (request, response) => {
           durationMs: error.details.durationMs ?? null,
           finishReason: error.details.finishReason || null,
           usage: error.details.usage || null,
+          schemaFallbackUsed: Boolean(error.details.schemaFallbackUsed),
+          attempts: error.details.llmCalls || [],
         };
         const allCalls = [...llmCalls, failedCall];
         const combinedMetadata = combineLLMCallMetadata(allCalls);

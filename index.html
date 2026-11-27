@@ -8050,7 +8050,10 @@
             elements.analysisState.dataset.llmDurationMs = String(analysis.llmDurationMs ?? "unknown");
             elements.analysisState.dataset.llmUsage = JSON.stringify(analysis.usage || null);
             elements.analysisState.dataset.llmCalls = JSON.stringify(analysis.llmCalls || []);
-            elements.analysisState.dataset.llmCalls = JSON.stringify(analysis.llmCalls || []);
+            elements.analysisState.dataset.schemaFallbackUsed = String(Boolean(analysis.schemaFallbackUsed));
+            if (analysis.schemaFallbackUsed) {
+              elements.analysisState.textContent += " · 스트리밍 JSON Schema 미지원으로 서버 검증 모드 사용";
+            }
             elements.analysisState.dataset.remainingBudget = JSON.stringify(analysis.remainingBudget || null);
           } catch (error) {
             elements.analysisState.textContent = error instanceof TypeError
