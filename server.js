@@ -957,6 +957,13 @@ function isJsonSchemaUnsupported(status, providerError, responseFormat) {
     && /unsupported|not supported|does not support|not available|unknown parameter|unrecognized|streaming|only supports|invalid parameter/.test(message);
 }
 
+function isReasoningEffortUnsupported(status, providerError, requestedEffort) {
+  if (requestedEffort !== "minimal" || ![200, 400].includes(status)) return false;
+  const message = String(providerError || "").toLowerCase();
+  return /reasoning[_ ]effort/.test(message)
+    && /unsupported|not supported|does not support|invalid|unknown|not available|must be|valid values/.test(message);
+}
+
 function messagesWithSchemaInstruction(messages, schema) {
   const instruction = `\n\n응답 모드 호환 안내: API에서 response_format JSON Schema를 지원하지 않아 서버가 응답을 검증합니다. 아래 JSON Schema에 맞는 JSON object만 반환하세요. 모든 required 필드를 포함하고 additionalProperties를 추가하지 마세요. 다른 설명이나 마크다운은 쓰지 마세요.\nJSON Schema:\n${JSON.stringify(schema)}`;
   const next = messages.map((message) => ({ ...message }));
@@ -973,10 +980,11 @@ function streamDeltaText(delta) {
   return "";
 }
 
-function providerStreamError(message, status, elapsed, apiKey, input, requestStage, responseFormat) {
+function providerStreamError(message, status, elapsed, apiKey, input, requestStage, responseFormat, reasoningEffort) {
   const rawMessage = typeof message === "string" ? message : JSON.stringify(message || "Unknown streaming error");
   const safeMessage = redactApiKey(redactRequestText(rawMessage, input), apiKey);
   const schemaUnsupported = isJsonSchemaUnsupported(status, safeMessage, responseFormat);
+  const reasoningEffortUnsupported = isReasoningEffortUnsupported(status, safeMessage, reasoningEffort);
   const htmlResponse = /<\s*!doctype\s+html|<\s*html[\s>]/iu.test(safeMessage);
   console.error(`LLM stream error: ${JSON.stringify({
     stage: requestStage,
@@ -988,12 +996,18 @@ function providerStreamError(message, status, elapsed, apiKey, input, requestSta
     ? "Streaming JSON Schema가 지원되지 않습니다. 프롬프트 JSON 모드로 전환합니다."
     : status === 502 || status === 504 || htmlResponse || /bad gateway|gateway timeout|timed out|timeout/i.test(safeMessage)
       ? "AI 분석 시간이 초과되었습니다. 다시 시도해 주세요"
-      : `LLM HTTP ${status}: ${shortProviderError(safeMessage)}`;
+      : reasoningEffortUnsupported
+        ? "모델이 reasoning_effort 'minimal'을 지원하지 않아 'low'로 바꿔 재시도합니다."
+        : schemaUnsupported
+          ? "스트리밍 JSON Schema가 지원되지 않아 서버 검증 방식으로 바꿔 재시도합니다."
+          : `LLM HTTP ${status}: ${shortProviderError(safeMessage)}`;
   return new HttpError(502, publicMessage, {
     upstreamStatus: status,
     durationMs: Math.round(elapsed),
     stage: requestStage,
     schemaUnsupported,
+    reasoningEffortUnsupported,
+    requestedReasoningEffort: reasoningEffort,
     providerError: safeMessage,
   });
 }
@@ -1006,10 +1020,10 @@ async function readStreamingCompletion(response, context) {
       body = await response.json();
     } catch {
       const text = await response.text().catch(() => "");
-      throw providerStreamError(text || "Non-streaming response was not JSON", response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+      throw providerStreamError(text || "Non-streaming response was not JSON", response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat, context.reasoningEffort);
     }
     if (body?.error) {
-      throw providerStreamError(body.error.message || body.error, response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+      throw providerStreamError(body.error.message || body.error, response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat, context.reasoningEffort);
     }
     return {
       content: responseText(body?.choices?.[0]?.message),
@@ -1019,7 +1033,7 @@ async function readStreamingCompletion(response, context) {
   }
 
   if (!response.body?.getReader) {
-    throw providerStreamError("Streaming body reader is unavailable", response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+    throw providerStreamError("Streaming body reader is unavailable", response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat, context.reasoningEffort);
   }
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
@@ -1040,10 +1054,10 @@ async function readStreamingCompletion(response, context) {
     try {
       event = JSON.parse(data);
     } catch {
-      throw providerStreamError("Invalid JSON in streaming data event", response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+      throw providerStreamError("Invalid JSON in streaming data event", response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat, context.reasoningEffort);
     }
     if (event?.error) {
-      throw providerStreamError(event.error.message || event.error, response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+      throw providerStreamError(event.error.message || event.error, response.status, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat, context.reasoningEffort);
     }
     const choice = event?.choices?.[0];
     if (choice) {
@@ -1073,7 +1087,7 @@ async function readStreamingCompletion(response, context) {
     if (error instanceof HttpError) throw error;
     const timeout = error?.name === "TimeoutError" || error?.name === "AbortError";
     const message = timeout ? "Streaming request timed out" : error?.message || "Streaming response read failed";
-    throw providerStreamError(message, timeout ? 504 : 502, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat);
+    throw providerStreamError(message, timeout ? 504 : 502, context.durationMs(), context.apiKey, context.input, context.stage, context.responseFormat, context.reasoningEffort);
   } finally {
     reader.releaseLock();
   }
@@ -1099,7 +1113,7 @@ async function requestModel(input, options = {}) {
   const schema = responseFormatForRequest?.json_schema?.schema || null;
   const baseMessages = options.messages || buildMessages(input);
 
-  const sendAttempt = async ({ messages, withResponseFormat }) => {
+  const sendAttempt = async ({ messages, withResponseFormat, reasoningEffort }) => {
     const requestStartedAt = process.hrtime.bigint();
     const durationMs = () => Number(process.hrtime.bigint() - requestStartedAt) / 1_000_000;
     const roundedDuration = () => Math.round(durationMs());
@@ -1107,7 +1121,7 @@ async function requestModel(input, options = {}) {
       model,
       messages,
       max_completion_tokens: 16000,
-      reasoning_effort: "low",
+      reasoning_effort: reasoningEffort,
       stream: true,
       stream_options: { include_usage: true },
       ...(withResponseFormat ? { response_format: responseFormatForRequest } : {}),
@@ -1145,10 +1159,13 @@ async function requestModel(input, options = {}) {
       const duration = roundedDuration();
       console.error(`LLM upstream error: ${JSON.stringify({ stage: requestStage, upstream_status: response.status, duration_ms: duration, error_body: shortProviderError(providerError, 1600) })}`);
       const schemaUnsupported = withResponseFormat && isJsonSchemaUnsupported(response.status, providerError, responseFormatForRequest);
+      const reasoningEffortUnsupported = isReasoningEffortUnsupported(response.status, providerError, reasoningEffort);
       const htmlGateway = /<\s*!doctype\s+html|<\s*html[\s>]/iu.test(upstreamError)
         || /text\/html/i.test(response.headers.get("content-type") || "");
       const publicMessage = response.status === 502 || response.status === 504 || htmlGateway
         ? "AI 분석 시간이 초과되었습니다. 다시 시도해 주세요"
+        : reasoningEffortUnsupported
+          ? "모델이 reasoning_effort 'minimal'을 지원하지 않아 'low'로 바꿔 재시도합니다."
         : schemaUnsupported
           ? "Streaming JSON Schema가 지원되지 않아 JSON 형식 지시와 서버 검증으로 전환합니다."
           : providerError
@@ -1159,6 +1176,8 @@ async function requestModel(input, options = {}) {
         durationMs: duration,
         stage: requestStage,
         schemaUnsupported,
+        reasoningEffortUnsupported,
+        requestedReasoningEffort: reasoningEffort,
         providerError,
       });
       failed.details.llmCalls = [{ stage: requestStage, status: response.status, durationMs: duration, finishReason: null, usage: null, schemaMode: withResponseFormat ? "json_schema" : "prompt_json" }];
@@ -1173,6 +1192,7 @@ async function requestModel(input, options = {}) {
         input,
         stage: requestStage,
         responseFormat: withResponseFormat ? responseFormatForRequest : null,
+        reasoningEffort,
       });
     } catch (error) {
       const duration = roundedDuration();
@@ -1211,7 +1231,7 @@ async function requestModel(input, options = {}) {
       reasoning_tokens: tokenCount(reasoningDetails.reasoning_tokens ?? rawUsage.reasoning_tokens),
     };
     const duration = roundedDuration();
-    const attemptSummary = { stage: requestStage, status: response.status, durationMs: duration, finishReason, usage, schemaMode: withResponseFormat ? "json_schema" : "prompt_json" };
+    const attemptSummary = { stage: requestStage, status: response.status, durationMs: duration, finishReason, reasoningEffort, usage, schemaMode: withResponseFormat ? "json_schema" : "prompt_json" };
     console.info(`LLM response metadata: ${JSON.stringify({ ...attemptSummary, stream: true })}`);
 
     if (finishReason === "length" || !streamed.content.trim()) {
@@ -1266,27 +1286,53 @@ async function requestModel(input, options = {}) {
     };
   };
 
-  try {
-    return await sendAttempt({ messages: baseMessages, withResponseFormat: Boolean(schema) });
-  } catch (error) {
-    if (!(error instanceof HttpError) || !error.details.schemaUnsupported || !schema) throw error;
-    console.warn(`LLM response_format unsupported; retrying ${requestStage} with JSON prompt and server schema validation.`);
-    const fallbackMessages = messagesWithSchemaInstruction(baseMessages, schema);
+  const attempts = [];
+  let reasoningEffort = "minimal";
+  let withResponseFormat = Boolean(schema);
+  const totalDuration = () => attempts.reduce((sum, attempt) => sum + Number(attempt.durationMs || 0), 0);
+
+  while (true) {
+    const messages = withResponseFormat || !schema
+      ? baseMessages
+      : messagesWithSchemaInstruction(baseMessages, schema);
     try {
-      const fallback = await sendAttempt({ messages: fallbackMessages, withResponseFormat: false });
+      const result = await sendAttempt({ messages, withResponseFormat, reasoningEffort });
+      attempts.push(...(result.llmCalls || []));
       return {
-        ...fallback,
-        schemaFallbackUsed: true,
-        llmCalls: [...(error.details.llmCalls || []), ...(fallback.llmCalls || [])],
-        durationMs: Number(error.details.durationMs || 0) + Number(fallback.durationMs || 0),
+        ...result,
+        durationMs: totalDuration(),
+        reasoningEffortFallbackUsed: reasoningEffort !== "minimal",
+        schemaFallbackUsed: Boolean(schema) && !withResponseFormat,
+        llmCalls: attempts,
       };
-    } catch (fallbackError) {
-      if (fallbackError instanceof HttpError) {
-        fallbackError.details.llmCalls = [...(error.details.llmCalls || []), ...(fallbackError.details.llmCalls || [])];
-        fallbackError.details.schemaFallbackUsed = true;
-        fallbackError.details.durationMs = Number(error.details.durationMs || 0) + Number(fallbackError.details.durationMs || 0);
+    } catch (error) {
+      if (!(error instanceof HttpError)) throw error;
+      attempts.push(...(error.details.llmCalls || [{
+        stage: requestStage,
+        status: error.details.upstreamStatus || error.status,
+        durationMs: error.details.durationMs || 0,
+        finishReason: error.details.finishReason || null,
+        reasoningEffort,
+        usage: error.details.usage || null,
+        schemaMode: withResponseFormat ? "json_schema" : "prompt_json",
+      }]));
+
+      if (error.details.reasoningEffortUnsupported && reasoningEffort === "minimal") {
+        reasoningEffort = "low";
+        console.warn(`LLM reasoning_effort minimal is unsupported; retrying ${requestStage} with low.`);
+        continue;
       }
-      throw fallbackError;
+      if (error.details.schemaUnsupported && withResponseFormat && schema) {
+        withResponseFormat = false;
+        console.warn(`LLM streaming json_schema is unsupported; retrying ${requestStage} with prompt JSON and server validation.`);
+        continue;
+      }
+
+      error.details.llmCalls = attempts;
+      error.details.durationMs = totalDuration();
+      error.details.reasoningEffortFallbackUsed = reasoningEffort !== "minimal";
+      error.details.schemaFallbackUsed = Boolean(schema) && !withResponseFormat;
+      throw error;
     }
   }
 }
