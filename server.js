@@ -1092,6 +1092,7 @@ async function requestModel(input, options = {}) {
     authorization: `Bearer ${apiKey}`,
     "content-type": "application/json",
     accept: "text/event-stream",
+    "cache-control": "no-cache",
   };
   const requestStage = options.stage || "llm";
   const responseFormatForRequest = options.responseFormat || responseFormat;
