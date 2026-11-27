@@ -8,7 +8,7 @@ const { DatabaseSync } = require("node:sqlite");
 
 const root = __dirname;
 const port = Number(process.env.PORT || 3000);
-const dataDirectory = path.join(root, "data");
+const dataDirectory = path.resolve(process.env.SPEC_GUARD_DATA_DIRECTORY || path.join(root, "data"));
 const sessionCookieName = "specguard_session";
 const sessionLifetimeSeconds = 7 * 24 * 60 * 60;
 const sessionLifetimeMs = sessionLifetimeSeconds * 1000;
@@ -586,8 +586,8 @@ function requireAccessibleProject(userId, projectId) {
 
 const projectChangeGroups = [
   { label: "프로젝트 정보", fields: ["name", "client", "summary", "status"] },
-  { label: "문서", fields: ["documents", "rounds", "specTemplate", "specDraft", "specUpdateProposal", "specDraftHistory", "specUpdateHistory"] },
-  { label: "요구사항", fields: ["requirements", "extractedRequirements", "extractionHistory", "extractionRun", "analysisRun", "analysisRunAt", "analysisModel", "analysisInputSignature", "analysisStale", "specificationTemplateReview"] },
+  { label: "문서", fields: ["documents", "rounds", "specTemplate", "specDraft", "specUpdateProposal", "specDraftHistory", "specUpdateHistory", "specificationTemplateReview"] },
+  { label: "요구사항", fields: ["requirements", "extractedRequirements", "extractionHistory", "extractionRun", "analysisRun", "analysisRunAt", "analysisModel", "analysisStale"] },
   { label: "검토·확정", fields: ["requirementReview"] },
   { label: "기획서 비교", fields: ["requirementComparison", "requirementComparisonHistory", "comparisonStale"] },
 ];

@@ -160,7 +160,25 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
       method: "POST",
       cookie: alphaCookie,
       csrf: alphaCsrf,
-      body: { project: { id: "project-alpha", name: "알파 프로젝트", client: "테스트 고객", summary: "처음 저장" } },
+      body: {
+        project: {
+          id: "project-alpha",
+          name: "알파 프로젝트",
+          client: "테스트 고객",
+          summary: "처음 저장",
+          status: "draft",
+          analysisRunAt: null,
+          analysisRun: false,
+          extractionRun: false,
+          analysisStale: false,
+          extractedRequirements: { source: [], spec: [] },
+          documents: [],
+          rounds: [],
+          requirements: [],
+          specTemplate: null,
+          analysisInputSignature: "initial-empty-content-signature",
+        },
+      },
     });
     assert.equal(created.response.status, 201);
     assert.equal(created.payload.project.serverVersion, 1);
@@ -173,6 +191,19 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
     assert.equal(createdHistory.payload.changes[0].actorRole, "owner");
     assert.deepEqual(createdHistory.payload.changes[0].changedFields, ["프로젝트 정보"]);
     assert.ok(createdHistory.payload.changes[0].changedFields.includes("프로젝트 정보"));
+
+    const derivedMetadataOnlySave = await request("/api/projects/project-alpha", {
+      method: "PUT",
+      cookie: alphaCookie,
+      csrf: alphaCsrf,
+      body: {
+        expectedVersion: 1,
+        project: { ...created.payload.project, analysisInputSignature: "recomputed-without-content-change" },
+      },
+    });
+    assert.equal(derivedMetadataOnlySave.response.status, 200);
+    assert.equal(derivedMetadataOnlySave.payload.project.serverVersion, 1, "derived-only fields do not create a content version");
+    assert.equal((await request("/api/projects/project-alpha/changes", { cookie: alphaCookie })).payload.changes.length, 1);
 
     const updated = await request("/api/projects/project-alpha", {
       method: "PUT",
@@ -592,6 +623,190 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
     assert.equal((await request("/api/projects", { cookie: deleteLogin.cookie })).payload.projects.length, 0);
 
     assert.equal((await request("/data/users.sqlite")).response.status, 404, "database files are not publicly served");
+  } finally {
+    await stopServer();
+  }
+});
+
+test("database schema migration preserves existing accounts and project records", { timeout: 20_000 }, async (t) => {
+  const temporaryRoot = await fs.mkdtemp(path.join(os.tmpdir(), "specguard-schema-migration-test-"));
+  const dataDirectory = path.join(temporaryRoot, "data");
+  await fs.mkdir(dataDirectory, { recursive: true });
+  await fs.copyFile(path.join(__dirname, "..", "server.js"), path.join(temporaryRoot, "server.js"));
+  t.after(async () => fs.rm(temporaryRoot, { recursive: true, force: true }));
+
+  const ownerId = "preserved-owner-id";
+  const username = "preserved_owner";
+  const password = "MigrationPass7";
+  const createdAt = "2025-04-01T10:00:00.000Z";
+  const updatedAt = "2025-04-02T11:30:00.000Z";
+  const salt = require("node:crypto").randomBytes(16).toString("base64url");
+  const passwordHash = require("node:crypto").scryptSync(password, salt, 64, {
+    N: 16384,
+    r: 8,
+    p: 1,
+    maxmem: 64 * 1024 * 1024,
+  }).toString("hex");
+
+  const legacyUsersDb = new (require("node:sqlite").DatabaseSync)(path.join(dataDirectory, "users.sqlite"));
+  legacyUsersDb.exec(`
+    CREATE TABLE users (
+      id TEXT PRIMARY KEY,
+      username_key TEXT NOT NULL UNIQUE,
+      username TEXT NOT NULL,
+      salt TEXT NOT NULL,
+      password_hash TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+    CREATE TABLE sessions (
+      session_hash TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      csrf_token TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      expires_at TEXT NOT NULL
+    );
+  `);
+  legacyUsersDb.prepare(`
+    INSERT INTO users (id, username_key, username, salt, password_hash, created_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(ownerId, username, username, salt, passwordHash, createdAt);
+  legacyUsersDb.close();
+
+  const storedProject = {
+    id: "preexisting-project",
+    name: "보존된 프로젝트",
+    client: "기존 고객사",
+    summary: "마이그레이션 전 자료",
+    status: "review",
+    createdAt,
+    updatedAt,
+    documents: [{ id: "old-doc", kind: "source", content: "이전 회의 기록을 보존합니다." }],
+    extractedRequirements: { source: [{ id: "old-req", text: "기존 요구사항", evidence: [] }], spec: [] },
+    requirements: [{ id: "old-req", text: "기존 요구사항", status: "missing" }],
+    requirementReview: { version: 1, items: { "old-req": { status: "confirmed", text: "기존 요구사항" } } },
+  };
+  const legacyProjectsDb = new (require("node:sqlite").DatabaseSync)(path.join(dataDirectory, "projects.sqlite"));
+  legacyProjectsDb.exec(`
+    CREATE TABLE projects (
+      id TEXT PRIMARY KEY,
+      owner_id TEXT NOT NULL,
+      version INTEGER NOT NULL DEFAULT 1,
+      data_json TEXT NOT NULL,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL
+    );
+    CREATE TABLE legacy_imports (
+      owner_id TEXT PRIMARY KEY,
+      completed_at TEXT NOT NULL,
+      imported_count INTEGER NOT NULL DEFAULT 0,
+      skipped_count INTEGER NOT NULL DEFAULT 0
+    );
+  `);
+  legacyProjectsDb.prepare(`
+    INSERT INTO projects (id, owner_id, version, data_json, created_at, updated_at)
+    VALUES (?, ?, ?, ?, ?, ?)
+  `).run(storedProject.id, ownerId, 7, JSON.stringify(storedProject), createdAt, updatedAt);
+  legacyProjectsDb.close();
+
+  const port = await unusedPort();
+  const origin = `http://127.0.0.1:${port}`;
+  let child;
+  let serverOutput = "";
+
+  async function startServer() {
+    child = spawn(process.execPath, ["server.js"], {
+      cwd: temporaryRoot,
+      env: { PATH: process.env.PATH || "", PORT: String(port), NODE_ENV: "test" },
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    child.stdout.setEncoding("utf8").on("data", (chunk) => { serverOutput += chunk; });
+    child.stderr.setEncoding("utf8").on("data", (chunk) => { serverOutput += chunk; });
+    const deadline = Date.now() + 8_000;
+    while (Date.now() < deadline) {
+      if (child.exitCode !== null) throw new Error(`Migrated test server stopped: ${serverOutput}`);
+      try {
+        if ((await fetch(`${origin}/api/auth/me`)).ok) return;
+      } catch {
+        // The migrated database is still being opened.
+      }
+      await delay(40);
+    }
+    throw new Error(`Migrated test server did not start: ${serverOutput}`);
+  }
+
+  async function stopServer() {
+    if (!child || child.exitCode !== null) return;
+    const exited = once(child, "exit");
+    child.kill("SIGTERM");
+    await exited;
+  }
+
+  async function request(route, { method = "GET", body, cookie = "", csrf = "" } = {}) {
+    const headers = {};
+    if (method !== "GET") headers.origin = origin;
+    if (cookie) headers.cookie = cookie;
+    if (csrf) headers["x-csrf-token"] = csrf;
+    if (body !== undefined) headers["content-type"] = "application/json";
+    const response = await fetch(`${origin}${route}`, {
+      method,
+      headers,
+      body: body === undefined ? undefined : JSON.stringify(body),
+    });
+    let payload = {};
+    try {
+      payload = await response.json();
+    } catch {
+      // Report response status even if an API returns no JSON body.
+    }
+    return {
+      response,
+      payload,
+      cookie: response.headers.get("set-cookie")?.split(";", 1)[0] || cookie,
+    };
+  }
+
+  await startServer();
+  try {
+    const login = await request("/api/auth/login", {
+      method: "POST",
+      body: { username, password },
+    });
+    assert.equal(login.response.status, 200, "a legacy account can still log in after the display-name column is added");
+
+    const projects = await request("/api/projects", { cookie: login.cookie });
+    assert.equal(projects.response.status, 200);
+    assert.equal(projects.payload.projects.length, 1);
+    assert.equal(projects.payload.projects[0].serverVersion, 7);
+    assert.equal(projects.payload.projects[0].name, storedProject.name);
+    assert.equal(projects.payload.projects[0].documents[0].content, storedProject.documents[0].content);
+    assert.equal(projects.payload.projects[0].requirementReview.items["old-req"].status, "confirmed");
+    assert.equal((await request("/api/projects/preexisting-project/changes", { cookie: login.cookie })).payload.changes.length, 0);
+
+    const saved = await request("/api/projects/preexisting-project", {
+      method: "PUT",
+      cookie: login.cookie,
+      csrf: login.payload.csrfToken,
+      body: {
+        expectedVersion: 7,
+        project: { ...projects.payload.projects[0], summary: "기존 자료를 보존한 채 수정" },
+      },
+    });
+    assert.equal(saved.response.status, 200);
+    assert.equal(saved.payload.project.serverVersion, 8);
+    assert.equal(saved.payload.project.documents[0].content, storedProject.documents[0].content);
+    assert.equal(saved.payload.project.requirementReview.items["old-req"].status, "confirmed");
+
+    const changes = await request("/api/projects/preexisting-project/changes", { cookie: login.cookie });
+    assert.equal(changes.payload.changes.length, 1);
+    assert.equal(changes.payload.changes[0].actorUserId, ownerId);
+    assert.equal(changes.payload.changes[0].version, 8);
+    assert.deepEqual(changes.payload.changes[0].changedFields, ["프로젝트 정보"]);
+
+    const migratedUsersDb = new (require("node:sqlite").DatabaseSync)(path.join(dataDirectory, "users.sqlite"), { readOnly: true });
+    const columns = migratedUsersDb.prepare("PRAGMA table_info(users)").all().map((column) => column.name);
+    assert.ok(columns.includes("display_name"), "the optional display-name column is added by migration");
+    assert.equal(migratedUsersDb.prepare("SELECT COUNT(*) AS count FROM users WHERE id = ?").get(ownerId).count, 1);
+    migratedUsersDb.close();
   } finally {
     await stopServer();
   }
