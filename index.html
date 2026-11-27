@@ -7860,8 +7860,11 @@
             }
             if (!response.ok) {
               elements.analysisState.dataset.llmStatus = String(analysis.upstreamStatus ?? response.status);
+              elements.analysisState.dataset.llmStage = String(analysis.stage || "unknown");
+              elements.analysisState.dataset.llmCalls = JSON.stringify(analysis.llmCalls || []);
               elements.analysisState.dataset.providerError = String(analysis.providerError || "");
               elements.analysisState.dataset.llmFinishReason = String(analysis.finishReason || "unknown");
+              elements.analysisState.dataset.llmDurationMs = String(analysis.durationMs ?? "unknown");
               elements.analysisState.dataset.llmUsage = JSON.stringify(analysis.usage || null);
               throw new Error(analysis.error || "LLM 분석에 실패했습니다. 다시 시도해 주세요.");
             }
@@ -8044,7 +8047,10 @@
             elements.analysisState.dataset.llmStatus = String(analysis.llmStatus ?? "unknown");
             elements.analysisState.dataset.llmModel = String(analysis.model || "unknown");
             elements.analysisState.dataset.llmFinishReason = String(analysis.llmFinishReason || "unknown");
+            elements.analysisState.dataset.llmDurationMs = String(analysis.llmDurationMs ?? "unknown");
             elements.analysisState.dataset.llmUsage = JSON.stringify(analysis.usage || null);
+            elements.analysisState.dataset.llmCalls = JSON.stringify(analysis.llmCalls || []);
+            elements.analysisState.dataset.llmCalls = JSON.stringify(analysis.llmCalls || []);
             elements.analysisState.dataset.remainingBudget = JSON.stringify(analysis.remainingBudget || null);
           } catch (error) {
             elements.analysisState.textContent = error instanceof TypeError
