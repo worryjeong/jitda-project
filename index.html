@@ -5746,22 +5746,24 @@
           const history = Array.isArray(item.evidence)
             ? item.evidence
             : [{ text: typeof item.evidence === "string" ? item.evidence : item.text, date: item.date, kind: item.kind }];
-          const updated = Boolean(item.updated || item.changeType === "updated");
-          const hasVersionHistory = updated || item.changeType === "conflict" || Boolean(item.previousText);
-          const changeBadge = item.changeType === "conflict"
+          const roundTransitions = meetingChangeTransitions(item);
+          const updated = Boolean(roundTransitions.length && (item.updated || item.changeType === "updated"));
+          const hasVersionHistory = roundTransitions.length > 0;
+          const changeBadge = item.changeType === "conflict" && hasVersionHistory
             ? '<span class="requirement-state-pill conflict-change">충돌 항목</span>'
-            : item.changeType === "updated" || item.previousText
+            : item.changeType === "updated" && hasVersionHistory
               ? '<span class="requirement-state-pill updated">수정 항목</span>'
-              : item.changeType === "new" ? '<span class="requirement-state-pill">신규 항목</span>' : "";
-          const previousText = item.previousText ? `
+              : item.changeType === "new" && !item.previousText ? '<span class="requirement-state-pill">신규 항목</span>' : "";
+          const previousText = roundTransitions.length ? `
             <details class="review-meeting-change" open>
-              <summary>변경 전·후 문장 <span>이력</span></summary>
+              <summary>회의 내용 변경 이력 <span>${roundTransitions.length}</span></summary>
               <div class="review-history-list">
-                <div class="requirement-version-pair">
-                  <div><span>변경 전</span><p>${escapeHtml(item.previousText)}</p></div>
-                  <span class="version-arrow" aria-hidden="true">→</span>
-                  <div><span>변경 후</span><p>${escapeHtml(item.text)}</p></div>
-                </div>
+                ${roundTransitions.map((transition) => `
+                  <div class="requirement-version-pair">
+                    <div><span>변경 전 · ${formatMeetingDate(transition.previousDate)}</span><p>${escapeHtml(transition.previousText)}</p></div>
+                    <span class="version-arrow" aria-hidden="true">→</span>
+                    <div><span>변경 후 · ${formatMeetingDate(transition.nextDate)}</span><p>${escapeHtml(transition.nextText)}</p></div>
+                  </div>`).join("")}
               </div>
             </details>` : "";
           const evidenceItems = history.map((evidence, index) => {
@@ -6018,7 +6020,64 @@
         }
 
         function normalizedEvidenceText(text) {
-          return String(text || "").replace(/\s+/gu, "");
+          const nonSpeakerLabels = new Set([
+            "프로젝트", "프로젝트명", "고객사", "회사명", "일시", "날짜", "일자", "참석", "참석자",
+            "목적", "기능", "화면", "요청", "요구사항", "참고", "비고", "제목", "일정", "업무",
+            "회의", "회의록", "출석", "출결", "담당", "내용", "양식", "메모", "결과", "자료", "예약금",
+          ]);
+          return String(text || "")
+            .replace(/\\r\\n|\\n|\\r/gu, "\n")
+            .split(/\r?\n/u)
+            .map((line) => {
+              const match = line.match(/^\s*((?:[가-힣]\s*){2,8}|[A-Za-z][A-Za-z0-9_.-]{0,20})\s*[:：]\s*/u);
+              if (!match) return line;
+              const label = match[1].replace(/\s+/gu, "");
+              return nonSpeakerLabels.has(label) ? line : line.slice(match[0].length);
+            })
+            .join("")
+            .replace(/\s+/gu, "");
+        }
+
+        function canonicalEvidenceComparisonText(text) {
+          return normalizedEvidenceText(text)
+            .replace(/["'“”„「」『』]/gu, "")
+            .toLocaleLowerCase("ko-KR");
+        }
+
+        function meetingDateFromText(text, fallbackDate = "") {
+          const value = String(text || "");
+          const korean = value.match(/(?<!\d)(20\d{2})\s*년\s*(\d{1,2})\s*월\s*(\d{1,2})\s*일?/u);
+          if (korean) return `${korean[1]}-${String(korean[2]).padStart(2, "0")}-${String(korean[3]).padStart(2, "0")}`;
+          const numeric = value.match(/(?<!\d)(20\d{2})\s*[-./]\s*(\d{1,2})\s*[-./]\s*(\d{1,2})(?!\d)/u);
+          if (numeric) return `${numeric[1]}-${String(numeric[2]).padStart(2, "0")}-${String(numeric[3]).padStart(2, "0")}`;
+          return String(fallbackDate || "").slice(0, 10);
+        }
+
+        function meetingSectionsForEvidence(sourceText, fallbackDate = "") {
+          const lines = String(sourceText || "").split(/\r?\n/u);
+          const headings = [];
+          const dateLines = [];
+          lines.forEach((line, index) => {
+            const heading = line.replace(/^\s{0,3}#{1,6}\s*/u, "").match(/^\[?\s*(?:제\s*)?(\d+)\s*차\s*(?:회의록|회의(?:\s*(?:내용|기록))?|미팅(?:록|\s*내용)?)\s*\]?/u);
+            if (heading) headings.push({ index, roundNumber: Number(heading[1]) });
+            if (/^\s*(?:[-*•]\s*)?(?:(?:회의|미팅)\s*)?(?:일시|날짜|일자|회의일|회의\s*날짜|meeting\s*date|date)\s*[:：]/iu.test(line)
+              || /(?:[|/·]\s*)(?:(?:회의|미팅)\s*)?(?:일시|날짜|일자|회의일|회의\s*날짜|meeting\s*date|date)\s*[:：]/iu.test(line)) {
+              dateLines.push(index);
+            }
+          });
+
+          const splitByDates = dateLines.length > 1 && headings.length < 2;
+          const starts = headings.length >= 2
+            ? headings
+            : splitByDates
+              ? dateLines.map((index) => ({ index, roundNumber: null }))
+              : [{ index: 0, roundNumber: headings[0]?.roundNumber ?? null }];
+          return starts.map((start, index) => {
+            const end = starts[index + 1]?.index ?? lines.length;
+            const sectionText = lines.slice(start.index, end).join("\n");
+            const date = meetingDateFromText(sectionText.split(/\r?\n/u).slice(0, 18).join("\n"), fallbackDate);
+            return { text: sectionText, date, roundNumber: start.roundNumber };
+          }).filter((section) => section.text.trim());
         }
 
         function reviewEvidenceEntries(project, item) {
@@ -6034,15 +6093,94 @@
         function evidenceExistsInMeetings(project, evidence) {
           const phrase = normalizedEvidenceText(evidence.text);
           if (!phrase) return false;
-          const documents = (project.documents || []).filter((documentItem) => {
-            if (documentItem.kind !== "source") return false;
-            if (evidence.sourceDocumentId && documentItem.id !== evidence.sourceDocumentId) return false;
-            if (evidence.documentName && documentItem.name !== evidence.documentName && !documentItem.name?.startsWith(`${evidence.documentName} ·`)) return false;
-            if (evidence.date && documentItem.date && evidence.date !== documentItem.date) return false;
-            return true;
+          const allSourceDocuments = (project.documents || []).filter((documentItem) => documentItem.kind === "source");
+          let documents = allSourceDocuments.filter((documentItem) => {
+            if (evidence.sourceDocumentId) return documentItem.id === evidence.sourceDocumentId;
+            return false;
           });
-          return documents.some((documentItem) => normalizedEvidenceText(documentItem.content).includes(phrase)
-            || normalizedEvidenceText(documentItem.stt?.transcript).includes(phrase));
+          if (!documents.length && evidence.roundId) {
+            documents = allSourceDocuments.filter((documentItem) => documentItem.roundId === evidence.roundId);
+          }
+          if (!documents.length && Number.isInteger(evidence.roundNumber)) {
+            documents = allSourceDocuments.filter((documentItem) => Number(documentItem.roundNumber) === evidence.roundNumber);
+          }
+          if (!documents.length && evidence.date) {
+            documents = allSourceDocuments.filter((documentItem) => {
+              if (String(documentItem.date || "").slice(0, 10) === evidence.date) return true;
+              const sourceText = evidence.sourceKind === "transcript"
+                ? documentItem.stt?.transcript || ""
+                : documentItem.content || "";
+              return meetingSectionsForEvidence(sourceText, documentItem.date).some((section) => section.date === evidence.date);
+            });
+          }
+          if (!documents.length && evidence.documentName) {
+            documents = allSourceDocuments.filter((documentItem) =>
+              documentItem.name === evidence.documentName
+              || documentItem.name?.startsWith(`${evidence.documentName} ·`)
+              || evidence.documentName.startsWith(`${documentItem.name} ·`)
+            );
+          }
+
+          return documents.some((documentItem) => {
+            if (evidence.roundId && documentItem.roundId && evidence.roundId !== documentItem.roundId) return false;
+            const sourceText = evidence.sourceKind === "transcript"
+              ? documentItem.stt?.transcript || ""
+              : documentItem.content || "";
+            if (!sourceText) return false;
+            const sections = meetingSectionsForEvidence(sourceText, documentItem.date || "");
+            let matchingSections = sections;
+            const hasMultipleMeetings = sections.length > 1;
+            if (evidence.date && hasMultipleMeetings) {
+              matchingSections = sections.filter((section) => section.date === evidence.date);
+            }
+            if (!matchingSections.length && Number.isInteger(evidence.roundNumber)) {
+              matchingSections = sections.filter((section) => section.roundNumber === evidence.roundNumber);
+            }
+            if (hasMultipleMeetings && !matchingSections.length) return false;
+            if (!hasMultipleMeetings && Number.isInteger(evidence.roundNumber)
+              && Number.isInteger(documentItem.roundNumber)
+              && evidence.roundNumber !== documentItem.roundNumber) return false;
+            if (!hasMultipleMeetings && evidence.date) {
+              const internalDate = sections[0]?.date || "";
+              if (internalDate && internalDate !== evidence.date) return false;
+            }
+
+            return matchingSections.some((section) => canonicalEvidenceComparisonText(section.text).includes(canonicalEvidenceComparisonText(evidence.text)));
+          });
+        }
+
+        function meetingChangeTransitions(item) {
+          const evidence = (Array.isArray(item?.evidence) ? item.evidence : [])
+            .filter((entry) => entry && entry.date && entry.kind !== "spec" && entry.sourceKind !== "spec" && entry.text);
+          const byDate = new Map();
+          for (const entry of evidence) {
+            const date = String(entry.date).slice(0, 10);
+            if (!/^\d{4}-\d{2}-\d{2}$/u.test(date)) continue;
+            if (!byDate.has(date)) byDate.set(date, []);
+            byDate.get(date).push(entry);
+          }
+          const versions = [...byDate.entries()].sort(([first], [second]) => first.localeCompare(second)).map(([date, entries]) => {
+            const unique = [...new Map(entries.map((entry) => [normalizedEvidenceText(entry.text), entry])).values()];
+            return { date, entries: unique };
+          });
+          if (versions.length < 2) return [];
+
+          const transitions = [];
+          let previousVersion = null;
+          for (const version of versions) {
+            const representative = version.entries.at(-1);
+            if (!representative) continue;
+            if (previousVersion && canonicalEvidenceComparisonText(previousVersion.entry.text) !== canonicalEvidenceComparisonText(representative.text)) {
+              transitions.push({
+                previousText: previousVersion.entry.text,
+                previousDate: previousVersion.date,
+                nextText: representative.text,
+                nextDate: version.date,
+              });
+            }
+            previousVersion = { date: version.date, entry: representative };
+          }
+          return transitions;
         }
 
         function renderReviewEvidence(project, item) {
@@ -6083,28 +6221,17 @@
         }
 
         function renderMeetingChangeHistory(item) {
-          const sourceItem = item.sourceItem;
-          const evidence = Array.isArray(sourceItem?.evidence) ? sourceItem.evidence : [];
-          const latestText = sourceItem?.text || item.text;
-          const latestKey = normalizedRequirementText(latestText);
-          const previousText = sourceItem?.previousText || "";
-          const earlier = evidence.filter((entry) => normalizedRequirementText(entry.text) !== latestKey);
-          const uniqueEarlier = [...new Map(earlier.map((entry) => [normalizedRequirementText(entry.text), entry])).values()];
-          if (!sourceItem?.updated && !previousText && uniqueEarlier.length === 0) return "";
-
-          const latestEvidence = evidence.at(-1);
-          const historyEntries = previousText
-            ? [{ text: previousText, date: earlier[0]?.date || "" }]
-            : uniqueEarlier;
-          const olderMarkup = historyEntries.map((entry) => `
+          const transitions = meetingChangeTransitions(item.sourceItem || item);
+          if (!transitions.length) return "";
+          const olderMarkup = transitions.map((entry) => `
             <div class="requirement-version-pair">
-              <div><span>이전 문장${entry.date ? ` · ${formatMeetingDate(entry.date)}` : ""}</span><p>${escapeHtml(entry.text)}</p></div>
+              <div><span>이전 문장 · ${formatMeetingDate(entry.previousDate)}</span><p>${escapeHtml(entry.previousText)}</p></div>
               <span class="version-arrow" aria-hidden="true">→</span>
-              <div><span>새 문장 · ${formatMeetingDate(latestEvidence?.date || "")}</span><p>${escapeHtml(latestText)}</p></div>
+              <div><span>새 문장 · ${formatMeetingDate(entry.nextDate)}</span><p>${escapeHtml(entry.nextText)}</p></div>
             </div>`).join("");
           return `
             <details class="review-meeting-change" open>
-              <summary>회의 내용 변경 이력 <span>${historyEntries.length}</span></summary>
+              <summary>회의 내용 변경 이력 <span>${transitions.length}</span></summary>
               <div class="review-history-list">${olderMarkup}</div>
             </details>`;
         }
