@@ -3595,8 +3595,193 @@
       }
 
       .mypage-view {
-        width: min(100%, 1040px);
+        width: min(100%, 948px);
         margin: 0 auto;
+      }
+
+      #mypage-team-management[hidden],
+      #mypage-profile-panel[hidden] {
+        display: none !important;
+      }
+
+      .mypage-profile-overview {
+        display: grid;
+        gap: 13px;
+        margin: 29px 0 25px;
+        padding: 21px 20px 28px;
+        border: 1px solid #dce5dc;
+        border-radius: 10px;
+        background: #ffffff;
+      }
+
+      .mypage-profile-overview p {
+        margin: 0;
+        color: #4d5d52;
+        font-size: 15px;
+        line-height: 1.65;
+      }
+
+      .mypage-profile-overview p strong {
+        color: #34483b;
+        font-weight: 720;
+      }
+
+      .mypage-profile-stats {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 7px;
+        padding-top: 1px;
+      }
+
+      .mypage-profile-stats strong {
+        color: #3b6545 !important;
+        font-weight: 730;
+      }
+
+      .mypage-profile-stats > span {
+        margin: 0 2px;
+        color: #9aa59b;
+      }
+
+      .mypage-profile-form {
+        display: grid;
+        width: min(100%, 620px);
+        gap: 19px;
+      }
+
+      .mypage-profile-field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .mypage-profile-field label {
+        color: #345540;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      .mypage-profile-field input,
+      .mypage-profile-field textarea {
+        width: 100%;
+        min-height: 50px;
+        padding: 12px 14px;
+        border: 1px solid #cddace;
+        border-radius: 9px;
+        background: #ffffff;
+        color: #25362b;
+        font: inherit;
+        font-size: 15px;
+        line-height: 1.55;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+      }
+
+      .mypage-profile-field textarea {
+        min-height: 99px;
+        resize: vertical;
+      }
+
+      .mypage-profile-field input:focus,
+      .mypage-profile-field textarea:focus {
+        border-color: #739077;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(68, 113, 76, 0.12);
+      }
+
+      .mypage-profile-hint {
+        display: none;
+      }
+
+      .mypage-profile-field + .mypage-profile-field {
+        margin-top: 4px;
+      }
+
+      .mypage-profile-save {
+        width: fit-content;
+        min-width: 90px;
+        min-height: 44px;
+        padding: 0 17px;
+        border: 1px solid var(--forest);
+        border-radius: 8px;
+        background: var(--forest);
+        color: #ffffff;
+        cursor: pointer;
+        font: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        transition: background-color 150ms ease, transform 100ms ease;
+      }
+
+      .mypage-profile-save:hover:not(:disabled) {
+        background: var(--forest-soft);
+      }
+
+      .mypage-profile-save:active:not(:disabled) {
+        transform: translateY(1px);
+      }
+
+      .mypage-profile-save:focus-visible,
+      .mypage-invitations-button:focus-visible,
+      .mypage-logout-button:focus-visible {
+        outline: 3px solid rgba(49, 114, 85, 0.28);
+        outline-offset: 2px;
+      }
+
+      .mypage-profile-save:disabled {
+        cursor: wait;
+        opacity: 0.65;
+      }
+
+      .mypage-profile-status {
+        margin: -8px 0 0;
+        color: #46734e;
+        font-size: 13px;
+        line-height: 1.6;
+      }
+
+      .mypage-profile-status[data-state="error"] {
+        color: #a34e42;
+      }
+
+      .mypage-profile-status[hidden] {
+        display: none !important;
+      }
+
+      .mypage-profile-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        margin-top: 25px;
+      }
+
+      .mypage-view > .back-link {
+        margin-bottom: 24px;
+      }
+
+      .mypage-invitations-button,
+      .mypage-logout-button {
+        display: inline-flex;
+        min-height: 43px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 15px;
+        border: 1px solid #d7e2d8;
+        border-radius: 8px;
+        background: #ffffff;
+        color: #31533a;
+        cursor: pointer;
+        font: inherit;
+        font-size: 12px;
+        font-weight: 680;
+        text-decoration: none;
+        transition: border-color 150ms ease, background-color 150ms ease;
+      }
+
+      .mypage-invitations-button:hover,
+      .mypage-logout-button:hover {
+        border-color: #9eb49f;
+        background: #f2f7f0;
       }
 
       .mypage-account-card {
@@ -5831,6 +6016,38 @@
           font-size: 13px;
         }
 
+        .mypage-profile-overview {
+          gap: 10px;
+          margin: 14px 0 21px;
+          padding: 15px 14px;
+        }
+
+        .mypage-profile-overview p {
+          font-size: 13px;
+        }
+
+        .mypage-profile-form {
+          gap: 16px;
+        }
+
+        .mypage-profile-field input,
+        .mypage-profile-field textarea {
+          font-size: 14px;
+        }
+
+        .mypage-profile-actions {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr);
+          gap: 8px;
+          margin-top: 20px;
+        }
+
+        .mypage-profile-save,
+        .mypage-invitations-button,
+        .mypage-logout-button {
+          width: 100%;
+        }
+
         .mypage-project-card {
           padding: 13px;
         }
@@ -6458,60 +6675,83 @@
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M15 10H5m0 0 4-4m-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
-              대시보드
+              홈으로 돌아가기
             </a>
             <header class="page-heading">
               <div>
-                <span class="extraction-eyebrow">MY ACCOUNT</span>
                 <h1 id="mypage-title">마이페이지</h1>
-                <p>계정 정보와 프로젝트 팀 초대·참여를 관리합니다.</p>
+                <p id="mypage-description">내 계정 정보와 프로젝트 현황을 확인하고 표시 이름을 관리하세요.</p>
               </div>
             </header>
-            <p class="mypage-team-status" id="mypage-notice" role="status" aria-live="polite" hidden></p>
+            <div id="mypage-profile-panel">
+              <section class="mypage-profile-overview" aria-label="계정 요약">
+                <p><strong>아이디:</strong> <span id="mypage-profile-username">계정 정보 불러오는 중</span></p>
+                <p><strong>가입일:</strong> <time id="mypage-profile-created-at">-</time></p>
+                <p class="mypage-profile-stats">
+                  내 프로젝트 <strong id="mypage-owned-count">0개</strong>
+                  <span aria-hidden="true">·</span>
+                  초대받은 공유 프로젝트 <strong id="mypage-shared-count">0개</strong>
+                </p>
+              </section>
 
-            <section class="mypage-account-card" aria-label="내 계정 정보">
-              <span class="mypage-account-avatar" id="mypage-account-avatar" aria-hidden="true">SG</span>
-              <div class="mypage-account-copy">
-                <strong id="mypage-account-name">계정 정보를 불러오는 중입니다.</strong>
-                <span>로그인한 계정으로 초대를 수락하고 프로젝트 팀을 관리할 수 있습니다.</span>
+              <form class="mypage-profile-form" id="mypage-profile-form">
+                <div class="mypage-profile-field">
+                  <label for="mypage-display-name">표시 이름</label>
+                  <input id="mypage-display-name" name="displayName" type="text" maxlength="40" placeholder="표시 이름을 입력해 주세요" autocomplete="nickname" />
+                </div>
+                <div class="mypage-profile-field">
+                  <label for="mypage-bio">소개</label>
+                  <textarea id="mypage-bio" name="bio" maxlength="300" rows="3" placeholder="나를 소개하는 한마디를 적어 주세요."></textarea>
+                  <span class="mypage-profile-hint"><span id="mypage-bio-count">0</span>/300자</span>
+                </div>
+                <button class="mypage-profile-save" id="mypage-profile-save" type="submit">프로필 저장</button>
+                <p class="mypage-profile-status" id="mypage-profile-status" role="status" aria-live="polite" hidden></p>
+              </form>
+
+              <div class="mypage-profile-actions">
+                <a class="mypage-invitations-button" href="#/workspace">프로젝트 초대 관리</a>
+                <button class="mypage-logout-button" id="mypage-logout-button" type="button">로그아웃</button>
               </div>
-            </section>
+            </div>
 
-            <section class="mypage-section" aria-labelledby="pending-invitations-title">
-              <div class="invite-inbox" id="pending-invitations-panel">
-                <div class="invite-inbox-heading">
+            <div id="mypage-team-management" hidden>
+              <p class="mypage-team-status" id="mypage-notice" role="status" aria-live="polite" hidden></p>
+              <section class="mypage-section" aria-labelledby="pending-invitations-title">
+                <div class="invite-inbox" id="pending-invitations-panel">
+                  <div class="invite-inbox-heading">
+                    <div>
+                      <h2 id="pending-invitations-title">받은 프로젝트 초대</h2>
+                      <p>초대를 수락하면 해당 프로젝트의 공동 편집자로 참여합니다.</p>
+                    </div>
+                  </div>
+                  <div class="invite-inbox-list" id="pending-invitations-list"></div>
+                  <p class="invite-inbox-error" id="pending-invitations-error" role="status" hidden></p>
+                </div>
+              </section>
+
+              <section class="mypage-section" aria-labelledby="mypage-owned-projects-title">
+                <div class="mypage-section-heading">
                   <div>
-                    <h2 id="pending-invitations-title">받은 프로젝트 초대</h2>
-                    <p>초대를 수락하면 해당 프로젝트의 공동 편집자로 참여합니다.</p>
+                    <h2 id="mypage-owned-projects-title">내 프로젝트 팀 관리</h2>
+                    <p>프로젝트별로 초대를 보내고 참여 중인 팀원을 관리합니다.</p>
+                  </div>
+                  <span class="mypage-section-count" id="mypage-owned-project-count"></span>
+                </div>
+                <div class="mypage-project-list" id="mypage-owned-projects">
+                  <p class="mypage-empty">프로젝트를 불러오는 중입니다.</p>
+                </div>
+              </section>
+
+              <section class="mypage-section" id="mypage-collaborations-section" aria-labelledby="mypage-collaborations-title" hidden>
+                <div class="mypage-section-heading">
+                  <div>
+                    <h2 id="mypage-collaborations-title">공동 편집으로 참여 중</h2>
+                    <p>초대를 수락해 참여 중인 프로젝트입니다. 팀 관리 권한은 프로젝트 소유자에게 있습니다.</p>
                   </div>
                 </div>
-                <div class="invite-inbox-list" id="pending-invitations-list"></div>
-                <p class="invite-inbox-error" id="pending-invitations-error" role="status" hidden></p>
-              </div>
-            </section>
-
-            <section class="mypage-section" aria-labelledby="mypage-owned-projects-title">
-              <div class="mypage-section-heading">
-                <div>
-                  <h2 id="mypage-owned-projects-title">내 프로젝트 팀 관리</h2>
-                  <p>프로젝트별로 초대를 보내고 참여 중인 팀원을 관리합니다.</p>
-                </div>
-                <span class="mypage-section-count" id="mypage-owned-project-count"></span>
-              </div>
-              <div class="mypage-project-list" id="mypage-owned-projects">
-                <p class="mypage-empty">프로젝트를 불러오는 중입니다.</p>
-              </div>
-            </section>
-
-            <section class="mypage-section" id="mypage-collaborations-section" aria-labelledby="mypage-collaborations-title" hidden>
-              <div class="mypage-section-heading">
-                <div>
-                  <h2 id="mypage-collaborations-title">공동 편집으로 참여 중</h2>
-                  <p>초대를 수락해 참여 중인 프로젝트입니다. 팀 관리 권한은 프로젝트 소유자에게 있습니다.</p>
-                </div>
-              </div>
-              <div class="mypage-collaboration-list" id="mypage-collaborations"></div>
-            </section>
+                <div class="mypage-collaboration-list" id="mypage-collaborations"></div>
+              </section>
+            </div>
           </section>
 
           <section class="view" id="projects-view" aria-labelledby="projects-title" hidden>
@@ -7579,8 +7819,20 @@
           home: document.querySelector("#home-view"),
           mypage: document.querySelector("#mypage-view"),
           mypageTitle: document.querySelector("#mypage-title"),
-          mypageAccountName: document.querySelector("#mypage-account-name"),
-          mypageAccountAvatar: document.querySelector("#mypage-account-avatar"),
+          mypageDescription: document.querySelector("#mypage-description"),
+          mypageProfilePanel: document.querySelector("#mypage-profile-panel"),
+          mypageTeamManagement: document.querySelector("#mypage-team-management"),
+          mypageProfileUsername: document.querySelector("#mypage-profile-username"),
+          mypageProfileCreatedAt: document.querySelector("#mypage-profile-created-at"),
+          mypageOwnedCount: document.querySelector("#mypage-owned-count"),
+          mypageSharedCount: document.querySelector("#mypage-shared-count"),
+          mypageProfileForm: document.querySelector("#mypage-profile-form"),
+          mypageDisplayName: document.querySelector("#mypage-display-name"),
+          mypageBio: document.querySelector("#mypage-bio"),
+          mypageBioCount: document.querySelector("#mypage-bio-count"),
+          mypageProfileSave: document.querySelector("#mypage-profile-save"),
+          mypageProfileStatus: document.querySelector("#mypage-profile-status"),
+          mypageLogoutButton: document.querySelector("#mypage-logout-button"),
           mypageNotice: document.querySelector("#mypage-notice"),
           mypageOwnedProjectCount: document.querySelector("#mypage-owned-project-count"),
           mypageOwnedProjects: document.querySelector("#mypage-owned-projects"),
@@ -7725,6 +7977,7 @@
         let myPageLoadSequence = 0;
         let myPageNoticeMessage = "";
         let myPageNoticeIsError = false;
+        let myPageProfileDirty = false;
 
         class ApiRequestError extends Error {
           constructor(status, payload) {
@@ -7802,6 +8055,12 @@
           setAuthError("");
         }
 
+        function setMyPageProfileStatus(message, isError = false) {
+          elements.mypageProfileStatus.textContent = message || "";
+          elements.mypageProfileStatus.dataset.state = isError ? "error" : "success";
+          elements.mypageProfileStatus.hidden = !message;
+        }
+
         function updateSidebarIdentity() {
           const username = currentUser?.username || "로그아웃 상태";
           elements.workspaceUsername.textContent = currentUser?.username || "내 워크스페이스";
@@ -7813,8 +8072,9 @@
           const initials = currentUser?.username?.slice(0, 2).toUpperCase() || "SG";
           elements.sidebarAvatar.textContent = initials;
           document.querySelectorAll(".user-chip .profile-avatar").forEach((avatar) => { avatar.textContent = initials; });
-          elements.mypageAccountName.textContent = currentUser ? accountDisplayName(currentUser) : "로그인이 필요합니다.";
-          elements.mypageAccountAvatar.textContent = initials;
+          if (elements.mypageProfileUsername) {
+            elements.mypageProfileUsername.textContent = currentUser?.username || "로그인이 필요합니다.";
+          }
         }
 
         function accountDisplayName(account) {
@@ -8000,18 +8260,40 @@
           status.hidden = !message;
         }
 
-        async function loadMyPageData() {
+        function formatAccountJoinDate(value) {
+          const date = value ? new Date(value) : null;
+          if (!date || Number.isNaN(date.getTime())) return "가입 정보 없음";
+          return new Intl.DateTimeFormat("ko-KR", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+          }).format(date);
+        }
+
+        async function loadMyPageData(options = {}) {
           if (!currentUser) return;
+          const route = decodeURIComponent(window.location.hash.slice(1).split("#", 1)[0] || "/home");
+          const manageTeams = options.manageTeams ?? route === "/workspace";
           const userId = currentUser.id;
           const loadSequence = ++myPageLoadSequence;
-          elements.mypageAccountName.textContent = accountDisplayName(currentUser);
-          elements.mypageAccountAvatar.textContent = currentUser.username?.slice(0, 2).toUpperCase() || "SG";
+          const ownedProjects = projects.filter((project) => project.memberRole === "owner");
+          const collaborations = projects.filter((project) => project.memberRole === "editor");
+          elements.mypageProfileUsername.textContent = currentUser.username;
+          elements.mypageProfileCreatedAt.textContent = formatAccountJoinDate(currentUser.createdAt);
+          elements.mypageProfileCreatedAt.dateTime = currentUser.createdAt || "";
+          elements.mypageOwnedCount.textContent = `${ownedProjects.length}개`;
+          elements.mypageSharedCount.textContent = `${collaborations.length}개`;
+          if (!myPageProfileDirty) {
+            elements.mypageDisplayName.value = currentUser.displayName || "";
+            elements.mypageBio.value = currentUser.bio || "";
+            elements.mypageBioCount.textContent = String(elements.mypageBio.value.length);
+          }
+          if (!manageTeams) return;
+
           setMyPageNotice(myPageNoticeMessage, myPageNoticeIsError);
           await loadPendingInvitations();
           if (currentUser?.id !== userId || loadSequence !== myPageLoadSequence) return;
 
-          const ownedProjects = projects.filter((project) => project.memberRole === "owner");
-          const collaborations = projects.filter((project) => project.memberRole === "editor");
           elements.mypageOwnedProjectCount.textContent = `${ownedProjects.length}개 프로젝트`;
           elements.mypageOwnedProjects.innerHTML = ownedProjects.length
             ? ownedProjects.map((project) => renderMyPageProjectCard(project)).join("")
@@ -8202,6 +8484,8 @@
         async function initializeAuthenticatedSession(sessionPayload, options = {}) {
           currentUser = sessionPayload?.authenticated ? sessionPayload.user : null;
           csrfToken = currentUser && typeof sessionPayload.csrfToken === "string" ? sessionPayload.csrfToken : "";
+          myPageProfileDirty = false;
+          setMyPageProfileStatus("");
           myPageNoticeMessage = "";
           myPageNoticeIsError = false;
           updateSidebarIdentity();
@@ -10377,8 +10661,13 @@
             elements.mypage.hidden = false;
             const isWorkspaceRoute = route === "/workspace";
             elements.mypageTitle.textContent = isWorkspaceRoute ? "프로젝트 초대 관리" : "마이페이지";
+            elements.mypageDescription.textContent = isWorkspaceRoute
+              ? "받은 초대를 확인하고 내 프로젝트 팀원을 관리하세요."
+              : "내 계정 정보와 프로젝트 현황을 확인하고 표시 이름을 관리하세요.";
+            elements.mypageProfilePanel.hidden = isWorkspaceRoute;
+            elements.mypageTeamManagement.hidden = !isWorkspaceRoute;
             document.title = isWorkspaceRoute ? "프로젝트 초대 관리 | 스펙가드" : "마이페이지 | 스펙가드";
-            loadMyPageData();
+            loadMyPageData({ manageTeams: isWorkspaceRoute });
             return;
           }
 
@@ -10480,6 +10769,52 @@
 
         elements.authLoginTab.addEventListener("click", () => setAuthMode("login"));
         elements.authRegisterTab.addEventListener("click", () => setAuthMode("register"));
+
+        elements.mypageDisplayName.addEventListener("input", () => {
+          myPageProfileDirty = true;
+          setMyPageProfileStatus("");
+        });
+
+        elements.mypageBio.addEventListener("input", () => {
+          myPageProfileDirty = true;
+          elements.mypageBioCount.textContent = String(elements.mypageBio.value.length);
+          setMyPageProfileStatus("");
+        });
+
+        elements.mypageProfileForm.addEventListener("submit", async (event) => {
+          event.preventDefault();
+          if (!currentUser || !elements.mypageProfileForm.reportValidity()) return;
+          elements.mypageProfileSave.disabled = true;
+          elements.mypageProfileSave.textContent = "저장 중...";
+          setMyPageProfileStatus("");
+          try {
+            const payload = await apiRequest("/api/auth/profile", {
+              method: "PATCH",
+              body: {
+                displayName: elements.mypageDisplayName.value,
+                bio: elements.mypageBio.value,
+              },
+            });
+            if (!payload?.user) throw new Error("저장된 프로필을 확인할 수 없습니다.");
+            currentUser = payload.user;
+            myPageProfileDirty = false;
+            updateSidebarIdentity();
+            elements.mypageProfileUsername.textContent = currentUser.username;
+            elements.mypageProfileCreatedAt.textContent = formatAccountJoinDate(currentUser.createdAt);
+            elements.mypageProfileCreatedAt.dateTime = currentUser.createdAt || "";
+            elements.mypageDisplayName.value = currentUser.displayName || "";
+            elements.mypageBio.value = currentUser.bio || "";
+            elements.mypageBioCount.textContent = String(elements.mypageBio.value.length);
+            setMyPageProfileStatus("프로필을 저장했습니다.");
+          } catch (error) {
+            setMyPageProfileStatus(error instanceof Error ? error.message : "프로필을 저장하지 못했습니다.", true);
+          } finally {
+            elements.mypageProfileSave.disabled = false;
+            elements.mypageProfileSave.textContent = "프로필 저장";
+          }
+        });
+
+        elements.mypageLogoutButton.addEventListener("click", () => elements.logoutButton.click());
 
         elements.authLoginForm.addEventListener("submit", async (event) => {
           event.preventDefault();

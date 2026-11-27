@@ -38,6 +38,7 @@ usersDatabase.exec(`
 `);
 const userColumnNames = new Set(usersDatabase.prepare("PRAGMA table_info(users)").all().map((column) => column.name));
 if (!userColumnNames.has("display_name")) usersDatabase.exec("ALTER TABLE users ADD COLUMN display_name TEXT");
+if (!userColumnNames.has("bio")) usersDatabase.exec("ALTER TABLE users ADD COLUMN bio TEXT");
 
 const projectsDatabase = new DatabaseSync(path.join(dataDirectory, "projects.sqlite"));
 projectsDatabase.exec(`
@@ -501,7 +502,7 @@ function sessionContext(request) {
   const sessionHash = sha256(rawToken);
   const row = usersDatabase.prepare(`
     SELECT sessions.session_hash, sessions.user_id, sessions.csrf_token, sessions.expires_at,
-           users.username, users.display_name
+           users.username, users.display_name, users.bio, users.created_at
     FROM sessions JOIN users ON users.id = sessions.user_id
     WHERE sessions.session_hash = ?
   `).get(sessionHash);
@@ -512,7 +513,13 @@ function sessionContext(request) {
   }
   return {
     sessionHash: row.session_hash,
-    user: { id: row.user_id, username: row.username, displayName: row.display_name || null },
+    user: {
+      id: row.user_id,
+      username: row.username,
+      displayName: row.display_name || null,
+      bio: row.bio || "",
+      createdAt: row.created_at,
+    },
     csrfToken: row.csrf_token,
     expiresAt: row.expires_at,
   };
@@ -761,13 +768,13 @@ function createAccount(body) {
     }
     throw error;
   }
-  return { id, username: credentials.username, displayName: null, createdAt };
+  return { id, username: credentials.username, displayName: null, bio: "", createdAt };
 }
 
 function authenticateAccount(body) {
   const credentials = validateCredentials(body, false);
   const user = usersDatabase.prepare(`
-    SELECT id, username, display_name, salt, password_hash, created_at
+    SELECT id, username, display_name, bio, salt, password_hash, created_at
     FROM users WHERE username_key = ?
   `).get(credentials.usernameKey);
   if (!user) throw new HttpError(401, "아이디 또는 비밀번호가 올바르지 않습니다.");
@@ -775,7 +782,34 @@ function authenticateAccount(body) {
   if (!constantTimeStringEqual(suppliedHash, user.password_hash)) {
     throw new HttpError(401, "아이디 또는 비밀번호가 올바르지 않습니다.");
   }
-  return { id: user.id, username: user.username, displayName: user.display_name || null, createdAt: user.created_at };
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.display_name || null,
+    bio: user.bio || "",
+    createdAt: user.created_at,
+  };
+}
+
+function updateAccountProfile(userId, body) {
+  const displayName = typeof body?.displayName === "string" ? body.displayName.trim() : "";
+  const bio = typeof body?.bio === "string" ? body.bio.trim() : "";
+  if (displayName.length > 40) throw new HttpError(400, "표시 이름은 40자 이내로 입력해 주세요.");
+  if (bio.length > 300) throw new HttpError(400, "소개는 300자 이내로 입력해 주세요.");
+  const result = usersDatabase.prepare(`
+    UPDATE users SET display_name = ?, bio = ? WHERE id = ?
+  `).run(displayName || null, bio || null, userId);
+  if (Number(result.changes) !== 1) throw new HttpError(404, "계정 정보를 찾을 수 없습니다.");
+  const user = usersDatabase.prepare(`
+    SELECT id, username, display_name, bio, created_at FROM users WHERE id = ?
+  `).get(userId);
+  return {
+    id: user.id,
+    username: user.username,
+    displayName: user.display_name || null,
+    bio: user.bio || "",
+    createdAt: user.created_at,
+  };
 }
 
 function makeAuthSessionResponse(request, response, user) {
@@ -1017,6 +1051,28 @@ async function handleAuthRoute(request, response, pathname) {
     sendJson(response, 200, auth
       ? { authenticated: true, user: auth.user, csrfToken: auth.csrfToken, expiresAt: auth.expiresAt }
       : { authenticated: false, user: null, csrfToken: null });
+    return true;
+  }
+
+  if (pathname === "/api/auth/profile") {
+    if (request.method !== "PATCH") {
+      sendJson(response, 405, { error: "PATCH 요청만 지원합니다." });
+      return true;
+    }
+    try {
+      requireSameOrigin(request);
+      const auth = requireSession(request, response);
+      if (!auth) return true;
+      if (!requireCsrf(request, response, auth)) return true;
+      const body = await readJson(request);
+      const user = updateAccountProfile(auth.user.id, body);
+      rejectNoStore(response);
+      sendJson(response, 200, { user });
+    } catch (error) {
+      const status = error instanceof HttpError ? error.status : 500;
+      const message = error instanceof HttpError ? error.message : "프로필 정보를 저장하지 못했습니다.";
+      sendJson(response, status, { error: message });
+    }
     return true;
   }
 

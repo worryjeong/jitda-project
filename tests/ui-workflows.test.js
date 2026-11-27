@@ -15,10 +15,22 @@ test("project detail only displays team members; My Page owns team controls", as
   assert.doesNotMatch(teamPanel, /<form|추방|초대 보내기|초대 수락/u);
 
   assert.match(html, /id="mypage-view"/u);
+  assert.match(html, /id="mypage-profile-panel"/u);
+  assert.match(html, /id="mypage-profile-form"/u);
+  assert.match(html, /id="mypage-display-name"/u);
+  assert.match(html, /id="mypage-bio"/u);
+  assert.match(html, /id="mypage-owned-count"/u);
+  assert.match(html, /id="mypage-shared-count"/u);
+  assert.match(html, /href="#\/workspace">프로젝트 초대 관리/u);
+  assert.match(html, /id="mypage-logout-button"/u);
+  assert.match(html, /id="mypage-team-management" hidden/u);
   assert.match(html, /id="pending-invitations-list"/u);
   assert.match(html, /id="mypage-owned-projects"/u);
   assert.match(html, /data-mypage-invite-form/u);
   assert.match(html, /data-remove-member/u);
+  assert.match(html, /apiRequest\("\/api\/auth\/profile", \{[\s\S]*?method: "PATCH"/u);
+  assert.match(html, /elements\.mypageProfilePanel\.hidden = isWorkspaceRoute/u);
+  assert.match(html, /elements\.mypageTeamManagement\.hidden = !isWorkspaceRoute/u);
   assert.match(html, /href="#\/mypage"/u);
 });
 

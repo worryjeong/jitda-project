@@ -104,6 +104,35 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
     const alphaCookie = registered.cookie;
     const alphaCsrf = registered.payload.csrfToken;
     assert.ok(alphaCookie && alphaCsrf);
+    assert.equal(registered.payload.user.createdAt.length > 0, true);
+    assert.equal(registered.payload.user.bio, "");
+
+    const profileWithoutCsrf = await request("/api/auth/profile", {
+      method: "PATCH",
+      cookie: alphaCookie,
+      body: { displayName: "알파 팀", bio: "요구사항을 꼼꼼히 검토합니다." },
+    });
+    assert.equal(profileWithoutCsrf.response.status, 403, "profile updates require CSRF validation");
+    const savedProfile = await request("/api/auth/profile", {
+      method: "PATCH",
+      cookie: alphaCookie,
+      csrf: alphaCsrf,
+      body: { displayName: "알파 팀", bio: "요구사항을 꼼꼼히 검토합니다." },
+    });
+    assert.equal(savedProfile.response.status, 200);
+    assert.equal(savedProfile.payload.user.displayName, "알파 팀");
+    assert.equal(savedProfile.payload.user.bio, "요구사항을 꼼꼼히 검토합니다.");
+    assert.equal(savedProfile.payload.user.createdAt, registered.payload.user.createdAt);
+    const oversizedBio = await request("/api/auth/profile", {
+      method: "PATCH",
+      cookie: alphaCookie,
+      csrf: alphaCsrf,
+      body: { displayName: "알파 팀", bio: "소개".repeat(151) },
+    });
+    assert.equal(oversizedBio.response.status, 400);
+    const currentProfile = await request("/api/auth/me", { cookie: alphaCookie });
+    assert.equal(currentProfile.payload.user.displayName, "알파 팀");
+    assert.equal(currentProfile.payload.user.bio, "요구사항을 꼼꼼히 검토합니다.");
 
     const unconfirmedImport = await request("/api/projects/import-legacy", {
       method: "POST",
@@ -576,6 +605,8 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
       body: { username: "alpha_user", password: "1234567" },
     });
     assert.equal(login.response.status, 200);
+    assert.equal(login.payload.user.displayName, "알파 소유자");
+    assert.equal(login.payload.user.bio, "요구사항을 꼼꼼히 검토합니다.");
     const alphaCookieAfterLogin = login.cookie;
     const alphaCsrfAfterLogin = login.payload.csrfToken;
 
@@ -812,6 +843,7 @@ test("database schema migration preserves existing accounts and project records"
     const migratedUsersDb = new (require("node:sqlite").DatabaseSync)(path.join(dataDirectory, "users.sqlite"), { readOnly: true });
     const columns = migratedUsersDb.prepare("PRAGMA table_info(users)").all().map((column) => column.name);
     assert.ok(columns.includes("display_name"), "the optional display-name column is added by migration");
+    assert.ok(columns.includes("bio"), "the optional bio column is added without recreating the account");
     assert.equal(migratedUsersDb.prepare("SELECT COUNT(*) AS count FROM users WHERE id = ?").get(ownerId).count, 1);
     migratedUsersDb.close();
   } finally {
