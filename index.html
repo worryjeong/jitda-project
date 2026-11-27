@@ -679,6 +679,33 @@
         color: var(--lime);
       }
 
+      .sidebar-mypage-mobile {
+        display: none;
+        min-height: 38px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 11px;
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        border-radius: 8px;
+        color: #f5f8f5;
+        font-size: 12px;
+        font-weight: 650;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .sidebar-mypage-mobile:hover,
+      .sidebar-mypage-mobile[aria-current="page"] {
+        border-color: rgba(213, 237, 119, 0.5);
+        color: var(--lime);
+      }
+
+      .sidebar-mypage-mobile:focus-visible,
+      .sidebar-profile-link:focus-visible {
+        outline: 3px solid var(--lime);
+        outline-offset: 3px;
+      }
+
       .help-card-label {
         display: flex;
         align-items: center;
@@ -712,6 +739,29 @@
         margin-top: 15px;
         padding: 13px 5px 0;
         border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .sidebar-profile-link {
+        display: flex;
+        min-width: 0;
+        flex: 1 1 auto;
+        align-items: center;
+        gap: 9px;
+        padding: 3px 0;
+        border-radius: 7px;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .sidebar-profile-link:hover .team-copy strong,
+      .sidebar-profile-link[aria-current="page"] .team-copy strong {
+        color: var(--lime);
+      }
+
+      .sidebar-profile-arrow {
+        margin-left: auto;
+        color: rgba(245, 248, 245, 0.52);
+        font-size: 13px;
       }
 
       .team-avatar {
@@ -781,6 +831,20 @@
       .user-chip {
         width: 42px;
         height: 42px;
+        color: inherit;
+        text-decoration: none;
+        transition: border-color 150ms ease, background-color 150ms ease;
+      }
+
+      .user-chip:hover,
+      .user-chip[aria-current="page"] {
+        border-color: #9aad94;
+        background: #f6f9f4;
+      }
+
+      .user-chip:focus-visible {
+        outline: 3px solid rgba(49, 114, 85, 0.35);
+        outline-offset: 2px;
       }
 
       .home-heading {
@@ -3208,6 +3272,13 @@
         line-height: 1.65;
       }
 
+      .team-empty a {
+        color: #496f4d;
+        font-weight: 680;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
       .change-history-list {
         gap: 8px;
       }
@@ -3396,6 +3467,240 @@
 
       .invite-inbox-error[hidden] {
         display: none;
+      }
+
+      .mypage-view {
+        width: min(100%, 1040px);
+        margin: 0 auto;
+      }
+
+      .mypage-account-card {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        margin: 18px 0 24px;
+        padding: 20px;
+        border: 1px solid #e1e8df;
+        border-radius: 11px;
+        background: #ffffff;
+      }
+
+      .mypage-account-avatar {
+        display: grid;
+        width: 48px;
+        height: 48px;
+        flex: 0 0 auto;
+        place-items: center;
+        border: 1px solid #d7e4d2;
+        border-radius: 14px;
+        background: #eff5eb;
+        color: #416545;
+        font-size: 14px;
+        font-weight: 760;
+      }
+
+      .mypage-account-copy {
+        display: grid;
+        min-width: 0;
+        gap: 4px;
+      }
+
+      .mypage-account-copy strong {
+        overflow-wrap: anywhere;
+        color: #334238;
+        font-size: 15px;
+        font-weight: 720;
+      }
+
+      .mypage-account-copy span {
+        color: #77847b;
+        font-size: 12px;
+      }
+
+      .mypage-section {
+        margin-top: 25px;
+      }
+
+      .mypage-section-heading {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      .mypage-section-heading h2 {
+        margin: 0 0 4px;
+        color: #35443a;
+        font-size: 17px;
+        font-weight: 730;
+        letter-spacing: -0.035em;
+      }
+
+      .mypage-section-heading p {
+        margin: 0;
+        color: #77837a;
+        font-size: 12px;
+        line-height: 1.6;
+      }
+
+      .mypage-section-count {
+        color: #6d7b70;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+
+      .mypage-project-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .mypage-project-card {
+        min-width: 0;
+        padding: 18px;
+        border: 1px solid #e2e8e1;
+        border-radius: 10px;
+        background: #ffffff;
+      }
+
+      .mypage-project-heading {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding-bottom: 13px;
+        border-bottom: 1px solid #edf0ec;
+      }
+
+      .mypage-project-heading h3 {
+        margin: 0 0 4px;
+        color: #35443a;
+        font-size: 14px;
+        font-weight: 710;
+        overflow-wrap: anywhere;
+      }
+
+      .mypage-project-heading p {
+        margin: 0;
+        color: #7b877e;
+        font-size: 11px;
+      }
+
+      .mypage-project-open {
+        display: inline-flex;
+        min-height: 37px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        padding: 0 10px;
+        border: 1px solid #dfe5df;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #526359;
+        font-size: 10px;
+        font-weight: 650;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .mypage-project-open:hover {
+        border-color: #bfcebf;
+        background: #f8faf7;
+      }
+
+      .mypage-project-body {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        gap: 12px;
+        padding-top: 13px;
+      }
+
+      .mypage-subheading {
+        margin: 0 0 8px;
+        color: #5c6c61;
+        font-size: 11px;
+        font-weight: 700;
+      }
+
+      .mypage-team-list {
+        display: grid;
+        gap: 7px;
+      }
+
+      .mypage-team-list .team-member-row {
+        padding: 8px 9px;
+      }
+
+      .mypage-team-status {
+        margin: 8px 0 0;
+        color: #52734f;
+        font-size: 11px;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+      }
+
+      .mypage-team-status[data-state="error"] {
+        color: #a34e42;
+      }
+
+      .mypage-team-status:empty {
+        display: none;
+      }
+
+      .mypage-team-status[hidden] {
+        display: none !important;
+      }
+
+      .mypage-empty {
+        margin: 0;
+        padding: 20px 15px;
+        border: 1px dashed #dfe6dd;
+        border-radius: 9px;
+        background: #fbfcfa;
+        color: #78847c;
+        font-size: 12px;
+        line-height: 1.7;
+        text-align: center;
+      }
+
+      .mypage-collaboration-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .mypage-collaboration-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 13px 15px;
+        border: 1px solid #e4e9e3;
+        border-radius: 8px;
+        background: #ffffff;
+      }
+
+      .mypage-collaboration-row strong {
+        display: block;
+        margin-bottom: 3px;
+        color: #39463d;
+        font-size: 12px;
+      }
+
+      .mypage-collaboration-row span {
+        color: #77837a;
+        font-size: 10px;
+      }
+
+      .mypage-collaboration-row a {
+        color: #466b4c;
+        font-size: 10px;
+        font-weight: 650;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .mypage-collaboration-row a:hover {
+        text-decoration: underline;
       }
 
       .document-list,
@@ -4779,6 +5084,146 @@
         gap: 10px;
       }
 
+      .comparison-update-action {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px 18px;
+        margin-top: 5px;
+        padding: 19px;
+        border: 1px solid #d9e5d5;
+        border-radius: 10px;
+        background: #f4f8f1;
+      }
+
+      .comparison-update-action h2,
+      .comparison-update-preview h2 {
+        margin: 0 0 5px;
+        color: #34463a;
+        font-size: 15px;
+        font-weight: 720;
+      }
+
+      .comparison-update-action p,
+      .comparison-update-preview-heading p {
+        margin: 0;
+        color: #6b786f;
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .comparison-update-action .static-button {
+        min-height: 42px;
+        flex: 0 0 auto;
+      }
+
+      .comparison-update-action[hidden],
+      .comparison-update-preview[hidden] {
+        display: none !important;
+      }
+
+      .comparison-update-status {
+        width: 100%;
+        color: #4d7453 !important;
+      }
+
+      .comparison-update-status[data-state="error"] {
+        color: #a34e42 !important;
+      }
+
+      .comparison-update-preview {
+        margin-top: 12px;
+        padding: 18px;
+        border: 1px solid #e0e7df;
+        border-radius: 10px;
+        background: #ffffff;
+      }
+
+      .comparison-update-preview-heading {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 13px;
+      }
+
+      .comparison-update-preview-heading .button-secondary {
+        min-height: 39px;
+        flex: 0 0 auto;
+      }
+
+      .comparison-update-preview pre {
+        max-height: 460px;
+        overflow: auto;
+        margin: 0;
+        padding: 14px;
+        border: 1px solid #edf0eb;
+        border-radius: 8px;
+        background: #fbfcfa;
+        color: #48564c;
+        font: inherit;
+        font-size: 12px;
+        line-height: 1.8;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .comparison-update-citations {
+        display: grid;
+        gap: 7px;
+        margin-top: 12px;
+      }
+
+      .comparison-update-citation {
+        padding: 10px 12px;
+        border: 1px solid #e4eae2;
+        border-radius: 7px;
+        background: #fbfcfa;
+      }
+
+      .comparison-update-citation header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 9px;
+        margin-bottom: 5px;
+      }
+
+      .comparison-update-citation header strong {
+        color: #5b6a5f;
+        font-size: 10px;
+      }
+
+      .comparison-update-citation header span {
+        color: #77837a;
+        font-size: 9px;
+        white-space: nowrap;
+      }
+
+      .comparison-update-citation header span.verified {
+        color: #39734b;
+      }
+
+      .comparison-update-citation header span.unverified {
+        color: #a34e42;
+      }
+
+      .comparison-update-citation p {
+        margin: 0;
+        color: #59675d;
+        font-size: 11px;
+        line-height: 1.65;
+        overflow-wrap: anywhere;
+      }
+
+      .comparison-update-citations-empty {
+        margin: 10px 0 0;
+        color: #8a6b4c;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
       .comparison-card {
         padding: 16px;
         border: 1px solid #e5eae4;
@@ -5169,6 +5614,11 @@
           display: none;
         }
 
+        .sidebar-mypage-mobile {
+          display: inline-flex;
+          margin-left: auto;
+        }
+
         .side-nav {
           flex-direction: row;
           gap: 4px;
@@ -5204,6 +5654,70 @@
         .sidebar {
           gap: 10px;
           padding: 10px 14px;
+        }
+
+        .sidebar-mypage-mobile {
+          min-height: 35px;
+          padding: 0 9px;
+          font-size: 10px;
+        }
+
+        .mypage-account-card {
+          gap: 11px;
+          margin: 13px 0 19px;
+          padding: 14px;
+        }
+
+        .mypage-account-avatar {
+          width: 41px;
+          height: 41px;
+        }
+
+        .mypage-account-copy strong {
+          font-size: 13px;
+        }
+
+        .mypage-project-card {
+          padding: 13px;
+        }
+
+        .mypage-project-heading {
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .mypage-project-open {
+          width: 100%;
+        }
+
+        .invite-inbox-item {
+          grid-template-columns: minmax(0, 1fr);
+        }
+
+        .invite-inbox-item .invitation-accept {
+          width: 100%;
+        }
+
+        .comparison-update-action {
+          align-items: stretch;
+          padding: 14px;
+        }
+
+        .comparison-update-action .static-button {
+          width: 100%;
+        }
+
+        .comparison-update-preview {
+          padding: 13px;
+        }
+
+        .comparison-update-preview-heading {
+          align-items: stretch;
+          flex-direction: column;
+        }
+
+        .comparison-update-preview-heading .button-secondary {
+          width: 100%;
         }
 
         .brand-row {
@@ -5554,6 +6068,7 @@
             <span class="brand-caption">REQUIREMENT CHECK</span>
           </div>
         </a>
+        <a class="sidebar-mypage-mobile" id="sidebar-mypage-mobile" href="#/mypage">마이페이지</a>
 
         <div class="workspace-switcher" aria-label="현재 워크스페이스">
           <div class="workspace-info">
@@ -5581,11 +6096,14 @@
           </a>
           <a class="sidebar-guide-mobile" href="#/guide">검토 가이드 <span aria-hidden="true">→</span></a>
           <div class="sidebar-footer">
-            <span class="team-avatar">SG</span>
-            <span class="team-copy">
-              <strong id="sidebar-username">로그아웃 상태</strong>
-              <span id="sidebar-account-status">로그인해 주세요</span>
-            </span>
+            <a class="sidebar-profile-link" id="sidebar-profile-link" href="#/mypage" aria-label="마이페이지 열기">
+              <span class="team-avatar" id="sidebar-avatar">SG</span>
+              <span class="team-copy">
+                <strong id="sidebar-username">로그아웃 상태</strong>
+                <span id="sidebar-account-status">로그인해 주세요</span>
+              </span>
+              <span class="sidebar-profile-arrow" aria-hidden="true">↗</span>
+            </a>
             <button class="logout-button" id="logout-button" type="button" hidden>로그아웃</button>
           </div>
         </div>
@@ -5659,21 +6177,10 @@
                   <path d="M15.5 7.7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.5h15c0-1.5-2-1.5-2-7.5ZM8 17h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
                 </svg>
               </span>
-              <span class="user-chip" role="img" aria-label="스펙가드 팀 이용자">
+              <a class="user-chip" id="home-mypage-link" href="#/mypage" aria-label="마이페이지 보기" title="마이페이지">
                 <span class="profile-avatar">SG</span>
-              </span>
+              </a>
             </div>
-          </section>
-
-          <section class="invite-inbox" id="pending-invitations-panel" aria-labelledby="pending-invitations-title" hidden>
-            <div class="invite-inbox-heading">
-              <div>
-                <h2 id="pending-invitations-title">프로젝트 초대</h2>
-                <p>초대를 수락하면 해당 프로젝트의 공동 편집자로 참여합니다.</p>
-              </div>
-            </div>
-            <div class="invite-inbox-list" id="pending-invitations-list"></div>
-            <p class="invite-inbox-error" id="pending-invitations-error" role="status" hidden></p>
           </section>
 
           <div class="sample-label">
@@ -5761,7 +6268,68 @@
 
           </section>
 
-          <p class="demo-footnote">요구사항 분석은 LLM API를 사용합니다. 프로젝트 데이터는 현재 브라우저에 저장됩니다.</p>
+          <p class="demo-footnote">요구사항 분석은 LLM API를 사용합니다. 프로젝트 데이터는 계정별로 서버에 저장됩니다.</p>
+          </section>
+
+          <section class="view mypage-view" id="mypage-view" aria-labelledby="mypage-title" hidden>
+            <a class="back-link" href="#/home">
+              <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M15 10H5m0 0 4-4m-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              대시보드
+            </a>
+            <header class="page-heading">
+              <div>
+                <span class="extraction-eyebrow">MY ACCOUNT</span>
+                <h1 id="mypage-title">마이페이지</h1>
+                <p>계정 정보와 프로젝트 팀 초대·참여를 관리합니다.</p>
+              </div>
+            </header>
+            <p class="mypage-team-status" id="mypage-notice" role="status" aria-live="polite" hidden></p>
+
+            <section class="mypage-account-card" aria-label="내 계정 정보">
+              <span class="mypage-account-avatar" id="mypage-account-avatar" aria-hidden="true">SG</span>
+              <div class="mypage-account-copy">
+                <strong id="mypage-account-name">계정 정보를 불러오는 중입니다.</strong>
+                <span>로그인한 계정으로 초대를 수락하고 프로젝트 팀을 관리할 수 있습니다.</span>
+              </div>
+            </section>
+
+            <section class="mypage-section" aria-labelledby="pending-invitations-title">
+              <div class="invite-inbox" id="pending-invitations-panel">
+                <div class="invite-inbox-heading">
+                  <div>
+                    <h2 id="pending-invitations-title">받은 프로젝트 초대</h2>
+                    <p>초대를 수락하면 해당 프로젝트의 공동 편집자로 참여합니다.</p>
+                  </div>
+                </div>
+                <div class="invite-inbox-list" id="pending-invitations-list"></div>
+                <p class="invite-inbox-error" id="pending-invitations-error" role="status" hidden></p>
+              </div>
+            </section>
+
+            <section class="mypage-section" aria-labelledby="mypage-owned-projects-title">
+              <div class="mypage-section-heading">
+                <div>
+                  <h2 id="mypage-owned-projects-title">내 프로젝트 팀 관리</h2>
+                  <p>프로젝트별로 초대를 보내고 참여 중인 팀원을 관리합니다.</p>
+                </div>
+                <span class="mypage-section-count" id="mypage-owned-project-count"></span>
+              </div>
+              <div class="mypage-project-list" id="mypage-owned-projects">
+                <p class="mypage-empty">프로젝트를 불러오는 중입니다.</p>
+              </div>
+            </section>
+
+            <section class="mypage-section" id="mypage-collaborations-section" aria-labelledby="mypage-collaborations-title" hidden>
+              <div class="mypage-section-heading">
+                <div>
+                  <h2 id="mypage-collaborations-title">공동 편집으로 참여 중</h2>
+                  <p>초대를 수락해 참여 중인 프로젝트입니다. 팀 관리 권한은 프로젝트 소유자에게 있습니다.</p>
+                </div>
+              </div>
+              <div class="mypage-collaboration-list" id="mypage-collaborations"></div>
+            </section>
           </section>
 
           <section class="view" id="projects-view" aria-labelledby="projects-title" hidden>
@@ -6219,6 +6787,25 @@
 
               <div class="comparison-results" id="comparison-result-list" aria-live="polite"></div>
               <div class="comparison-list-empty" id="comparison-empty-results" hidden>이 필터에 표시할 비교 결과가 없습니다.</div>
+              <section class="comparison-update-action" id="comparison-update-action" hidden aria-labelledby="comparison-update-action-title">
+                <div>
+                  <h2 id="comparison-update-action-title">비교 결과를 바탕으로 업데이트안을 만들까요?</h2>
+                  <p>반영된 내용은 유지하고, 누락된 요구사항은 추가하며, 충돌한 내용은 확정된 요구사항에 맞게 수정합니다.</p>
+                </div>
+                <button class="static-button" id="generate-spec-update" type="button">기획서 업데이트안 생성</button>
+                <p class="comparison-update-status" id="comparison-update-status" role="status" aria-live="polite" hidden></p>
+              </section>
+              <section class="comparison-update-preview" id="comparison-update-preview" hidden aria-labelledby="comparison-update-preview-title">
+                <div class="comparison-update-preview-heading">
+                  <div>
+                    <h2 id="comparison-update-preview-title">저장된 기획서 업데이트안</h2>
+                    <p id="comparison-update-generated-at"></p>
+                  </div>
+                  <a class="button-secondary" id="comparison-update-edit-link" href="#">업데이트안 확인·수정</a>
+                </div>
+                <pre id="comparison-update-preview-content"></pre>
+                <div class="comparison-update-citations" id="comparison-update-citations" aria-label="업데이트안 원문 근거"></div>
+              </section>
             </div>
           </section>
 
@@ -6800,8 +7387,20 @@
           workspaceUsername: document.querySelector("#workspace-username"),
           sidebarUsername: document.querySelector("#sidebar-username"),
           sidebarAccountStatus: document.querySelector("#sidebar-account-status"),
+          sidebarAvatar: document.querySelector("#sidebar-avatar"),
+          sidebarProfileLink: document.querySelector("#sidebar-profile-link"),
+          sidebarMobileLink: document.querySelector("#sidebar-mypage-mobile"),
+          homeMypageLink: document.querySelector("#home-mypage-link"),
           logoutButton: document.querySelector("#logout-button"),
           home: document.querySelector("#home-view"),
+          mypage: document.querySelector("#mypage-view"),
+          mypageAccountName: document.querySelector("#mypage-account-name"),
+          mypageAccountAvatar: document.querySelector("#mypage-account-avatar"),
+          mypageNotice: document.querySelector("#mypage-notice"),
+          mypageOwnedProjectCount: document.querySelector("#mypage-owned-project-count"),
+          mypageOwnedProjects: document.querySelector("#mypage-owned-projects"),
+          mypageCollaborationsSection: document.querySelector("#mypage-collaborations-section"),
+          mypageCollaborations: document.querySelector("#mypage-collaborations"),
           pendingInvitationsPanel: document.querySelector("#pending-invitations-panel"),
           pendingInvitationsList: document.querySelector("#pending-invitations-list"),
           pendingInvitationsError: document.querySelector("#pending-invitations-error"),
@@ -6902,6 +7501,14 @@
           comparisonFilterCountConflict: document.querySelector("#comparison-filter-count-conflict"),
           comparisonResultList: document.querySelector("#comparison-result-list"),
           comparisonEmptyResults: document.querySelector("#comparison-empty-results"),
+          comparisonUpdateAction: document.querySelector("#comparison-update-action"),
+          generateSpecUpdate: document.querySelector("#generate-spec-update"),
+          comparisonUpdateStatus: document.querySelector("#comparison-update-status"),
+          comparisonUpdatePreview: document.querySelector("#comparison-update-preview"),
+          comparisonUpdateGeneratedAt: document.querySelector("#comparison-update-generated-at"),
+          comparisonUpdatePreviewContent: document.querySelector("#comparison-update-preview-content"),
+          comparisonUpdateCitations: document.querySelector("#comparison-update-citations"),
+          comparisonUpdateEditLink: document.querySelector("#comparison-update-edit-link"),
           deleteDialog: document.querySelector("#project-delete-dialog"),
           deleteProjectName: document.querySelector("#project-delete-name"),
           cancelProjectDelete: document.querySelector("#cancel-project-delete"),
@@ -6925,6 +7532,14 @@
         let pendingInvitations = [];
         let projectChangeRows = [];
         let showAllProjectChanges = false;
+        const projectSaveQueues = new Map();
+        let comparisonUpdateBusy = false;
+        let comparisonUpdateMessage = "";
+        let comparisonUpdateHasError = false;
+        let comparisonUpdateMessageProjectId = "";
+        let myPageLoadSequence = 0;
+        let myPageNoticeMessage = "";
+        let myPageNoticeIsError = false;
 
         class ApiRequestError extends Error {
           constructor(status, payload) {
@@ -7006,11 +7621,13 @@
           const username = currentUser?.username || "로그아웃 상태";
           elements.workspaceUsername.textContent = currentUser?.username || "내 워크스페이스";
           elements.sidebarUsername.textContent = username;
-          elements.sidebarAccountStatus.textContent = currentUser ? "계정 프로젝트" : "로그인해 주세요";
+          elements.sidebarAccountStatus.textContent = currentUser ? "마이페이지 · 계정 관리" : "로그인해 주세요";
           elements.logoutButton.hidden = !currentUser;
-          document.querySelectorAll(".user-chip .profile-avatar").forEach((avatar) => {
-            avatar.textContent = currentUser?.username?.slice(0, 2).toUpperCase() || "SG";
-          });
+          const initials = currentUser?.username?.slice(0, 2).toUpperCase() || "SG";
+          elements.sidebarAvatar.textContent = initials;
+          document.querySelectorAll(".user-chip .profile-avatar").forEach((avatar) => { avatar.textContent = initials; });
+          elements.mypageAccountName.textContent = currentUser ? accountDisplayName(currentUser) : "로그인이 필요합니다.";
+          elements.mypageAccountAvatar.textContent = initials;
         }
 
         function accountDisplayName(account) {
@@ -7019,21 +7636,9 @@
           return displayName ? `${displayName} (${username})` : username;
         }
 
-        function setTeamStatus(projectId, message, isError = false) {
-          if (elements.detail.dataset.projectId !== projectId) return;
-          const status = elements.detailContent.querySelector("#project-team-status");
-          if (!status) return;
-          status.textContent = message || "";
-          status.dataset.state = isError ? "error" : "success";
-          status.hidden = !message;
-        }
-
         function renderProjectTeam(projectId, payload) {
           if (elements.detail.dataset.projectId !== projectId) return;
           const memberList = elements.detailContent.querySelector("#project-team-list");
-          const pendingList = elements.detailContent.querySelector("#project-pending-list");
-          const pendingNames = elements.detailContent.querySelector("#project-pending-names");
-          const inviteForm = elements.detailContent.querySelector("#project-team-invite-form");
           const members = Array.isArray(payload.members) ? payload.members : [];
           const editors = members.filter((member) => member.role === "editor");
 
@@ -7045,21 +7650,14 @@
               <article class="team-member-row" data-role="${isOwner ? "owner" : "editor"}">
                 <span class="team-member-avatar" aria-hidden="true">${isOwner ? "소" : "팀"}</span>
                 <span class="team-member-copy"><strong>${name}</strong><span>${roleLabel}</span></span>
-                ${payload.isOwner && !isOwner ? `<button class="team-remove-button" type="button" data-remove-member="${escapeHtml(member.id)}" data-member-name="${name}">추방</button>` : ""}
               </article>`;
           }).join("");
 
           if (!editors.length) {
-            memberList.insertAdjacentHTML("beforeend", '<p class="team-empty">아직 초대를 수락한 팀원이 없습니다. 아이디로 초대하면 이곳에 표시됩니다.</p>');
+            memberList.insertAdjacentHTML("beforeend", '<p class="team-empty">아직 참여 중인 팀원이 없습니다. <a href="#/mypage">마이페이지에서 초대를 보내고 관리할 수 있습니다.</a></p>');
           } else if (!members.length) {
             memberList.innerHTML = '<p class="team-empty">참여 팀원이 없습니다.</p>';
           }
-
-          const pending = Array.isArray(payload.pendingInvitations) ? payload.pendingInvitations : [];
-          pendingList.hidden = !payload.isOwner || !pending.length;
-          pendingNames.innerHTML = pending.map((member) => `<span>${escapeHtml(accountDisplayName(member))}</span>`).join("");
-          inviteForm.hidden = !payload.isOwner;
-          setTeamStatus(projectId, "");
         }
 
         function renderProjectChangeHistory(rows) {
@@ -7092,7 +7690,7 @@
           moreButton.textContent = showAllProjectChanges ? "최근 5개만 보기" : "이전 수정 기록 보기";
         }
 
-        async function loadProjectManagement(project) {
+        async function loadProjectDetailData(project) {
           const projectId = project.id;
           showAllProjectChanges = false;
           const memberList = elements.detailContent.querySelector("#project-team-list");
@@ -7108,8 +7706,7 @@
           if (teamResult.status === "fulfilled") {
             renderProjectTeam(projectId, teamResult.value);
           } else {
-            memberList.innerHTML = '<p class="team-empty">팀원 정보를 불러오지 못했습니다.</p>';
-            setTeamStatus(projectId, teamResult.reason instanceof Error ? teamResult.reason.message : "팀원 정보를 불러오지 못했습니다.", true);
+            memberList.innerHTML = `<p class="team-empty">${escapeHtml(teamResult.reason instanceof Error ? teamResult.reason.message : "팀원 정보를 불러오지 못했습니다.")}</p>`;
           }
 
           if (changesResult.status === "fulfilled") {
@@ -7121,16 +7718,16 @@
 
         function renderPendingInvitations() {
           const invitations = pendingInvitations;
-          elements.pendingInvitationsPanel.hidden = invitations.length === 0;
+          elements.pendingInvitationsPanel.hidden = false;
           elements.pendingInvitationsError.hidden = true;
-          elements.pendingInvitationsList.innerHTML = invitations.map((invitation) => {
+          elements.pendingInvitationsList.innerHTML = invitations.length ? invitations.map((invitation) => {
             const inviter = invitation.invitedBy ? accountDisplayName(invitation.invitedBy) : "프로젝트 소유자";
             return `
               <article class="invite-inbox-item">
                 <div><strong>${escapeHtml(invitation.projectName)}</strong><span>${escapeHtml(invitation.client || "")} · ${escapeHtml(inviter)}님이 초대했습니다.</span></div>
                 <button class="invitation-accept" type="button" data-accept-invitation="${escapeHtml(invitation.id)}" data-project-id="${escapeHtml(invitation.projectId)}">초대 수락</button>
               </article>`;
-          }).join("");
+          }).join("") : '<p class="mypage-empty">현재 수락 대기 중인 프로젝트 초대가 없습니다.</p>';
         }
 
         async function loadPendingInvitations() {
@@ -7146,23 +7743,211 @@
           } catch (error) {
             pendingInvitations = [];
             elements.pendingInvitationsPanel.hidden = false;
-            elements.pendingInvitationsList.innerHTML = "";
+            elements.pendingInvitationsList.innerHTML = '<p class="mypage-empty">초대 목록을 불러오지 못했습니다.</p>';
             elements.pendingInvitationsError.textContent = error instanceof Error ? error.message : "초대를 불러오지 못했습니다.";
             elements.pendingInvitationsError.hidden = false;
           }
         }
 
-        async function persistProject(project, options = {}) {
+        function renderMyPageProjectCard(project, teamPayload = null, loadError = "") {
+          const members = Array.isArray(teamPayload?.members) ? teamPayload.members : [];
+          const editors = members.filter((member) => member.role === "editor");
+          const memberMarkup = members.map((member) => {
+            const isOwner = member.role === "owner";
+            const name = escapeHtml(accountDisplayName(member));
+            return `
+              <article class="team-member-row" data-role="${isOwner ? "owner" : "editor"}">
+                <span class="team-member-avatar" aria-hidden="true">${isOwner ? "소" : "팀"}</span>
+                <span class="team-member-copy"><strong>${name}</strong><span>${isOwner ? "소유자" : "공동 편집자"}</span></span>
+                ${isOwner ? "" : `<button class="team-remove-button" type="button" data-remove-member="${escapeHtml(member.id)}" data-member-name="${name}">추방</button>`}
+              </article>`;
+          }).join("");
+          const pending = Array.isArray(teamPayload?.pendingInvitations) ? teamPayload.pendingInvitations : [];
+          const pendingMarkup = pending.length ? `
+            <div class="team-pending-list">
+              <strong>수락 대기 중</strong>
+              ${pending.map((member) => `<span>${escapeHtml(accountDisplayName(member))}</span>`).join("")}
+            </div>` : "";
+
+          return `
+            <article class="mypage-project-card" data-mypage-project="${escapeHtml(project.id)}">
+              <header class="mypage-project-heading">
+                <div><h3>${escapeHtml(project.name)}</h3><p>${escapeHtml(project.client || "고객사 미입력")}</p></div>
+                <a class="mypage-project-open" href="#/projects/${encodeURIComponent(project.id)}">프로젝트 보기</a>
+              </header>
+              <div class="mypage-project-body">
+                <div>
+                  <h4 class="mypage-subheading">참여 팀원</h4>
+                  <div class="mypage-team-list">
+                    ${loadError
+                      ? `<p class="team-empty">${escapeHtml(loadError)}</p>`
+                      : `${memberMarkup}${editors.length ? "" : '<p class="team-empty">아직 수락한 팀원이 없습니다.</p>'}`}
+                  </div>
+                  ${pendingMarkup}
+                  <form class="team-invite-form" data-mypage-invite-form data-project-id="${escapeHtml(project.id)}">
+                    <label>아이디로 팀원 초대</label>
+                    <input name="username" type="text" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" placeholder="초대할 계정 아이디" autocomplete="off" required />
+                    <button type="submit">초대 보내기</button>
+                  </form>
+                  <p class="mypage-team-status" data-mypage-project-status role="status" aria-live="polite" hidden></p>
+                </div>
+              </div>
+            </article>`;
+        }
+
+        function setMyPageNotice(message, isError = false) {
+          myPageNoticeMessage = message || "";
+          myPageNoticeIsError = Boolean(isError);
+          elements.mypageNotice.textContent = myPageNoticeMessage;
+          elements.mypageNotice.dataset.state = myPageNoticeIsError ? "error" : "success";
+          elements.mypageNotice.hidden = !myPageNoticeMessage;
+        }
+
+        function setMyPageProjectStatus(projectId, message, isError = false) {
+          const card = [...elements.mypageOwnedProjects.querySelectorAll("[data-mypage-project]")]
+            .find((item) => item.dataset.mypageProject === projectId);
+          const status = card?.querySelector("[data-mypage-project-status]");
+          if (!status) return;
+          status.textContent = message || "";
+          status.dataset.state = isError ? "error" : "success";
+          status.hidden = !message;
+        }
+
+        async function loadMyPageData() {
+          if (!currentUser) return;
+          const userId = currentUser.id;
+          const loadSequence = ++myPageLoadSequence;
+          elements.mypageAccountName.textContent = accountDisplayName(currentUser);
+          elements.mypageAccountAvatar.textContent = currentUser.username?.slice(0, 2).toUpperCase() || "SG";
+          setMyPageNotice(myPageNoticeMessage, myPageNoticeIsError);
+          await loadPendingInvitations();
+          if (currentUser?.id !== userId || loadSequence !== myPageLoadSequence) return;
+
+          const ownedProjects = projects.filter((project) => project.memberRole === "owner");
+          const collaborations = projects.filter((project) => project.memberRole === "editor");
+          elements.mypageOwnedProjectCount.textContent = `${ownedProjects.length}개 프로젝트`;
+          elements.mypageOwnedProjects.innerHTML = ownedProjects.length
+            ? ownedProjects.map((project) => renderMyPageProjectCard(project)).join("")
+            : '<p class="mypage-empty">아직 소유한 프로젝트가 없습니다. 새 프로젝트를 만들면 이곳에서 팀원을 초대할 수 있습니다.</p>';
+          elements.mypageCollaborationsSection.hidden = collaborations.length === 0;
+          elements.mypageCollaborations.innerHTML = collaborations.map((project) => `
+            <article class="mypage-collaboration-row">
+              <div><strong>${escapeHtml(project.name)}</strong><span>${escapeHtml(project.client || "고객사 미입력")} · 공동 편집자</span></div>
+              <a href="#/projects/${encodeURIComponent(project.id)}">프로젝트 열기 →</a>
+            </article>`).join("");
+          if (!ownedProjects.length) return;
+
+          const teamResults = await Promise.all(ownedProjects.map(async (project) => {
+            try {
+              return { project, payload: await apiRequest(`/api/projects/${encodeURIComponent(project.id)}/members`) };
+            } catch (error) {
+              return { project, error: error instanceof Error ? error.message : "팀원 정보를 불러오지 못했습니다." };
+            }
+          }));
+          if (currentUser?.id !== userId || loadSequence !== myPageLoadSequence) return;
+          elements.mypageOwnedProjects.innerHTML = teamResults.map(({ project, payload, error }) =>
+            renderMyPageProjectCard(project, payload, error)
+          ).join("");
+        }
+
+        function persistProject(project) {
           if (!currentUser) throw new ApiRequestError(401, { error: "로그인이 필요합니다." });
-          const isCreate = Boolean(options.create);
-          const url = isCreate ? "/api/projects" : `/api/projects/${encodeURIComponent(project.id)}`;
-          const payload = isCreate
-            ? await apiRequest(url, { method: "POST", body: { project } })
-            : await apiRequest(url, { method: "PUT", body: { project, expectedVersion: project.serverVersion } });
-          if (!payload?.project) throw new ApiRequestError(500, { error: "저장된 프로젝트 응답이 비어 있습니다." });
-          Object.assign(project, payload.project);
-          persistedProjectSnapshots.set(project.id, projectPersistenceSnapshot(project));
-          return project;
+          const projectId = String(project?.id || "");
+          if (!projectId) throw new ApiRequestError(400, { error: "프로젝트 ID가 없습니다." });
+          const previous = projectSaveQueues.get(projectId) || Promise.resolve();
+          const queued = previous.catch(() => {}).then(async () => {
+            const liveProject = projects.find((item) => item.id === projectId) || project;
+            const snapshot = projectPersistenceSnapshot(liveProject);
+            const persisted = persistedProjectSnapshots.get(projectId);
+            if (persisted && JSON.stringify(snapshot) === JSON.stringify(persisted)) {
+              if (project !== liveProject) Object.assign(project, liveProject);
+              return liveProject;
+            }
+
+            const isCreate = !persisted;
+            const url = isCreate ? "/api/projects" : `/api/projects/${encodeURIComponent(projectId)}`;
+            const payload = isCreate
+              ? await apiRequest(url, { method: "POST", body: { project: liveProject } })
+              : await apiRequest(url, { method: "PUT", body: { project: liveProject, expectedVersion: liveProject.serverVersion } });
+            if (!payload?.project) throw new ApiRequestError(500, { error: "저장된 프로젝트 응답이 비어 있습니다." });
+
+            // 서버 응답의 serverVersion을 배열 안 실제 객체와 호출자가 받은 객체 모두에 반영합니다.
+            Object.assign(liveProject, payload.project);
+            if (project !== liveProject) Object.assign(project, payload.project);
+            persistedProjectSnapshots.set(projectId, projectPersistenceSnapshot(liveProject));
+            return liveProject;
+          });
+          projectSaveQueues.set(projectId, queued);
+          queued.finally(() => {
+            if (projectSaveQueues.get(projectId) === queued) projectSaveQueues.delete(projectId);
+          }).catch(() => {});
+          return queued;
+        }
+
+        function applyAnalysisPatch(project, patch, sourceRequirements, sourceSignature, completedAt) {
+          const patchFields = [
+            "extractedRequirements", "extractionHistory", "specificationTemplateReview", "extractionRun",
+            "requirements", "analysisRun", "analysisRunAt", "analysisModel", "specDraft", "specUpdateProposal",
+            "specDraftHistory", "specUpdateHistory",
+          ];
+          patchFields.forEach((field) => {
+            if (Object.hasOwn(patch, field)) project[field] = structuredClone(patch[field]);
+          });
+          project.requirementReview = project.requirementReview && typeof project.requirementReview === "object"
+            ? structuredClone(project.requirementReview)
+            : undefined;
+          reconcileReviewAfterAnalysis(project, sourceRequirements, completedAt);
+          project.status = project.requirements.some((item) => item.status !== "reflected") ? "review" : "done";
+          project.analysisInputSignature = sourceSignature;
+          project.analysisStale = projectContentSignature(project) !== sourceSignature;
+          if (project.requirementComparison) project.comparisonStale = true;
+          project.updatedAt = completedAt;
+        }
+
+        async function persistAnalysisProjectWithConflictRecovery(projectId, project, patch, sourceRequirements, sourceSignature, completedAt, previousState) {
+          try {
+            return await persistProject(project);
+          } catch (error) {
+            if (!(error instanceof ApiRequestError) || error.status !== 409) {
+              Object.assign(project, structuredClone(previousState));
+              throw error;
+            }
+          }
+
+          let latestProject = null;
+          try {
+            const latest = await apiRequest(`/api/projects/${encodeURIComponent(projectId)}`);
+            if (!latest?.project) throw new ApiRequestError(500, { error: "최신 프로젝트를 다시 불러오지 못했습니다." });
+            latestProject = structuredClone(latest.project);
+            const liveProject = projects.find((item) => item.id === projectId) || project;
+            Object.assign(liveProject, latestProject);
+            persistedProjectSnapshots.set(projectId, projectPersistenceSnapshot(liveProject));
+            applyAnalysisPatch(liveProject, patch, sourceRequirements, sourceSignature, completedAt);
+            // 한 번만 최신 버전에 합쳐 자동 재시도합니다. 저장 요청은 같은 프로젝트 큐를 통과합니다.
+            return await persistProject(liveProject);
+          } catch (retryError) {
+            if (latestProject) {
+              const liveProject = projects.find((item) => item.id === projectId) || project;
+              Object.assign(liveProject, latestProject);
+              if (liveProject !== project) Object.assign(project, latestProject);
+              persistedProjectSnapshots.set(projectId, projectPersistenceSnapshot(liveProject));
+              if (retryError instanceof ApiRequestError && retryError.status === 409) {
+                try {
+                  const newest = await apiRequest(`/api/projects/${encodeURIComponent(projectId)}`);
+                  if (newest?.project) {
+                    Object.assign(liveProject, newest.project);
+                    if (liveProject !== project) Object.assign(project, newest.project);
+                    persistedProjectSnapshots.set(projectId, projectPersistenceSnapshot(liveProject));
+                  }
+                } catch {
+                  // Keep the last successfully fetched server version available for the next manual retry.
+                }
+              }
+            } else {
+              Object.assign(project, structuredClone(previousState));
+            }
+            throw retryError;
+          }
         }
 
         function projectPersistenceSnapshot(project) {
@@ -7230,6 +8015,8 @@
         async function initializeAuthenticatedSession(sessionPayload) {
           currentUser = sessionPayload?.authenticated ? sessionPayload.user : null;
           csrfToken = currentUser && typeof sessionPayload.csrfToken === "string" ? sessionPayload.csrfToken : "";
+          myPageNoticeMessage = "";
+          myPageNoticeIsError = false;
           updateSidebarIdentity();
           if (!currentUser) {
             projects = [];
@@ -7564,22 +8351,12 @@
                   <div class="detail-panel-heading">
                     <div>
                       <h2 id="team-heading">참여 팀원</h2>
-                      <p>소유자와 초대를 수락한 공동 편집자입니다.</p>
+                      <p>소유자와 초대를 수락한 공동 편집자입니다. 팀 관리는 마이페이지에서 할 수 있습니다.</p>
                     </div>
                   </div>
                   <div class="team-member-list" id="project-team-list">
                     <p class="team-empty">참여 팀원을 불러오는 중입니다.</p>
                   </div>
-                  <div class="team-pending-list" id="project-pending-list" hidden>
-                    <strong>초대 수락 대기</strong>
-                    <div id="project-pending-names"></div>
-                  </div>
-                  <form class="team-invite-form" id="project-team-invite-form" data-project-id="${escapeHtml(project.id)}" hidden>
-                    <label for="project-team-invite-username">아이디로 팀원 초대</label>
-                    <input id="project-team-invite-username" name="username" type="text" minlength="3" maxlength="30" pattern="[A-Za-z0-9_]{3,30}" placeholder="초대할 아이디" autocomplete="off" required />
-                    <button type="submit">초대 보내기</button>
-                  </form>
-                  <p class="team-status" id="project-team-status" role="status" aria-live="polite" hidden></p>
                 </section>
 
                 <section class="detail-panel" aria-labelledby="progress-heading">
@@ -7612,7 +8389,7 @@
                 </section>
               </aside>
             </div>`;
-          loadProjectManagement(project);
+          loadProjectDetailData(project);
         }
 
         const requirementCategoryLabels = {
@@ -7978,7 +8755,7 @@
           return [];
         }
 
-        function evidenceExistsInMeetings(project, evidence) {
+        function evidenceExistsInMeetingDocuments(project, evidence) {
           const phrase = canonicalEvidenceComparisonText(evidence.text);
           if (!phrase) return false;
           const allSourceDocuments = (project.documents || []).filter((documentItem) => documentItem.kind === "source");
@@ -8025,6 +8802,27 @@
             }
           }
           return false;
+        }
+
+        function evidenceExistsInSpecificationDocuments(project, evidence) {
+          const phrase = canonicalEvidenceComparisonText(evidence.text);
+          if (!phrase) return false;
+          const documents = (project.documents || []).filter((documentItem) =>
+            documentItem.kind === "spec" && !documentItem.archivedAt && typeof documentItem.content === "string"
+          );
+          return documents.some((documentItem) => canonicalEvidenceComparisonText(documentItem.content).includes(phrase));
+        }
+
+        function evidenceExistsInMeetings(project, evidence) {
+          if (!evidence || typeof evidence.text !== "string") return false;
+          const isUpdateEvidence = evidence.target === "update" || evidence.purpose === "update";
+          const isSpecificationEvidence = evidence.sourceKind === "spec" || evidence.kind === "spec";
+          if (isUpdateEvidence) {
+            return evidenceExistsInMeetingDocuments(project, evidence)
+              || evidenceExistsInSpecificationDocuments(project, evidence);
+          }
+          if (isSpecificationEvidence) return evidenceExistsInSpecificationDocuments(project, evidence);
+          return evidenceExistsInMeetingDocuments(project, evidence);
         }
 
         function meetingChangeTransitions(item) {
@@ -8275,6 +9073,17 @@
             documentItem.kind === "spec" && !documentItem.archivedAt && documentItem.content?.trim()
           ));
           const hasSavedResults = Boolean(saved && Array.isArray(saved.results));
+          const hasCurrentComparison = hasConfirmed && hasSpecification && hasSavedResults && !isStale;
+          const updateProposal = project.specUpdateProposal && typeof project.specUpdateProposal === "object"
+            ? project.specUpdateProposal
+            : typeof project.specUpdateProposal === "string" && project.specUpdateProposal
+              ? { content: project.specUpdateProposal }
+              : null;
+          const hasUpdateProposal = Boolean(updateProposal?.content);
+          const updateMatchesComparison = Boolean(hasUpdateProposal
+            && updateProposal.comparisonComparedAt
+            && updateProposal.comparisonComparedAt === saved?.comparedAt
+            && updateProposal.comparisonSignature === saved?.confirmedSignature);
 
           elements.comparisonBack.href = reviewPath;
           elements.comparisonEmptyReviewLink.href = reviewPath;
@@ -8304,6 +9113,34 @@
           elements.comparison.dataset.projectId = project.id;
           elements.comparison.dataset.confirmedSignature = state.signature;
           elements.comparison.dataset.hasConfirmed = String(hasConfirmed);
+          elements.comparisonUpdateAction.hidden = !hasCurrentComparison;
+          elements.generateSpecUpdate.disabled = !hasCurrentComparison || comparisonUpdateBusy;
+          elements.generateSpecUpdate.textContent = comparisonUpdateBusy
+            ? "업데이트안 생성 중..."
+            : updateMatchesComparison ? "기획서 업데이트안 다시 생성" : "기획서 업데이트안 생성";
+          const updateMessage = comparisonUpdateMessageProjectId === project.id ? comparisonUpdateMessage : "";
+          elements.comparisonUpdateStatus.textContent = updateMessage;
+          elements.comparisonUpdateStatus.dataset.state = comparisonUpdateHasError ? "error" : "success";
+          elements.comparisonUpdateStatus.hidden = !updateMessage;
+          elements.comparisonUpdatePreview.hidden = !hasUpdateProposal;
+          elements.comparisonUpdateGeneratedAt.textContent = updateProposal?.generatedAt
+            ? `${formatDateTime(updateProposal.generatedAt)} 저장${updateMatchesComparison ? " · 현재 비교 결과 기준" : " · 이전 비교 기준"}`
+            : "";
+          elements.comparisonUpdatePreviewContent.textContent = updateProposal?.content || "";
+          const updateCitations = Array.isArray(updateProposal?.citations) ? updateProposal.citations : [];
+          elements.comparisonUpdateCitations.innerHTML = updateCitations.length
+            ? updateCitations.map((citation) => {
+              const clientVerified = evidenceExistsInMeetings(project, { text: citation.text, target: "update" });
+              const verified = Boolean(citation.verified && clientVerified);
+              const sourceLabel = citation.sourceKind === "spec" ? "기존 기획서" : "회의록·메모";
+              return `
+                <article class="comparison-update-citation">
+                  <header><strong>${escapeHtml(citation.section || "업데이트 근거")} · ${sourceLabel}</strong><span class="${verified ? "verified" : "unverified"}">${verified ? "원문 확인" : "근거 확인 필요"}</span></header>
+                  <p>“${escapeHtml(citation.text || "")}"</p>
+                </article>`;
+            }).join("")
+            : '<p class="comparison-update-citations-empty">업데이트안에 표시할 원문 인용이 없습니다. 기획서와 회의 원문을 함께 확인해 주세요.</p>';
+          elements.comparisonUpdateEditLink.href = `#/projects/${encodeURIComponent(project.id)}/extract`;
 
           if (!hasSavedResults) {
             elements.comparisonResultList.innerHTML = "";
@@ -8950,7 +9787,7 @@
               const snapshot = projectPersistenceSnapshot(project);
               const persisted = persistedProjectSnapshots.get(project.id);
               if (persisted && JSON.stringify(snapshot) === JSON.stringify(persisted)) continue;
-              await persistProject(project, { create: !persisted });
+              await persistProject(project);
             }
             return true;
           } catch (error) {
@@ -9327,14 +10164,26 @@
           const [rawRoute, rawAnchor] = window.location.hash.slice(1).split("#", 2);
           const route = decodeURIComponent(rawRoute || "/home").replace(/\/+$/, "") || "/home";
           const anchor = rawAnchor ? decodeURIComponent(rawAnchor) : "";
-          const views = [elements.authView, elements.home, elements.guide, elements.allProjects, elements.create, elements.extraction, elements.review, elements.comparison, elements.detail];
+          const views = [elements.authView, elements.home, elements.mypage, elements.guide, elements.allProjects, elements.create, elements.extraction, elements.review, elements.comparison, elements.detail];
           renderProjectLists();
           window.scrollTo(0, 0);
           views.forEach((view) => { view.hidden = true; });
+          [elements.sidebarProfileLink, elements.sidebarMobileLink, elements.homeMypageLink].forEach((link) => {
+            if (!link) return;
+            if (route === "/mypage") link.setAttribute("aria-current", "page");
+            else link.removeAttribute("aria-current");
+          });
 
           if (!currentUser) {
             elements.authView.hidden = false;
             document.title = "로그인 | 스펙가드";
+            return;
+          }
+
+          if (route === "/mypage") {
+            elements.mypage.hidden = false;
+            document.title = "마이페이지 | 스펙가드";
+            loadMyPageData();
             return;
           }
 
@@ -9519,12 +10368,12 @@
           if (!button) return;
           button.disabled = true;
           const invitationId = button.dataset.acceptInvitation;
-          const projectId = button.dataset.projectId;
+          const invitation = pendingInvitations.find((item) => item.id === invitationId);
           try {
             await apiRequest(`/api/invitations/${encodeURIComponent(invitationId)}/accept`, { method: "POST", body: {} });
             await loadProjectsFromDatabase();
-            await loadPendingInvitations();
-            setRoute(`/projects/${encodeURIComponent(projectId)}`);
+            await loadMyPageData();
+            setMyPageNotice(`${invitation?.projectName || "프로젝트"} 초대를 수락했습니다. 이제 공동 편집자로 참여합니다.`);
           } catch (error) {
             button.disabled = false;
             elements.pendingInvitationsError.textContent = error instanceof Error ? error.message : "초대를 수락하지 못했습니다.";
@@ -9532,56 +10381,54 @@
           }
         });
 
-        elements.detailContent.addEventListener("submit", async (event) => {
-          const form = event.target.closest("#project-team-invite-form");
+        elements.mypageOwnedProjects.addEventListener("submit", async (event) => {
+          const form = event.target.closest("[data-mypage-invite-form]");
           if (!form) return;
           event.preventDefault();
           const projectId = form.dataset.projectId;
-          const project = projects.find((item) => item.id === projectId);
           const input = form.querySelector("[name='username']");
           const button = form.querySelector("[type='submit']");
-          if (!project || !input.value.trim()) return;
+          if (!projects.some((item) => item.id === projectId && item.memberRole === "owner") || !input.value.trim()) return;
           button.disabled = true;
-          setTeamStatus(projectId, "초대를 보내고 있습니다.");
+          setMyPageProjectStatus(projectId, "초대를 보내고 있습니다.");
           try {
             const result = await apiRequest(`/api/projects/${encodeURIComponent(projectId)}/invitations`, {
               method: "POST",
               body: { username: input.value.trim() },
             });
             const invitedUsername = result.invitation?.username || input.value.trim();
-            form.reset();
-            await loadProjectManagement(project);
-            setTeamStatus(projectId, `${invitedUsername}님에게 초대를 보냈습니다. 수락 전에는 참여 팀원으로 표시되지 않습니다.`);
+            await loadMyPageData();
+            setMyPageProjectStatus(projectId, `${invitedUsername}님에게 초대를 보냈습니다. 수락 전에는 참여 팀원으로 표시되지 않습니다.`);
           } catch (error) {
-            setTeamStatus(projectId, error instanceof Error ? error.message : "초대를 보내지 못했습니다.", true);
+            setMyPageProjectStatus(projectId, error instanceof Error ? error.message : "초대를 보내지 못했습니다.", true);
           } finally {
-            if (form.isConnected) button.disabled = false;
+            if (button.isConnected) button.disabled = false;
           }
         });
 
-        elements.detailContent.addEventListener("click", async (event) => {
+        elements.mypageOwnedProjects.addEventListener("click", async (event) => {
           const removeButton = event.target.closest("[data-remove-member]");
-          if (removeButton) {
-            const projectId = elements.detail.dataset.projectId;
-            const project = projects.find((item) => item.id === projectId);
-            if (!project) return;
-            const memberName = removeButton.dataset.memberName || "이 팀원";
-            if (!window.confirm(`${memberName}님을 추방하면 이 프로젝트에 접근할 수 없게 됩니다. 기존 작업과 수정 기록은 유지됩니다. 추방할까요?`)) return;
-            removeButton.disabled = true;
-            setTeamStatus(projectId, "팀원 접근 권한을 해제하고 있습니다.");
-            try {
-              await apiRequest(`/api/projects/${encodeURIComponent(projectId)}/members/${encodeURIComponent(removeButton.dataset.removeMember)}`, {
-                method: "DELETE",
-              });
-              await loadProjectManagement(project);
-              setTeamStatus(projectId, `${memberName}님의 접근 권한을 해제했습니다. 기존 수정 기록은 유지됩니다.`);
-            } catch (error) {
-              setTeamStatus(projectId, error instanceof Error ? error.message : "팀원을 추방하지 못했습니다.", true);
-              removeButton.disabled = false;
-            }
-            return;
+          if (!removeButton) return;
+          const card = removeButton.closest("[data-mypage-project]");
+          const projectId = card?.dataset.mypageProject || "";
+          if (!projectId || !projects.some((item) => item.id === projectId && item.memberRole === "owner")) return;
+          const memberName = removeButton.dataset.memberName || "이 팀원";
+          if (!window.confirm(`${memberName}님을 추방하면 이 프로젝트에 접근할 수 없게 됩니다. 프로젝트 자료와 기존 수정 기록은 유지됩니다. 추방할까요?`)) return;
+          removeButton.disabled = true;
+          setMyPageProjectStatus(projectId, "프로젝트 접근 권한을 해제하고 있습니다.");
+          try {
+            await apiRequest(`/api/projects/${encodeURIComponent(projectId)}/members/${encodeURIComponent(removeButton.dataset.removeMember)}`, {
+              method: "DELETE",
+            });
+            await loadMyPageData();
+            setMyPageProjectStatus(projectId, `${memberName}님의 접근 권한을 해제했습니다. 기존 작업과 수정 기록은 유지됩니다.`);
+          } catch (error) {
+            setMyPageProjectStatus(projectId, error instanceof Error ? error.message : "팀원을 추방하지 못했습니다.", true);
+            if (removeButton.isConnected) removeButton.disabled = false;
           }
+        });
 
+        elements.detailContent.addEventListener("click", (event) => {
           const moreButton = event.target.closest("#project-change-more");
           if (!moreButton) return;
           showAllProjectChanges = !showAllProjectChanges;
@@ -9782,6 +10629,64 @@
           if (project) runSpecificationComparison(project);
         });
 
+        elements.generateSpecUpdate.addEventListener("click", async () => {
+          const projectId = elements.comparison.dataset.projectId;
+          const project = projects.find((item) => item.id === projectId);
+          if (!project || comparisonUpdateBusy) return;
+          comparisonUpdateBusy = true;
+          comparisonUpdateMessageProjectId = projectId;
+          comparisonUpdateMessage = "확정 요구사항과 최신 비교 결과를 바탕으로 업데이트안을 작성하고 있습니다.";
+          comparisonUpdateHasError = false;
+          renderComparisonPage(project);
+
+          try {
+            const payload = await apiRequest("/api/generate-update", {
+              method: "POST",
+              body: { projectId },
+            });
+            const liveProject = projects.find((item) => item.id === projectId) || project;
+            if (typeof payload.proposal?.content !== "string" || !payload.proposal.content.trim()) {
+              throw new Error("생성된 기획서 업데이트안이 비어 있습니다.");
+            }
+            const previousProposal = typeof liveProject.specUpdateProposal === "string"
+              ? { content: liveProject.specUpdateProposal, editedByUser: false }
+              : structuredClone(liveProject.specUpdateProposal ?? null);
+            const previousHistory = structuredClone(liveProject.specUpdateHistory || []);
+            const previousUpdatedAt = liveProject.updatedAt;
+            if (previousProposal?.content) {
+              liveProject.specUpdateHistory = [
+                ...(Array.isArray(liveProject.specUpdateHistory) ? liveProject.specUpdateHistory : []),
+                { ...previousProposal, archivedAt: payload.proposal.generatedAt },
+              ];
+            }
+            liveProject.specUpdateProposal = {
+              ...payload.proposal,
+              comparisonComparedAt: liveProject.requirementComparison?.comparedAt || "",
+              comparisonSignature: liveProject.requirementComparison?.confirmedSignature || "",
+            };
+            liveProject.updatedAt = payload.proposal.generatedAt;
+            try {
+              await persistProject(liveProject);
+            } catch (error) {
+              liveProject.specUpdateProposal = previousProposal;
+              liveProject.specUpdateHistory = previousHistory;
+              liveProject.updatedAt = previousUpdatedAt;
+              throw error;
+            }
+            comparisonUpdateMessage = "기획서 업데이트안을 만들고 프로젝트에 저장했습니다. 아래 미리보기에서 확인하거나 추출 화면에서 수정할 수 있습니다.";
+            comparisonUpdateHasError = false;
+            renderProjectLists();
+            renderComparisonPage(liveProject);
+          } catch (error) {
+            comparisonUpdateMessage = error instanceof Error ? error.message : "기획서 업데이트안을 생성하지 못했습니다.";
+            comparisonUpdateHasError = true;
+            renderComparisonPage(project);
+          } finally {
+            comparisonUpdateBusy = false;
+            renderComparisonPage(projects.find((item) => item.id === projectId) || project);
+          }
+        });
+
         elements.reviewFilterGroup.addEventListener("click", (event) => {
           const button = event.target.closest("[data-review-filter]");
           if (!button) return;
@@ -9966,8 +10871,10 @@
         });
 
         elements.runAnalysisButton.addEventListener("click", async () => {
-          const project = projects.find((item) => item.id === elements.runAnalysisButton.dataset.projectId);
+          let project = projects.find((item) => item.id === elements.runAnalysisButton.dataset.projectId);
           if (!project || elements.runAnalysisButton.disabled) return;
+          const projectId = project.id;
+          const analysisSourceSignature = projectContentSignature(project);
 
           const hasSavedReview = Object.keys(project.requirementReview?.items || {}).length > 0;
           if (hasSavedReview && !window.confirm("저장된 요구사항을 최신 회차 자료와 수정 메모로 다시 분석합니다. 기존 검토·확정 이력은 보존되며, 내용이 변경된 확정 항목은 다시 확인이 필요할 수 있습니다. 계속할까요?")) return;
@@ -9998,7 +10905,7 @@
               analysis = await apiRequest("/api/analyze", {
               method: "POST",
               body: {
-                projectId: project.id,
+                projectId,
                 project: { name: project.name, client: project.client },
                 meetings: sourceDocuments.map((documentItem) => ({
                   date: meetingDateFor(documentItem, project),
@@ -10042,6 +10949,8 @@
               elements.analysisState.dataset.llmUsage = JSON.stringify(failure.usage || null);
               throw new Error(failure.error || (error instanceof Error ? error.message : "LLM 분석에 실패했습니다."));
             }
+            // 분석 요청을 기다리는 동안 배열이 다시 불러와졌더라도 최신 프로젝트 객체에 결과를 적용합니다.
+            project = projects.find((item) => item.id === projectId) || project;
             const sourceRequirements = (analysis.meetingRequirements || []).map((item, index) => ({
               id: item.id || `source-${index + 1}`,
               text: String(item.text || "").trim(),
@@ -10117,7 +11026,7 @@
                 reason: "",
                 status: "pending",
               }));
-            const previousState = {
+            const previousState = structuredClone({
               extractedRequirements: project.extractedRequirements,
               extractionHistory: project.extractionHistory,
               specificationTemplateReview: project.specificationTemplateReview,
@@ -10136,7 +11045,7 @@
               status: project.status,
               updatedAt: project.updatedAt,
               requirementReview: project.requirementReview,
-            };
+            });
             const completedAt = new Date().toISOString();
 
             if (project.extractionRun && Array.isArray(project.extractedRequirements?.source) && project.extractedRequirements.source.length) {
@@ -10161,8 +11070,8 @@
             project.status = project.requirements.some((item) => item.status !== "reflected") ? "review" : "done";
             project.analysisRunAt = completedAt;
             project.updatedAt = completedAt;
-            project.analysisInputSignature = projectContentSignature(project);
-            project.analysisStale = false;
+            project.analysisInputSignature = analysisSourceSignature;
+            project.analysisStale = projectContentSignature(project) !== analysisSourceSignature;
             if (project.requirementComparison) project.comparisonStale = true;
             reconcileReviewAfterAnalysis(project, sourceRequirements, completedAt);
             if (specDocument) {
@@ -10179,12 +11088,8 @@
                 ];
               }
               project.specDraft = null;
-              project.specUpdateProposal = {
-                content: String(analysis.specUpdate || ""),
-                generatedAt: completedAt,
-                templateFileName: project.specTemplate?.fileName || "",
-                editedByUser: false,
-              };
+              // 기존 기획서 업데이트안은 비교 화면에서 확정 요구사항 기준으로만 생성합니다.
+              project.specUpdateProposal = null;
             } else {
               if (project.specUpdateProposal?.content) {
                 project.specUpdateHistory = [
@@ -10200,20 +11105,49 @@
               };
             project.specUpdateProposal = null;
           }
-          project.specificationTemplateReview = {
-            generatedAt: completedAt,
-            templateFileName: project.specTemplate?.fileName || "서비스 기본 기획서 양식",
-            sections: Array.isArray(analysis.templateSections) ? analysis.templateSections.map((item) => ({
-              target: item.target === "update" ? "update" : "draft",
-              section: String(item.section || "").trim(),
-              needsConfirmation: Boolean(item.needsConfirmation),
-              evidence: String(item.evidence || ""),
-              reason: String(item.reason || ""),
-            })).filter((item) => item.section) : [],
-          };
-            if (!await persistProjects()) {
-              Object.assign(project, previousState);
-              throw new Error("분석 결과를 서버에 저장하지 못했습니다. 다시 시도해 주세요.");
+            project.specificationTemplateReview = {
+              generatedAt: completedAt,
+              templateFileName: project.specTemplate?.fileName || "서비스 기본 기획서 양식",
+              sections: specDocument ? [] : Array.isArray(analysis.templateSections) ? analysis.templateSections.map((item) => ({
+                target: item.target === "update" ? "update" : "draft",
+                section: String(item.section || "").trim(),
+                needsConfirmation: Boolean(item.needsConfirmation),
+                evidence: String(item.evidence || ""),
+                reason: String(item.reason || ""),
+              })).filter((item) => item.section) : [],
+            };
+            const analysisPatch = structuredClone({
+              extractedRequirements: project.extractedRequirements,
+              extractionHistory: project.extractionHistory,
+              specificationTemplateReview: project.specificationTemplateReview,
+              extractionRun: project.extractionRun,
+              requirements: project.requirements,
+              analysisRun: project.analysisRun,
+              analysisRunAt: project.analysisRunAt,
+              analysisModel: project.analysisModel,
+              specDraft: project.specDraft,
+              specUpdateProposal: project.specUpdateProposal,
+              specDraftHistory: project.specDraftHistory,
+              specUpdateHistory: project.specUpdateHistory,
+            });
+            try {
+              project = await persistAnalysisProjectWithConflictRecovery(
+                projectId,
+                project,
+                analysisPatch,
+                sourceRequirements,
+                analysisSourceSignature,
+                completedAt,
+                previousState,
+              );
+            } catch (error) {
+              if (error instanceof ApiRequestError && error.status === 409) {
+                throw new Error("프로젝트가 다시 변경되어 분석 결과를 저장하지 못했습니다. 최신 내용을 불러온 뒤 다시 분석해 주세요.");
+              }
+              if (error instanceof ApiRequestError && error.status !== 409) {
+                throw new Error(error.message || "분석 결과를 서버에 저장하지 못했습니다. 다시 시도해 주세요.");
+              }
+              throw error;
             }
 
             renderProjectLists();

@@ -88,6 +88,7 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
     assert.equal((await request("/api/analyze", { method: "POST", body: {} })).response.status, 401);
     assert.equal((await request("/api/compare", { method: "POST", body: {} })).response.status, 401);
     assert.equal((await request("/api/transcribe", { method: "POST", body: new Blob(["audio"]) })).response.status, 401);
+    assert.equal((await request("/api/generate-update", { method: "POST", body: {} })).response.status, 401);
 
     const shortPassword = await request("/api/auth/register", {
       method: "POST",
@@ -147,7 +148,7 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
       body: { project: { id: "csrf-check", name: "검증", client: "테스트" } },
     });
     assert.equal(missingCsrf.response.status, 403, "state-changing requests require CSRF validation");
-    for (const route of ["/api/analyze", "/api/compare", "/api/transcribe"]) {
+    for (const route of ["/api/analyze", "/api/compare", "/api/transcribe", "/api/generate-update"]) {
       const protectedWithoutCsrf = await request(route, {
         method: "POST",
         cookie: alphaCookie,
@@ -549,6 +550,12 @@ test("authentication, owner-scoped project CRUD, and persistence", { timeout: 30
       csrf: betaCsrf,
       headers: { "x-project-id": "project-alpha" },
       body: new Blob(["audio"]),
+    })).response.status, 404);
+    assert.equal((await request("/api/generate-update", {
+      method: "POST",
+      cookie: betaCookie,
+      csrf: betaCsrf,
+      body: { projectId: "project-alpha" },
     })).response.status, 404);
     const preservedProject = await request("/api/projects/project-alpha", { cookie: alphaCookie });
     assert.equal(preservedProject.response.status, 200);
