@@ -858,6 +858,12 @@ test("database schema migration preserves existing accounts and project records"
     assert.equal(changes.payload.changes[0].version, 8);
     assert.deepEqual(changes.payload.changes[0].changedFields, ["프로젝트 정보"]);
 
+    const migratedProjectsDb = new (require("node:sqlite").DatabaseSync)(path.join(dataDirectory, "projects.sqlite"), { readOnly: true });
+    const projectTables = migratedProjectsDb.prepare("SELECT name FROM sqlite_master WHERE type = 'table'").all().map((row) => row.name);
+    assert.ok(projectTables.includes("project_notifications"), "the new notification table is added without recreating old project data");
+    assert.equal(migratedProjectsDb.prepare("SELECT COUNT(*) AS count FROM project_notifications").get().count, 0, "migration does not fabricate old notifications");
+    migratedProjectsDb.close();
+
     const migratedUsersDb = new (require("node:sqlite").DatabaseSync)(path.join(dataDirectory, "users.sqlite"), { readOnly: true });
     const columns = migratedUsersDb.prepare("PRAGMA table_info(users)").all().map((column) => column.name);
     assert.ok(columns.includes("display_name"), "the optional display-name column is added by migration");

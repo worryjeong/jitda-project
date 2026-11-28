@@ -552,6 +552,7 @@
       }
 
       .workspace-switcher:focus-visible,
+      .sidebar-projects-mobile:focus-visible,
       .sidebar-workspace-manage:focus-visible,
       .sidebar-workspace-mobile:focus-visible {
         outline: 3px solid var(--lime);
@@ -611,6 +612,35 @@
         text-decoration: none;
         white-space: nowrap;
         transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+      }
+
+      .sidebar-projects-mobile {
+        display: none;
+        min-height: 38px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 11px;
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.09);
+        color: #ffffff;
+        font-size: 11px;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+        transition: border-color 150ms ease, background-color 150ms ease, color 150ms ease;
+      }
+
+      .sidebar-projects-mobile:hover,
+      .sidebar-projects-mobile[aria-current="page"] {
+        border-color: var(--lime);
+        background: rgba(213, 237, 119, 0.18);
+        color: #f2f8d5;
+      }
+
+      .sidebar-projects-mobile:focus-visible {
+        outline: 3px solid var(--lime);
+        outline-offset: 3px;
       }
 
       .sidebar-logout-mobile {
@@ -945,6 +975,295 @@
         height: 18px;
       }
 
+      .notification-wrapper {
+        position: relative;
+        z-index: 30;
+        flex: 0 0 auto;
+      }
+
+      .notification-trigger {
+        position: relative;
+        cursor: pointer;
+        font: inherit;
+        transition: border-color 140ms ease, background-color 140ms ease;
+      }
+
+      .notification-trigger:hover,
+      .notification-trigger[aria-expanded="true"] {
+        border-color: #b8c9b6;
+        background: #f6f9f3;
+        color: #365b3f;
+      }
+
+      .notification-trigger:focus-visible,
+      .notification-close:focus-visible,
+      .notification-filter:focus-visible,
+      .notification-mark-all:focus-visible,
+      .notification-item:focus-visible {
+        outline: 3px solid rgba(49, 114, 85, 0.27);
+        outline-offset: 2px;
+      }
+
+      .notification-count {
+        position: absolute;
+        top: -6px;
+        right: -6px;
+        display: grid;
+        min-width: 19px;
+        height: 19px;
+        place-items: center;
+        padding: 0 4px;
+        border: 2px solid #ffffff;
+        border-radius: 99px;
+        background: #b84c3f;
+        color: #ffffff;
+        font-size: 9px;
+        font-weight: 750;
+        line-height: 1;
+      }
+
+      .notification-count[hidden] {
+        display: none !important;
+      }
+
+      .notification-panel {
+        position: absolute;
+        top: calc(100% + 9px);
+        right: 0;
+        z-index: 60;
+        display: grid;
+        width: min(390px, calc(100vw - 28px));
+        max-height: min(590px, calc(100vh - 115px));
+        grid-template-rows: auto auto minmax(0, 1fr) auto;
+        overflow: hidden;
+        border: 1px solid #dce5dc;
+        border-radius: 12px;
+        background: #ffffff;
+        box-shadow: 0 18px 52px rgba(25, 46, 32, 0.19), 0 3px 10px rgba(25, 46, 32, 0.08);
+      }
+
+      @media (max-width: 620px) {
+        .notification-panel {
+          position: fixed;
+          top: 112px;
+          right: 12px;
+          width: min(390px, calc(100vw - 24px));
+          max-height: calc(100dvh - 126px);
+        }
+
+        .notification-panel-header {
+          padding: 13px 13px 10px;
+        }
+
+        .notification-item {
+          gap: 7px;
+          padding: 12px 11px;
+        }
+
+        .notification-item time {
+          font-size: 8px;
+        }
+      }
+
+      .notification-panel[hidden] {
+        display: none !important;
+      }
+
+      .notification-panel-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px 17px 12px;
+        border-bottom: 1px solid #edf0ec;
+      }
+
+      .notification-panel-header h2 {
+        margin: 0 0 4px;
+        color: #2d4033;
+        font-size: 15px;
+        font-weight: 740;
+      }
+
+      .notification-panel-header p {
+        margin: 0;
+        color: #748078;
+        font-size: 10px;
+        line-height: 1.5;
+      }
+
+      .notification-close {
+        display: grid;
+        width: 34px;
+        height: 34px;
+        flex: 0 0 auto;
+        place-items: center;
+        border: 1px solid #e3e9e2;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #67736b;
+        cursor: pointer;
+        font: inherit;
+        font-size: 20px;
+        line-height: 1;
+      }
+
+      .notification-close:hover {
+        background: #f6f8f5;
+      }
+
+      .notification-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 9px;
+        padding: 9px 13px;
+        border-bottom: 1px solid #edf0ec;
+      }
+
+      .notification-filters {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .notification-filter,
+      .notification-mark-all {
+        min-height: 34px;
+        padding: 0 10px;
+        border: 1px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: #68756c;
+        cursor: pointer;
+        font: inherit;
+        font-size: 10px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .notification-filter:hover,
+      .notification-mark-all:hover:not(:disabled) {
+        background: #f3f6f1;
+        color: #35563e;
+      }
+
+      .notification-filter.active {
+        border-color: #dce7d8;
+        background: #eef4e9;
+        color: #365d40;
+      }
+
+      .notification-mark-all:disabled {
+        color: #9ba49d;
+        cursor: default;
+      }
+
+      .notification-list {
+        min-height: 90px;
+        overflow: auto;
+        overscroll-behavior: contain;
+      }
+
+      .notification-item {
+        display: grid;
+        width: 100%;
+        grid-template-columns: 10px minmax(0, 1fr) auto;
+        align-items: start;
+        gap: 9px;
+        padding: 13px 15px;
+        border: 0;
+        border-bottom: 1px solid #eff2ee;
+        background: #ffffff;
+        color: inherit;
+        cursor: pointer;
+        font: inherit;
+        text-align: left;
+      }
+
+      .notification-item:hover {
+        background: #f8faf7;
+      }
+
+      .notification-item.unread {
+        background: #f4f8f1;
+      }
+
+      .notification-item.unread:hover {
+        background: #edf4e9;
+      }
+
+      .notification-unread-dot {
+        width: 8px;
+        height: 8px;
+        margin-top: 5px;
+        border-radius: 50%;
+        background: #75954f;
+      }
+
+      .notification-item:not(.unread) .notification-unread-dot {
+        background: transparent;
+      }
+
+      .notification-item-copy {
+        display: grid;
+        min-width: 0;
+        gap: 4px;
+      }
+
+      .notification-item-title {
+        color: #35433a;
+        font-size: 11px;
+        font-weight: 720;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+      }
+
+      .notification-item-project {
+        color: #4d6852;
+        font-size: 10px;
+        font-weight: 650;
+        line-height: 1.4;
+        overflow-wrap: anywhere;
+      }
+
+      .notification-item-body {
+        color: #6d796f;
+        font-size: 10px;
+        line-height: 1.55;
+        overflow-wrap: anywhere;
+      }
+
+      .notification-item time {
+        margin-top: 1px;
+        color: #8b958d;
+        font-size: 9px;
+        white-space: nowrap;
+      }
+
+      .notification-empty {
+        margin: 0;
+        padding: 24px 18px;
+        color: #77837a;
+        font-size: 11px;
+        line-height: 1.65;
+        text-align: center;
+      }
+
+      .notification-error {
+        margin: 0;
+        padding: 8px 14px;
+        border-top: 1px solid #f1dfd9;
+        background: #fff8f6;
+        color: #9d5147;
+        font-size: 10px;
+        line-height: 1.5;
+      }
+
+      .notification-error[hidden] {
+        display: none !important;
+      }
+
       .user-chip {
         width: 42px;
         height: 42px;
@@ -1107,26 +1426,6 @@
         color: var(--muted);
         font-size: 13px;
         line-height: 1.6;
-      }
-
-      .sample-label {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin-bottom: 13px;
-        padding: 6px 8px;
-        border: 1px solid #e4e8dc;
-        border-radius: 6px;
-        background: #fbfcf8;
-        color: #69736a;
-        font-size: 10px;
-        font-weight: 600;
-      }
-
-      .sample-label svg {
-        width: 13px;
-        height: 13px;
-        color: #72834f;
       }
 
       .static-button {
@@ -6623,6 +6922,7 @@
         }
 
         .sidebar-mypage-mobile,
+        .sidebar-projects-mobile,
         .sidebar-workspace-mobile {
           display: inline-flex;
           flex: 0 0 auto;
@@ -6680,6 +6980,14 @@
       }
 
       @media (max-width: 620px) {
+        .notification-panel {
+          position: fixed;
+          top: 118px;
+          right: 12px;
+          width: min(390px, calc(100vw - 24px));
+          max-height: calc(100dvh - 134px);
+        }
+
         .sidebar {
           grid-template-columns: minmax(0, 1fr) auto;
           gap: 8px 9px;
@@ -6691,6 +6999,7 @@
         }
 
         .sidebar-mypage-mobile,
+        .sidebar-projects-mobile,
         .sidebar-workspace-mobile {
           min-height: 42px;
           padding: 0 11px;
@@ -6950,10 +7259,6 @@
           font-size: 9px;
         }
 
-        .sample-label {
-          margin-bottom: 9px;
-        }
-
         .hero-card {
           min-height: 0;
           grid-template-columns: minmax(0, 1fr);
@@ -7178,7 +7483,7 @@
   <body>
     <div class="app-shell">
       <aside class="sidebar" aria-label="주 메뉴">
-        <a class="brand-row" href="#/home" aria-label="스펙가드 메인 화면으로 이동">
+        <a class="brand-row" href="#/" aria-label="스펙가드 메인 화면으로 이동">
           <div class="brand-symbol" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
               <path d="M12 2.8 20 6v5.3c0 5.1-3.3 8.5-8 10.1-4.7-1.6-8-5-8-10.1V6l8-3.2Z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" />
@@ -7192,6 +7497,7 @@
         </a>
         <div class="sidebar-mobile-links" aria-label="빠른 이동">
           <a class="sidebar-mypage-mobile" id="sidebar-mypage-mobile" href="#/mypage">마이페이지</a>
+          <a class="sidebar-projects-mobile" id="sidebar-projects-mobile" href="#/projects" aria-label="전체 프로젝트 목록으로 이동">계정별 프로젝트</a>
           <a class="sidebar-workspace-mobile" id="sidebar-workspace-mobile" href="#/workspace" hidden>
             <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
               <path d="M3.5 5.5h13v10h-13zM6.5 8.5h7M6.5 11h4" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round" />
@@ -7201,7 +7507,7 @@
           <button class="sidebar-logout-mobile" id="sidebar-logout-mobile" type="button" hidden>로그아웃</button>
         </div>
 
-        <a class="workspace-switcher" id="workspace-switcher" href="#/workspace" aria-label="현재 워크스페이스 및 프로젝트 초대 관리">
+        <a class="workspace-switcher" id="workspace-switcher" href="#/projects" aria-label="전체 프로젝트 목록으로 이동">
           <div class="workspace-info">
             <span class="workspace-mark">S</span>
             <span class="workspace-label">
@@ -7310,11 +7616,29 @@
                 </svg>
                 새 프로젝트
               </a>
-              <span class="utility-icon" role="img" aria-label="알림 미리보기">
-                <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                  <path d="M15.5 7.7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.5h15c0-1.5-2-1.5-2-7.5ZM8 17h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-              </span>
+              <div class="notification-wrapper" id="notification-wrapper">
+                <button class="utility-icon notification-trigger" id="notification-trigger" type="button" aria-label="알림, 읽지 않은 알림 없음" aria-haspopup="true" aria-expanded="false" aria-controls="notification-panel">
+                  <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                    <path d="M15.5 7.7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.5h15c0-1.5-2-1.5-2-7.5ZM8 17h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                  <span class="notification-count" id="notification-count" hidden></span>
+                </button>
+                <section class="notification-panel" id="notification-panel" aria-label="알림 목록" hidden>
+                  <header class="notification-panel-header">
+                    <div><h2>알림</h2><p id="notification-summary">알림을 불러오고 있습니다.</p></div>
+                    <button class="notification-close" id="notification-close" type="button" aria-label="알림 닫기">×</button>
+                  </header>
+                  <div class="notification-toolbar">
+                    <div class="notification-filters" role="group" aria-label="알림 필터">
+                      <button type="button" class="notification-filter active" data-notification-filter="all" aria-pressed="true">전체</button>
+                      <button type="button" class="notification-filter" data-notification-filter="unread" aria-pressed="false">읽지 않음</button>
+                    </div>
+                    <button class="notification-mark-all" id="notification-mark-all" type="button">모두 읽음</button>
+                  </div>
+                  <div class="notification-list" id="notification-list" aria-live="polite"></div>
+                  <p class="notification-error" id="notification-error" role="status" hidden></p>
+                </section>
+              </div>
               <div class="profile-action-group" aria-label="마이페이지 바로 가기">
                 <span class="user-chip" aria-hidden="true">
                   <span class="profile-avatar">SG</span>
@@ -7323,14 +7647,6 @@
               </div>
             </div>
           </section>
-
-          <div class="sample-label">
-            <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M10 2.5 17 6v4.6c0 3.9-2.4 6.2-7 7.9-4.6-1.7-7-4-7-7.9V6l7-3.5Z" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round" />
-              <path d="m7.2 10 1.8 1.8 3.8-3.9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-            </svg>
-            기능 미리보기 · 기본 샘플 프로젝트 포함
-          </div>
 
           <section class="hero-card" aria-labelledby="hero-title">
             <div class="hero-copy">
@@ -7413,7 +7729,7 @@
           </section>
 
           <section class="view mypage-view" id="mypage-view" aria-labelledby="mypage-title" hidden>
-            <a class="back-link" href="#/home">
+            <a class="back-link" href="#/">
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M15 10H5m0 0 4-4m-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
@@ -8019,7 +8335,7 @@
           </section>
 
           <section class="view guide-view" id="guide-view" aria-labelledby="guide-title" hidden>
-            <a class="back-link guide-back" href="#/home">
+            <a class="back-link guide-back" href="#/">
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
                 <path d="M15 10H5m0 0 4-4m-4 4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
               </svg>
@@ -8059,79 +8375,68 @@
                   <div class="guide-section-heading">
                     <span class="guide-step-number" aria-hidden="true">01</span>
                     <div>
-                      <h2 id="guide-source-title">먼저 원문 근거를 확인하세요</h2>
-                      <p>요구사항 문장만 읽지 말고, 어디에서 나온 내용인지 함께 살펴봅니다.</p>
+                      <h2 id="guide-source-title">회의록과 고객 메모를 등록하세요</h2>
+                      <p>회의별로 날짜와 내용을 입력하고, 여러 차수는 회의록 추가로 나눠 관리합니다.</p>
                     </div>
                   </div>
                   <ul class="guide-check-list">
-                    <li>인용된 회의 내용이 원문에도 실제로 있는지 확인합니다.</li>
-                    <li>회의 날짜와 회차를 보고, 나중에 변경되거나 취소된 요청은 아닌지 살펴봅니다.</li>
-                    <li>“근거 확인 불가”가 표시되면 원문에서 직접 확인하기 전까지 확정하지 않습니다.</li>
+                    <li>회의록·메모 파일을 선택하면 읽힌 텍스트가 입력란에 채워집니다. 저장 전에 읽힌 결과를 확인하고 잘못 읽힌 부분을 고쳐 주세요.</li>
+                    <li>현재는 원본 업로드 파일 자체를 보관하지 않습니다. 프로젝트에는 문서 이름과 형식, 입력·추출된 텍스트가 저장됩니다.</li>
+                    <li>각 회의의 날짜와 회차를 지정해 저장하면 회의 순서를 구분하기 쉽습니다. 이전 버전 문서는 ‘전체 보기’와 검색에서 확인할 수 있습니다.</li>
+                    <li>회의 음성을 전사하면 전사 문장을 함께 검토해 주세요. 원본 음성 파일은 저장하지 않고 파일 이름과 전사 텍스트를 저장합니다.</li>
                   </ul>
-                  <p class="guide-note">이전 회의 내용도 비교하고 싶다면 “전체 보기”를 눌러 모든 회차를 확인하세요. 최근 회차만 보는 화면에서는 최신 내용에 집중할 수 있습니다.</p>
+                  <p class="guide-note">최종 기획서는 별도 입력란에 등록합니다. 회의 자료와 기획서는 프로젝트에 저장한 뒤 요구사항 추출 화면에서 검색할 수 있습니다.</p>
                 </section>
 
                 <section class="guide-section" id="guide-status" aria-labelledby="guide-status-title">
                   <div class="guide-section-heading">
                     <span class="guide-step-number" aria-hidden="true">02</span>
                     <div>
-                      <h2 id="guide-status-title">확인한 내용에 맞춰 상태를 고르세요</h2>
-                      <p>상태는 최종 기획서와 비교할 항목을 정하는 데 사용됩니다.</p>
+                      <h2 id="guide-status-title">AI 분석 결과와 검색을 확인하세요</h2>
+                      <p>AI 분석을 누르면 저장된 회의 자료에서 요구사항과 원문 근거를 추출합니다.</p>
                     </div>
                   </div>
-                  <div class="guide-status-grid">
-                    <article class="guide-status-card">
-                      <span class="guide-status-label">검토 필요</span>
-                      <h3>아직 판단하기 어려워요</h3>
-                      <p>요청이 모호하거나 근거·변경 내용을 더 확인해야 할 때 그대로 두세요.</p>
-                    </article>
-                    <article class="guide-status-card confirmed">
-                      <span class="guide-status-label">확정</span>
-                      <h3>비교 기준에 포함해요</h3>
-                      <p>원문과 고객 합의에서 확인했고, 최종 기획서에 반영되어야 하는 항목만 확정하세요.</p>
-                    </article>
-                    <article class="guide-status-card deleted">
-                      <span class="guide-status-label">삭제</span>
-                      <h3>기준에서 제외해요</h3>
-                      <p>중복·오인식이거나 최종 요청이 아닌 항목을 제외합니다. 필요하면 “삭제된 항목 보기”로 다시 확인할 수 있어요.</p>
-                    </article>
-                  </div>
-                  <p class="guide-note">기획서 비교는 “확정”된 요구사항만 사용합니다. 상태를 확신하기 어렵다면 확정 대신 검토 필요로 남겨두세요.</p>
+                  <ul class="guide-check-list">
+                    <li>‘문서·요구사항 검색’은 전체, 회의록·메모, 기획서 범위로 나눌 수 있으며, 모든 회차와 이전 버전, 음성 전사, 추출 근거, 저장된 AI 초안·업데이트안을 검색합니다. 검색어를 입력하면 결과가 갱신되고 원문 전체를 펼쳐 확인할 수 있습니다.</li>
+                    <li>검색은 현재 프로젝트에 저장된 텍스트를 찾는 기능이며, 검색할 때 AI 분석을 호출하지 않습니다.</li>
+                    <li>분석 실패나 시간 초과가 표시되면 오류 문구와 입력 내용을 확인한 뒤 ‘AI 분석’ 또는 ‘요구사항 다시 확인’을 다시 누르세요. 실패 결과가 저장된 분석으로 표시되지는 않습니다.</li>
+                  </ul>
+                  <p class="guide-note">분석 결과는 검토를 돕는 초안입니다. 검색 결과와 근거를 원문에서 직접 대조해 주세요.</p>
                 </section>
 
                 <section class="guide-section" id="guide-update" aria-labelledby="guide-update-title">
                   <div class="guide-section-heading">
                     <span class="guide-step-number" aria-hidden="true">03</span>
                     <div>
-                      <h2 id="guide-update-title">요구사항이 달라졌다면 수정 메모를 남기세요</h2>
-                      <p>원래 추출 문장을 덮어쓰기보다, 어떻게 바뀌어야 하는지 기록합니다.</p>
+                      <h2 id="guide-update-title">원문과 대조해 요구사항을 검토·확정하세요</h2>
+                      <p>고객의 확정 요청과 단순 제안, 아직 모호한 내용을 구분해 검토합니다.</p>
                     </div>
                   </div>
                   <div class="guide-action-steps" aria-label="수정 의견 반영 순서">
-                    <div class="guide-action-step"><span>먼저</span><strong>“메모로 수정” 선택</strong></div>
-                    <div class="guide-action-step"><span>다음</span><strong>변경 내용과 이유를 적고 저장</strong></div>
-                    <div class="guide-action-step"><span>마지막</span><strong>추출 화면에서 “요구사항 다시 확인”</strong></div>
+                    <div class="guide-action-step"><span>먼저</span><strong>근거 문서·날짜·회차를 열어 원문 확인</strong></div>
+                    <div class="guide-action-step"><span>다음</span><strong>요구사항 문장을 고치거나 수정 메모 저장</strong></div>
+                    <div class="guide-action-step"><span>마지막</span><strong>실제 합의가 확인된 항목만 확정</strong></div>
                   </div>
-                  <p class="guide-note">예: “비회원도 이용” 요청이 “로그인한 회원만 이용”으로 바뀌었다면, 새 조건과 변경된 회차를 메모에 적어주세요. 다시 확인하면 기존 내용과 수정 의견을 함께 분석합니다.</p>
+                  <p class="guide-note">확정 요청은 비교 기준에 포함합니다. ‘좋으면 좋겠다’ 같은 제안은 고객이 승인했는지 확인하고, 모호하거나 근거가 불충분하면 ‘검토 필요’로 남겨 주세요. 중복·오인식·최종 요청이 아닌 항목은 삭제할 수 있으며, 원문 근거를 함께 확인하세요.</p>
                 </section>
 
                 <section class="guide-section guide-finish" id="guide-finish" aria-labelledby="guide-finish-title">
                   <div class="guide-section-heading">
                     <span class="guide-step-number" aria-hidden="true">04</span>
                     <div>
-                      <h2 id="guide-finish-title">마지막으로 한 번 더 점검하세요</h2>
-                      <p>확정 버튼을 누르기 전에 아래 항목을 확인하면 좋아요.</p>
+                      <h2 id="guide-finish-title">기획서를 비교하고 결과를 다시 확인하세요</h2>
+                      <p>확정 요구사항과 최종 기획서를 비교한 뒤, 누락과 충돌을 원문에 대조합니다.</p>
                     </div>
                   </div>
                   <ul class="guide-check-list">
-                    <li>확정한 항목마다 원문 근거와 요청 의도가 분명한가요?</li>
-                    <li>변경·취소된 요청이나 중복 항목을 구분했나요?</li>
-                    <li>아직 불확실한 항목은 검토 필요로 남겨두었나요?</li>
+                    <li>‘반영됨’은 기획서의 문장을 열어 요구사항이 실제로 담겼는지 확인합니다.</li>
+                    <li>‘누락 의심’과 ‘충돌’은 회의 원문·확정 요구사항·최종 기획서를 각각 대조하고, 바뀐 합의가 있는지 살펴봅니다.</li>
+                    <li>기획서 비교는 ‘확정’된 요구사항만 사용합니다. 비교 상태도 AI 또는 규칙 기반 판단일 수 있으므로 사람이 최종 검토합니다.</li>
                   </ul>
-                  <p class="guide-note">“전체 확정”은 현재 검토 목록을 한 번에 확정합니다. 모든 문장을 확인한 뒤에 사용하고, 애매한 항목이 있으면 각각 확인해 주세요.</p>
+                  <p class="guide-note">검토 화면의 ‘전체 확정’은 표시 중인 검토 대상을 한 번에 확정합니다. 내용을 모두 확인하고, 애매한 요청은 개별 확인 필요로 남겨 두세요.</p>
                   <div class="guide-actions">
                     <a class="static-button" href="#/projects">프로젝트 목록으로 가기</a>
-                    <a class="button-secondary" href="#/home">대시보드로 돌아가기</a>
+                    <a class="button-secondary" href="#/">대시보드로 돌아가기</a>
                   </div>
                 </section>
               </div>
@@ -8593,8 +8898,19 @@
           sidebarAccountStatus: document.querySelector("#sidebar-account-status"),
           sidebarAvatar: document.querySelector("#sidebar-avatar"),
           sidebarMobileLink: document.querySelector("#sidebar-mypage-mobile"),
+          sidebarProjectsMobile: document.querySelector("#sidebar-projects-mobile"),
           homeMypageButton: document.querySelector("#home-mypage-button"),
           logoutButton: document.querySelector("#logout-button"),
+          notificationWrapper: document.querySelector("#notification-wrapper"),
+          notificationTrigger: document.querySelector("#notification-trigger"),
+          notificationCount: document.querySelector("#notification-count"),
+          notificationPanel: document.querySelector("#notification-panel"),
+          notificationClose: document.querySelector("#notification-close"),
+          notificationSummary: document.querySelector("#notification-summary"),
+          notificationFilters: document.querySelector(".notification-filters"),
+          notificationMarkAll: document.querySelector("#notification-mark-all"),
+          notificationList: document.querySelector("#notification-list"),
+          notificationError: document.querySelector("#notification-error"),
           home: document.querySelector("#home-view"),
           mypage: document.querySelector("#mypage-view"),
           mypageTitle: document.querySelector("#mypage-title"),
@@ -8761,6 +9077,10 @@
         let editingReviewId = null;
         let pendingDeleteProjectId = null;
         let pendingInvitations = [];
+        let notifications = [];
+        let unreadNotificationCount = 0;
+        let notificationFilter = "all";
+        let notificationRequestSequence = 0;
         let projectChangeRows = [];
         let showAllProjectChanges = false;
         const projectSaveQueues = new Map();
@@ -8864,6 +9184,7 @@
           if (elements.mypageProfileUsername) {
             elements.mypageProfileUsername.textContent = currentUser?.username || "로그인이 필요합니다.";
           }
+          if (elements.notificationTrigger) renderNotificationBadge();
         }
 
         function accountDisplayName(account) {
@@ -9133,6 +9454,7 @@
             Object.assign(liveProject, payload.project);
             if (project !== liveProject) Object.assign(project, payload.project);
             persistedProjectSnapshots.set(projectId, projectPersistenceSnapshot(liveProject));
+            if (Number(payload.notificationsCreated) > 0) void refreshNotifications({ silent: true });
             return liveProject;
           });
           projectSaveQueues.set(projectId, queued);
@@ -9279,10 +9601,7 @@
           myPageNoticeIsError = false;
           updateSidebarIdentity();
           if (!currentUser) {
-            projects = [];
-            persistedProjectSnapshots.clear();
-            pendingInvitations = [];
-            renderPendingInvitations();
+            clearClientAuthentication();
             renderRoute();
             return;
           }
@@ -9291,6 +9610,7 @@
           const migration = await loadProjectsFromDatabase();
           await maybeImportLegacyProjects(migration.legacyImportCompleted);
           await loadPendingInvitations();
+          await refreshNotifications({ silent: true });
           if (options.redirectToHome) replaceRoute("/");
           authBootstrapped = true;
           renderRoute();
@@ -9338,6 +9658,142 @@
             hour: "2-digit",
             minute: "2-digit",
           }).format(date);
+        }
+
+        function formatNotificationTime(value) {
+          const timestamp = Date.parse(value || "");
+          if (!Number.isFinite(timestamp)) return "시간 정보 없음";
+          const elapsed = Math.max(0, Date.now() - timestamp);
+          const minutes = Math.floor(elapsed / 60_000);
+          if (minutes < 1) return "방금 전";
+          if (minutes < 60) return `${minutes}분 전`;
+          const hours = Math.floor(minutes / 60);
+          if (hours < 24) return `${hours}시간 전`;
+          const days = Math.floor(hours / 24);
+          if (days < 7) return `${days}일 전`;
+          return new Intl.DateTimeFormat("ko-KR", { month: "2-digit", day: "2-digit" }).format(timestamp);
+        }
+
+        function renderNotificationBadge() {
+          const count = Math.max(0, Number(unreadNotificationCount) || 0);
+          elements.notificationCount.hidden = count === 0;
+          elements.notificationCount.textContent = count > 99 ? "99+" : String(count);
+          elements.notificationTrigger.setAttribute("aria-label", count
+            ? `알림, 읽지 않은 알림 ${count}개`
+            : "알림, 읽지 않은 알림 없음");
+          elements.notificationSummary.textContent = count
+            ? `${count}개의 읽지 않은 알림 · 최근 ${notifications.length}개 표시`
+            : notifications.length ? `읽지 않은 알림 없음 · 최근 ${notifications.length}개 표시` : "새 알림을 확인할 수 있습니다.";
+          elements.notificationMarkAll.disabled = count === 0;
+          renderNotificationItems();
+        }
+
+        function renderNotificationItems() {
+          const visible = notificationFilter === "unread"
+            ? notifications.filter((notification) => !notification.readAt)
+            : notifications;
+          elements.notificationList.replaceChildren();
+          elements.notificationFilters.querySelectorAll("[data-notification-filter]").forEach((button) => {
+            const active = button.dataset.notificationFilter === notificationFilter;
+            button.classList.toggle("active", active);
+            button.setAttribute("aria-pressed", String(active));
+          });
+          if (!visible.length) {
+            const empty = document.createElement("p");
+            empty.className = "notification-empty";
+            empty.textContent = notificationFilter === "unread"
+              ? "읽지 않은 알림이 없습니다."
+              : "아직 알림이 없습니다. 분석이나 비교 결과가 저장되면 여기에 표시됩니다.";
+            elements.notificationList.append(empty);
+            return;
+          }
+
+          visible.forEach((notification) => {
+            const item = document.createElement("button");
+            item.type = "button";
+            item.className = `notification-item${notification.readAt ? "" : " unread"}`;
+            item.dataset.notificationId = notification.id;
+            const dot = document.createElement("span");
+            dot.className = "notification-unread-dot";
+            dot.setAttribute("aria-hidden", "true");
+            const copy = document.createElement("span");
+            copy.className = "notification-item-copy";
+            const title = document.createElement("strong");
+            title.className = "notification-item-title";
+            title.textContent = notification.title;
+            const project = document.createElement("span");
+            project.className = "notification-item-project";
+            project.textContent = notification.projectName;
+            const body = document.createElement("span");
+            body.className = "notification-item-body";
+            body.textContent = notification.body;
+            copy.append(title, project, body);
+            const time = document.createElement("time");
+            time.dateTime = notification.createdAt || "";
+            time.textContent = formatNotificationTime(notification.createdAt);
+            item.append(dot, copy, time);
+            elements.notificationList.append(item);
+          });
+        }
+
+        async function refreshNotifications({ silent = false } = {}) {
+          if (!currentUser) {
+            notifications = [];
+            unreadNotificationCount = 0;
+            renderNotificationBadge();
+            return false;
+          }
+          const userId = currentUser.id;
+          const requestSequence = ++notificationRequestSequence;
+          try {
+            const payload = await apiRequest("/api/notifications");
+            if (!currentUser || currentUser.id !== userId || requestSequence !== notificationRequestSequence) return false;
+            if (payload.userId && payload.userId !== userId) {
+              notifications = [];
+              unreadNotificationCount = 0;
+              renderNotificationBadge();
+              const session = await apiRequest("/api/auth/me");
+              await initializeAuthenticatedSession(session);
+              return false;
+            }
+            notifications = Array.isArray(payload.notifications) ? payload.notifications : [];
+            unreadNotificationCount = Math.max(0, Number(payload.unreadCount) || 0);
+            elements.notificationError.hidden = true;
+            elements.notificationError.textContent = "";
+            renderNotificationBadge();
+            return true;
+          } catch (error) {
+            if (requestSequence !== notificationRequestSequence) return false;
+            if (!silent) {
+              elements.notificationError.textContent = error instanceof Error ? error.message : "알림을 불러오지 못했습니다.";
+              elements.notificationError.hidden = false;
+            }
+            return false;
+          }
+        }
+
+        function setNotificationPanelOpen(open) {
+          const shouldOpen = Boolean(open && currentUser);
+          elements.notificationPanel.hidden = !shouldOpen;
+          elements.notificationTrigger.setAttribute("aria-expanded", String(shouldOpen));
+          if (shouldOpen) {
+            if (window.matchMedia("(max-width: 620px)").matches) {
+              const trigger = elements.notificationTrigger.getBoundingClientRect();
+              const top = Math.max(10, Math.min(trigger.bottom + 8, window.innerHeight * 0.32));
+              elements.notificationPanel.style.top = `${top}px`;
+              elements.notificationPanel.style.right = "12px";
+              elements.notificationPanel.style.maxHeight = `calc(100dvh - ${top + 16}px)`;
+            } else {
+              elements.notificationPanel.style.top = "";
+              elements.notificationPanel.style.right = "";
+              elements.notificationPanel.style.maxHeight = "";
+            }
+            void refreshNotifications();
+          } else {
+            elements.notificationPanel.style.top = "";
+            elements.notificationPanel.style.right = "";
+            elements.notificationPanel.style.maxHeight = "";
+          }
         }
 
         function localDateValue(date = new Date()) {
@@ -11284,11 +11740,20 @@
           projects = [];
           persistedProjectSnapshots.clear();
           projectSaveQueues.clear();
+          elements.projectSearch.value = "";
           pendingInvitations = [];
+          notifications = [];
+          unreadNotificationCount = 0;
+          notificationFilter = "all";
+          notificationRequestSequence += 1;
+          elements.notificationError.hidden = true;
+          elements.notificationError.textContent = "";
           myPageProfileDirty = false;
           myPageNoticeMessage = "";
           myPageNoticeIsError = false;
           resetExtractionSearch("");
+          setNotificationPanelOpen(false);
+          renderNotificationBadge();
           renderPendingInvitations();
           updateSidebarIdentity();
           setAuthMode("login");
@@ -11654,7 +12119,13 @@
           const route = decodeURIComponent(rawRoute || "/home").replace(/\/+$/, "") || "/home";
           const anchor = rawAnchor ? decodeURIComponent(rawAnchor) : "";
           const views = [elements.authView, elements.home, elements.mypage, elements.guide, elements.allProjects, elements.create, elements.extraction, elements.review, elements.comparison, elements.detail];
-          renderProjectLists();
+          if (currentUser) {
+            renderProjectLists();
+          } else {
+            elements.recentList.replaceChildren();
+            elements.allList.replaceChildren();
+            elements.searchResultCount.textContent = "";
+          }
           window.scrollTo(0, 0);
           views.forEach((view) => { view.hidden = true; });
           [elements.sidebarMobileLink, elements.homeMypageButton].forEach((link) => {
@@ -11662,7 +12133,12 @@
             if (currentUser && route === "/mypage") link.setAttribute("aria-current", "page");
             else link.removeAttribute("aria-current");
           });
-          [elements.workspaceSwitcher, elements.workspaceManageLink, elements.workspaceManageMobile].forEach((link) => {
+          [elements.workspaceSwitcher, elements.sidebarProjectsMobile].forEach((link) => {
+            if (!link) return;
+            if (currentUser && route === "/projects") link.setAttribute("aria-current", "page");
+            else link.removeAttribute("aria-current");
+          });
+          [elements.workspaceManageLink, elements.workspaceManageMobile].forEach((link) => {
             if (!link) return;
             if (currentUser && route === "/workspace") link.setAttribute("aria-current", "page");
             else link.removeAttribute("aria-current");
@@ -11787,6 +12263,81 @@
 
         elements.authLoginTab.addEventListener("click", () => setAuthMode("login"));
         elements.authRegisterTab.addEventListener("click", () => setAuthMode("register"));
+
+        elements.notificationTrigger.addEventListener("click", () => {
+          setNotificationPanelOpen(elements.notificationPanel.hidden);
+        });
+
+        elements.notificationClose.addEventListener("click", () => {
+          setNotificationPanelOpen(false);
+          elements.notificationTrigger.focus();
+        });
+
+        elements.notificationFilters.addEventListener("click", (event) => {
+          const button = event.target.closest("[data-notification-filter]");
+          if (!button) return;
+          notificationFilter = button.dataset.notificationFilter === "unread" ? "unread" : "all";
+          renderNotificationItems();
+        });
+
+        elements.notificationMarkAll.addEventListener("click", async () => {
+          if (!currentUser || !unreadNotificationCount) return;
+          elements.notificationMarkAll.disabled = true;
+          elements.notificationError.hidden = true;
+          try {
+            const payload = await apiRequest("/api/notifications/read-all", { method: "PATCH", body: {} });
+            notifications = Array.isArray(payload.notifications) ? payload.notifications : notifications;
+            unreadNotificationCount = Math.max(0, Number(payload.unreadCount) || 0);
+            renderNotificationBadge();
+          } catch (error) {
+            elements.notificationError.textContent = error instanceof Error ? error.message : "알림을 읽음 처리하지 못했습니다.";
+            elements.notificationError.hidden = false;
+          } finally {
+            if (currentUser) elements.notificationMarkAll.disabled = unreadNotificationCount === 0;
+          }
+        });
+
+        elements.notificationList.addEventListener("click", async (event) => {
+          const button = event.target.closest("[data-notification-id]");
+          if (!button || !currentUser) return;
+          const notification = notifications.find((item) => item.id === button.dataset.notificationId);
+          if (!notification) return;
+          elements.notificationError.hidden = true;
+          if (!notification.readAt) {
+            button.disabled = true;
+            try {
+              const payload = await apiRequest(`/api/notifications/${encodeURIComponent(notification.id)}/read`, {
+                method: "PATCH",
+                body: {},
+              });
+              if (payload.notification) {
+                notifications = notifications.map((item) => item.id === notification.id ? payload.notification : item);
+              }
+              unreadNotificationCount = Math.max(0, Number(payload.unreadCount) || 0);
+              renderNotificationBadge();
+            } catch (error) {
+              elements.notificationError.textContent = error instanceof Error ? error.message : "알림을 읽음 처리하지 못했습니다.";
+              elements.notificationError.hidden = false;
+              button.disabled = false;
+              return;
+            }
+          }
+          setNotificationPanelOpen(false);
+          const targetPath = String(notification.targetPath || "");
+          if (/^\/projects\/[^/]+(?:\/(?:extract|compare|review))?$/u.test(targetPath)) setRoute(targetPath);
+        });
+
+        document.addEventListener("pointerdown", (event) => {
+          if (!elements.notificationPanel.hidden && !elements.notificationWrapper.contains(event.target)) {
+            setNotificationPanelOpen(false);
+          }
+        });
+
+        document.addEventListener("keydown", (event) => {
+          if (event.key !== "Escape" || elements.notificationPanel.hidden) return;
+          setNotificationPanelOpen(false);
+          elements.notificationTrigger.focus();
+        });
 
         elements.mypageDisplayName.addEventListener("input", () => {
           myPageProfileDirty = true;

@@ -63,12 +63,13 @@ test("home profile links have a visible My Page button and workspace invitation 
   assert.match(html, /<div class="sidebar-profile-display" id="sidebar-profile-display">/u);
   assert.doesNotMatch(html, /id="sidebar-profile-link" href="#\/mypage"/u);
 
-  assert.match(html, /id="workspace-switcher" href="#\/workspace"/u);
+  assert.match(html, /id="workspace-switcher" href="#\/projects" aria-label="전체 프로젝트 목록으로 이동"/u);
+  assert.match(html, /id="sidebar-projects-mobile" href="#\/projects" aria-label="전체 프로젝트 목록으로 이동">계정별 프로젝트<\/a>/u);
   assert.match(html, /id="sidebar-workspace-manage" href="#\/workspace" hidden/u);
   assert.match(html, /id="sidebar-workspace-mobile" href="#\/workspace" hidden/u);
   assert.match(html, /elements\.workspaceManageLink\.hidden = !currentUser/u);
   assert.match(html, /elements\.workspaceManageMobile\.hidden = !currentUser/u);
-  assert.match(html, /currentUser && route === "\/workspace"/u);
+  assert.match(html, /currentUser && route === "\/projects"/u);
   assert.match(html, /route === "\/mypage" \|\| route === "\/workspace"/u);
   assert.match(html, /link\.setAttribute\("aria-current", "page"\)/u);
   assert.match(html, /\.sidebar-workspace-manage\[aria-current="page"\]/u);
@@ -104,6 +105,60 @@ test("new account passwords are limited to twelve characters and projects page l
   assert.match(html, /id="register-password-confirm"[^>]*minlength="7" maxlength="12"/u);
   assert.match(html, /7~12자로 입력해 주세요\./u);
   assert.match(html, /<a class="button-secondary" href="#\/">대시보드로 돌아가기<\/a>/u);
+});
+
+test("notification dropdown is accessible, user-scoped, refreshes on supported triggers, and avoids polling timers", async () => {
+  const html = await fs.readFile(indexPath, "utf8");
+  const server = await fs.readFile(path.join(__dirname, "..", "server.js"), "utf8");
+  const markup = html.match(/<div class="notification-wrapper" id="notification-wrapper">([\s\S]*?)<\/div>\s*<div class="profile-action-group"/u)?.[1];
+  assert.ok(markup, "dashboard contains the notification control and dropdown panel");
+  assert.match(markup, /<button class="utility-icon notification-trigger"[^>]*aria-haspopup="true"[^>]*aria-controls="notification-panel"/u);
+  assert.match(markup, /class="notification-panel" id="notification-panel"[^>]*hidden/u);
+  assert.match(markup, /data-notification-filter="all"/u);
+  assert.match(markup, /data-notification-filter="unread"/u);
+  assert.match(markup, /id="notification-mark-all"/u);
+  assert.match(html, /count > 99 \? "99\+"/u);
+  assert.match(server, /CREATE TABLE IF NOT EXISTS project_notifications/u);
+  assert.match(server, /function notificationRowsForUser\(userId\)/u);
+  assert.match(server, /n\.recipient_id = \? AND \(p\.owner_id = \? OR m\.user_id = \?\)/u);
+  assert.match(server, /function insertNotificationsForSavedProject/u);
+  assert.match(server, /function createDueReviewFollowupForUser/u);
+  assert.match(server, /24 \* 60 \* 60 \* 1000/u);
+  assert.match(html, /document\.addEventListener\("pointerdown"/u);
+  assert.match(html, /window\.addEventListener\("keydown"|document\.addEventListener\("keydown"/u);
+  assert.match(html, /await refreshNotifications\(\{ silent: true \}\)/u);
+  assert.match(html, /if \(shouldOpen\)\s*\{[\s\S]*?refreshNotifications\(\)/u);
+  assert.match(html, /Number\(payload\.notificationsCreated\) > 0\) void refreshNotifications/u);
+  assert.doesNotMatch(html, /setInterval\([^)]*notification/iu);
+});
+
+test("public guide, account projects link, and overview copy keep only actual public information", async () => {
+  const html = await fs.readFile(indexPath, "utf8");
+  const guideStart = html.indexOf('<section class="view guide-view" id="guide-view"');
+  const guideEnd = html.indexOf("</section>", html.indexOf('id="guide-finish"', guideStart));
+  const guide = html.slice(guideStart, guideEnd > guideStart ? guideEnd : undefined);
+  assert.match(html, /if \(!currentUser && route !== "\/guide"\)/u);
+  assert.match(guide, /회의별로 날짜와 내용을 입력/u);
+  assert.match(guide, /원본 업로드 파일 자체를 보관하지 않습니다/u);
+  assert.match(guide, /문서·요구사항 검색/u);
+  assert.match(guide, /분석 실패나 시간 초과/u);
+  assert.match(guide, /확정 요청과 단순 제안/u);
+  assert.match(guide, /규칙 기반 판단/u);
+  assert.doesNotMatch(guide, /notification_owner|sample-monomarket|users\.sqlite/u);
+  const routeStart = html.indexOf("function renderRoute()");
+  const routeEnd = html.indexOf("function", routeStart + 20);
+  const routeRenderer = html.slice(routeStart, routeEnd);
+  assert.match(routeRenderer, /if \(currentUser\)\s*\{\s*renderProjectLists\(\);\s*\}\s*else\s*\{[\s\S]*?elements\.recentList\.replaceChildren\(\)/u);
+});
+
+test("the existing project-list search stays within project name, client, and summary fields", async () => {
+  const html = await fs.readFile(indexPath, "utf8");
+  const start = html.indexOf("function renderProjectLists()");
+  const end = html.indexOf("function statusBadge", start);
+  const renderer = html.slice(start, end);
+  assert.match(renderer, /\[project\.name, project\.client, project\.summary\]/u);
+  assert.match(renderer, /elements\.allList\.innerHTML = matching\.map/u);
+  assert.match(html, /id="project-search" type="search"/u);
 });
 
 test("extraction search controls are labeled, ordered beside AI analysis, and use safe DOM text rendering", async () => {

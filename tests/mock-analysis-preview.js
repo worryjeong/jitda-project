@@ -10,6 +10,7 @@ const { setTimeout: delay } = require("node:timers/promises");
 const port = Number(process.env.PORT || 3000);
 const projectId = "analysis-race-preview-project";
 const searchProjectId = "extraction-search-preview-project";
+const runConcurrentSave = process.env.SPEC_GUARD_PREVIEW_ANALYSIS_RACE !== "0";
 const username = "analysis_preview";
 const password = "TestPass7";
 const dataDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "specguard-preview-regression-"));
@@ -130,7 +131,7 @@ const providerServer = http.createServer(async (request, response) => {
     let analysis;
 
     if (schemaName === "single_round_requirements") {
-      if (!providerState.concurrentSaveStarted) {
+      if (runConcurrentSave && !providerState.concurrentSaveStarted) {
           setTimeout(() => { void triggerConcurrentSave(user.project?.name || ""); }, 4_000);
       }
       await delay(5_000);

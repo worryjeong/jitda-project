@@ -94,6 +94,23 @@ projectsDatabase.exec(`
   );
   CREATE INDEX IF NOT EXISTS project_change_logs_recent_idx
     ON project_change_logs(project_id, project_version DESC, created_at DESC);
+  CREATE TABLE IF NOT EXISTS project_notifications (
+    id TEXT PRIMARY KEY,
+    recipient_id TEXT NOT NULL,
+    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    event_key TEXT NOT NULL,
+    event_type TEXT NOT NULL CHECK (event_type IN ('analysis_completed', 'comparison_completed', 'review_followup')),
+    title TEXT NOT NULL,
+    body TEXT NOT NULL,
+    target_path TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    read_at TEXT,
+    UNIQUE (recipient_id, event_key)
+  );
+  CREATE INDEX IF NOT EXISTS project_notifications_recipient_recent_idx
+    ON project_notifications(recipient_id, created_at DESC);
+  CREATE INDEX IF NOT EXISTS project_notifications_project_event_idx
+    ON project_notifications(project_id, event_type, created_at DESC);
 `);
 
 const model = "jitda-chat";
@@ -686,6 +703,219 @@ function insertProjectChangeLog(projectId, actor, actorRole, projectVersion, cha
   );
 }
 
+function insertProjectNotifications(projectId, eventKey, eventType, title, body, targetPath, createdAt) {
+  const recipients = projectsDatabase.prepare(`
+    SELECT owner_id AS user_id FROM projects WHERE id = ?
+    UNION
+    SELECT user_id FROM project_memberships WHERE project_id = ?
+  `).all(projectId, projectId);
+  const insert = projectsDatabase.prepare(`
+    INSERT OR IGNORE INTO project_notifications (
+      id, recipient_id, project_id, event_key, event_type, title, body, target_path, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `);
+  let createdCount = 0;
+  for (const recipient of recipients) {
+    const result = insert.run(
+      crypto.randomUUID(),
+      recipient.user_id,
+      projectId,
+      eventKey,
+      eventType,
+      title,
+      body,
+      targetPath,
+      createdAt,
+    );
+    createdCount += Number(result.changes);
+  }
+  return createdCount;
+}
+
+function insertNotificationsForSavedProject(previousProject, nextProject, projectId, projectVersion, createdAt) {
+  let createdCount = 0;
+  const previousAnalysisAt = String(previousProject?.analysisRunAt || "");
+  const nextAnalysisAt = String(nextProject?.analysisRunAt || "");
+  const analysisCompleted = Boolean(
+    nextProject?.analysisRun === true
+    && nextProject?.extractionRun === true
+    && nextAnalysisAt
+    && Date.parse(nextAnalysisAt)
+    && previousAnalysisAt !== nextAnalysisAt
+    && Array.isArray(nextProject.extractedRequirements?.source)
+  );
+  if (analysisCompleted) {
+    createdCount += insertProjectNotifications(
+      projectId,
+      `analysis:${projectId}:${projectVersion}`,
+      "analysis_completed",
+      "요구사항 분석 완료",
+      `${nextProject.name}의 분석 결과가 프로젝트에 저장되었습니다.`,
+      `/projects/${encodeURIComponent(projectId)}/extract`,
+      createdAt,
+    );
+  }
+
+  const previousComparisonAt = String(previousProject?.requirementComparison?.comparedAt || "");
+  const nextComparison = nextProject?.requirementComparison;
+  const nextComparisonAt = String(nextComparison?.comparedAt || "");
+  const comparisonCompleted = Boolean(
+    nextComparisonAt
+    && nextComparisonAt !== previousComparisonAt
+    && Array.isArray(nextComparison?.results)
+    && nextProject.comparisonStale !== true
+  );
+  if (comparisonCompleted) {
+    const body = nextComparison.usedFallback
+      ? `${nextProject.name}의 비교 결과가 저장되었습니다. AI 비교를 사용할 수 없어 규칙 기반 결과입니다.`
+      : `${nextProject.name}의 기획서 비교 결과가 저장되었습니다.`;
+    createdCount += insertProjectNotifications(
+      projectId,
+      `comparison:${projectId}:${projectVersion}`,
+      "comparison_completed",
+      "기획서 비교 완료",
+      body,
+      `/projects/${encodeURIComponent(projectId)}/compare`,
+      createdAt,
+    );
+  }
+  return createdCount;
+}
+
+function unresolvedReviewIssueCounts(project) {
+  if (!project || project.analysisStale || project.analysisRun !== true || project.extractionRun !== true) return null;
+  const analysisAt = Date.parse(project.analysisRunAt || "");
+  if (!Number.isFinite(analysisAt)) return null;
+
+  let issues = [];
+  const comparison = project.requirementComparison;
+  const comparisonAt = Date.parse(comparison?.comparedAt || "");
+  const currentComparison = Boolean(
+    comparison
+    && project.comparisonStale !== true
+    && Array.isArray(comparison.results)
+    && Array.isArray(comparison.confirmedRequirements)
+    && Number.isFinite(comparisonAt)
+    && comparisonAt >= analysisAt
+  );
+
+  if (currentComparison) {
+    const requirements = new Map(comparison.confirmedRequirements.map((item) => [String(item?.id || ""), item]));
+    issues = comparison.results.map((result) => {
+      const requirement = requirements.get(String(result?.requirementId || ""));
+      return {
+        id: String(result?.requirementId || ""),
+        text: String(requirement?.text || result?.text || ""),
+        status: result?.status === "누락 의심" ? "missing" : result?.status === "충돌" ? "conflict" : "resolved",
+      };
+    });
+  } else {
+    issues = (Array.isArray(project.requirements) ? project.requirements : []).map((item) => ({
+      id: String(item?.id || ""),
+      text: String(item?.text || ""),
+      status: ["missing", "누락 의심"].includes(item?.status)
+        ? "missing"
+        : ["conflict", "충돌"].includes(item?.status) ? "conflict" : "resolved",
+    }));
+  }
+
+  const missingIds = new Set();
+  const conflictIds = new Set();
+  const reviewRecords = Object.values(project.requirementReview?.items || {});
+  for (const issue of issues) {
+    if (!issue.id || !issue.text || !["missing", "conflict"].includes(issue.status)) continue;
+    const reviewRecord = project.requirementReview?.items?.[issue.id]
+      || reviewRecords.find((item) => String(item?.text || "").trim() === issue.text.trim());
+    if (reviewRecord?.status === "deleted") continue;
+    if (reviewRecord?.text && String(reviewRecord.text).trim() !== issue.text.trim()) continue;
+    if (issue.status === "missing") missingIds.add(issue.id);
+    if (issue.status === "conflict") conflictIds.add(issue.id);
+  }
+  return { missing: missingIds.size, conflict: conflictIds.size, fromComparison: currentComparison };
+}
+
+function createDueReviewFollowupForUser(userId, project) {
+  const analysisEvent = projectsDatabase.prepare(`
+    SELECT event_key, created_at
+    FROM project_notifications
+    WHERE project_id = ? AND event_type = 'analysis_completed'
+    ORDER BY created_at DESC
+    LIMIT 1
+  `).get(project.id);
+  if (!analysisEvent || Date.parse(analysisEvent.created_at) + 24 * 60 * 60 * 1000 > Date.now()) return 0;
+
+  const counts = unresolvedReviewIssueCounts(project);
+  if (!counts || counts.missing + counts.conflict === 0) return 0;
+  const issueSummary = [
+    counts.missing ? `누락 의심 ${counts.missing}개` : "",
+    counts.conflict ? `충돌 ${counts.conflict}개` : "",
+  ].filter(Boolean).join(", ");
+  const targetPath = counts.fromComparison
+    ? `/projects/${encodeURIComponent(project.id)}/compare`
+    : `/projects/${encodeURIComponent(project.id)}/extract`;
+  const result = projectsDatabase.prepare(`
+    INSERT OR IGNORE INTO project_notifications (
+      id, recipient_id, project_id, event_key, event_type, title, body, target_path, created_at
+    ) VALUES (?, ?, ?, ?, 'review_followup', ?, ?, ?, ?)
+  `).run(
+    crypto.randomUUID(),
+    userId,
+    project.id,
+    `review-followup:${analysisEvent.event_key}`,
+    "미해결 요구사항 재확인",
+    `${project.name}에 ${issueSummary}이 남아 있습니다. 원문과 저장된 분석 결과를 다시 확인해 주세요.`,
+    targetPath,
+    new Date().toISOString(),
+  );
+  return Number(result.changes);
+}
+
+function refreshDueReviewFollowups(userId) {
+  const accessibleProjects = projectRowsForOwner(userId);
+  for (const project of accessibleProjects) createDueReviewFollowupForUser(userId, project);
+}
+
+function notificationRowsForUser(userId) {
+  return projectsDatabase.prepare(`
+    SELECT n.id, n.project_id, n.event_type, n.title, n.body, n.target_path,
+           n.created_at, n.read_at, p.data_json
+    FROM project_notifications n
+    JOIN projects p ON p.id = n.project_id
+    LEFT JOIN project_memberships m ON m.project_id = p.id AND m.user_id = ? AND m.role = 'editor'
+    WHERE n.recipient_id = ? AND (p.owner_id = ? OR m.user_id = ?)
+    ORDER BY n.created_at DESC
+    LIMIT 200
+  `).all(userId, userId, userId, userId).map((row) => {
+    let projectName = "프로젝트";
+    try {
+      projectName = JSON.parse(row.data_json)?.name || projectName;
+    } catch {
+      // Do not expose raw project storage if a legacy record is malformed.
+    }
+    return {
+      id: row.id,
+      projectId: row.project_id,
+      projectName,
+      type: row.event_type,
+      title: row.title,
+      body: row.body,
+      targetPath: row.target_path,
+      createdAt: row.created_at,
+      readAt: row.read_at,
+    };
+  });
+}
+
+function unreadNotificationCountForUser(userId) {
+  return Number(projectsDatabase.prepare(`
+    SELECT COUNT(*) AS count
+    FROM project_notifications n
+    JOIN projects p ON p.id = n.project_id
+    LEFT JOIN project_memberships m ON m.project_id = p.id AND m.user_id = ? AND m.role = 'editor'
+    WHERE n.recipient_id = ? AND n.read_at IS NULL AND (p.owner_id = ? OR m.user_id = ?)
+  `).get(userId, userId, userId, userId).count);
+}
+
 function insertOwnedProject(ownerId, project, actor) {
   const prepared = projectObjectForStorage(project);
   const now = new Date().toISOString();
@@ -731,7 +961,10 @@ function saveAccessibleProject(actor, projectId, expectedVersion, project) {
     const changedFields = changedProjectAreas(previousProject, prepared.project);
     if (!changedFields.length) {
       projectsDatabase.exec("COMMIT");
-      return normalizeStoredProject(previousProject, current.version, current.created_at, current.updated_at, current.owner_id, current.member_role);
+      return {
+        project: normalizeStoredProject(previousProject, current.version, current.created_at, current.updated_at, current.owner_id, current.member_role),
+        notificationsCreated: 0,
+      };
     }
 
     const now = new Date().toISOString();
@@ -746,8 +979,18 @@ function saveAccessibleProject(actor, projectId, expectedVersion, project) {
       throw new HttpError(409, "프로젝트가 다른 창에서 먼저 변경되었습니다. 최신 내용을 다시 불러와 주세요.");
     }
     insertProjectChangeLog(projectId, actor, current.member_role, expectedVersion + 1, changedFields, now);
+    const notificationsCreated = insertNotificationsForSavedProject(
+      previousProject,
+      prepared.project,
+      projectId,
+      expectedVersion + 1,
+      now,
+    );
     projectsDatabase.exec("COMMIT");
-    return normalizeStoredProject(prepared.project, expectedVersion + 1, current.created_at, now, current.owner_id, current.member_role);
+    return {
+      project: normalizeStoredProject(prepared.project, expectedVersion + 1, current.created_at, now, current.owner_id, current.member_role),
+      notificationsCreated,
+    };
   } catch (error) {
     projectsDatabase.exec("ROLLBACK");
     throw error;
@@ -1249,8 +1492,8 @@ async function handleProjectsApi(request, response, requestUrl, auth) {
       const body = await readJson(request);
       const project = body?.project;
       const expectedVersion = Number(body?.expectedVersion ?? project?.serverVersion);
-      const savedProject = saveAccessibleProject(auth.user, projectId, expectedVersion, project);
-      sendJson(response, 200, { project: savedProject });
+      const saved = saveAccessibleProject(auth.user, projectId, expectedVersion, project);
+      sendJson(response, 200, saved);
       return true;
     }
 
@@ -1299,6 +1542,70 @@ async function handleInvitationsApi(request, response, requestUrl, auth) {
     return true;
   }
   sendJson(response, 405, { error: "지원하지 않는 초대 요청입니다." });
+  return true;
+}
+
+async function handleNotificationsApi(request, response, requestUrl, auth) {
+  rejectNoStore(response);
+  if (requestUrl.pathname === "/api/notifications" && request.method === "GET") {
+    refreshDueReviewFollowups(auth.user.id);
+    sendJson(response, 200, {
+      userId: auth.user.id,
+      notifications: notificationRowsForUser(auth.user.id),
+      unreadCount: unreadNotificationCountForUser(auth.user.id),
+      generatedFollowupsOnRead: true,
+    });
+    return true;
+  }
+
+  if (requestUrl.pathname === "/api/notifications/read-all" && request.method === "PATCH") {
+    const now = new Date().toISOString();
+    const result = projectsDatabase.prepare(`
+      UPDATE project_notifications
+      SET read_at = ?
+      WHERE recipient_id = ? AND read_at IS NULL
+        AND EXISTS (
+          SELECT 1 FROM projects p
+          LEFT JOIN project_memberships m ON m.project_id = p.id AND m.user_id = ? AND m.role = 'editor'
+          WHERE p.id = project_notifications.project_id AND (p.owner_id = ? OR m.user_id = ?)
+        )
+    `).run(now, auth.user.id, auth.user.id, auth.user.id, auth.user.id);
+    sendJson(response, 200, {
+      updatedCount: Number(result.changes),
+      notifications: notificationRowsForUser(auth.user.id),
+      unreadCount: unreadNotificationCountForUser(auth.user.id),
+    });
+    return true;
+  }
+
+  const readMatch = requestUrl.pathname.match(/^\/api\/notifications\/([^/]+)\/read$/u);
+  if (readMatch && request.method === "PATCH") {
+    let notificationId;
+    try {
+      notificationId = decodeURIComponent(readMatch[1]);
+    } catch {
+      throw new HttpError(400, "알림 식별자 형식이 올바르지 않습니다.");
+    }
+    const notification = projectsDatabase.prepare(`
+      SELECT id, project_id FROM project_notifications WHERE id = ? AND recipient_id = ?
+    `).get(notificationId, auth.user.id);
+    if (!notification) throw new HttpError(404, "알림을 찾을 수 없거나 접근 권한이 없습니다.");
+    if (!getAccessibleProject(auth.user.id, notification.project_id)) {
+      throw new HttpError(404, "알림을 찾을 수 없거나 접근 권한이 없습니다.");
+    }
+    const readAt = new Date().toISOString();
+    projectsDatabase.prepare(`
+      UPDATE project_notifications SET read_at = COALESCE(read_at, ?)
+      WHERE id = ? AND recipient_id = ?
+    `).run(readAt, notificationId, auth.user.id);
+    sendJson(response, 200, {
+      notification: notificationRowsForUser(auth.user.id).find((item) => item.id === notificationId) || null,
+      unreadCount: unreadNotificationCountForUser(auth.user.id),
+    });
+    return true;
+  }
+
+  sendJson(response, 405, { error: "지원하지 않는 알림 요청입니다." });
   return true;
 }
 
@@ -3515,6 +3822,7 @@ const server = http.createServer(async (request, response) => {
 
   const protectedApi = requestUrl.pathname.startsWith("/api/projects")
     || requestUrl.pathname.startsWith("/api/invitations")
+    || requestUrl.pathname.startsWith("/api/notifications")
     || requestUrl.pathname === "/api/generate-update"
     || requestUrl.pathname === "/api/transcribe"
     || requestUrl.pathname === "/api/compare"
@@ -3540,6 +3848,15 @@ const server = http.createServer(async (request, response) => {
       if (await handleInvitationsApi(request, response, requestUrl, auth)) return;
     } catch (error) {
       handleProjectApiError(response, error, "초대 요청을 처리하지 못했습니다.");
+      return;
+    }
+  }
+
+  if (requestUrl.pathname.startsWith("/api/notifications")) {
+    try {
+      if (await handleNotificationsApi(request, response, requestUrl, auth)) return;
+    } catch (error) {
+      handleProjectApiError(response, error, "알림을 처리하지 못했습니다.");
       return;
     }
   }

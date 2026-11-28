@@ -227,6 +227,20 @@ test("new-project analysis survives a concurrent save and update generation uses
     assert.equal(created.response.status, 201);
     assert.equal(created.payload.project.serverVersion, 1, "new projects begin at serverVersion 1");
 
+    const failedAnalysis = await request("/api/analyze", {
+      method: "POST",
+      cookie,
+      csrf,
+      body: {
+        projectId: "analysis-race-project",
+        project: { name: "새 프로젝트 즉시 분석 검증", client: "격리 테스트 고객사" },
+        meetings: [],
+        specification: { documentName: "", content: "" },
+      },
+    });
+    assert.equal(failedAnalysis.response.status, 400);
+    assert.equal((await request("/api/notifications", { cookie })).payload.notifications.length, 0, "a failed analysis does not create a completion notification");
+
     const analysisPromise = request("/api/analyze", {
       method: "POST",
       cookie,
@@ -273,6 +287,7 @@ test("new-project analysis survives a concurrent save and update generation uses
     assert.equal(analysis.payload.meetingRequirements.length, 1);
     assert.ok(analysis.payload.specDraft.includes("주문 내역"));
     assert.equal(analysis.payload.specUpdate, "", "analysis does not produce an update plan for a non-confirmed requirement set");
+    assert.equal((await request("/api/notifications", { cookie })).payload.notifications.length, 0, "an analysis response is not notified until its project save succeeds");
 
     const staleClientSave = await request("/api/projects/analysis-race-project", {
       method: "PUT",
@@ -297,13 +312,19 @@ test("new-project analysis survives a concurrent save and update generation uses
           specDraft: { content: analysis.payload.specDraft },
           analysisRun: true,
           extractionRun: true,
+          analysisRunAt: new Date().toISOString(),
+          analysisStale: false,
         },
       },
     });
     assert.equal(rebasedSave.response.status, 200);
     assert.equal(rebasedSave.payload.project.serverVersion, 3);
     assert.equal(rebasedSave.payload.project.summary, "분석 중 완료된 자동 저장", "rebased analysis results retain the concurrent project change");
+    assert.equal(rebasedSave.payload.notificationsCreated, 1, "a successfully persisted mocked analysis creates one owner notification");
     assert.equal((await request("/api/projects/analysis-race-project/changes", { cookie })).payload.changes.length, 3);
+    const analysisNotifications = await request("/api/notifications", { cookie });
+    assert.equal(analysisNotifications.payload.notifications.length, 1);
+    assert.equal(analysisNotifications.payload.notifications[0].type, "analysis_completed");
 
     const updateProject = {
       id: "confirmed-update-project",
