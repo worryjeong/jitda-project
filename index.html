@@ -5584,6 +5584,82 @@
         gap: 9px;
       }
 
+      .specification-source-preview {
+        display: grid;
+        gap: 10px;
+      }
+
+      .specification-source-preview > pre {
+        max-height: 280px;
+        overflow: auto;
+        margin: 0;
+        padding: 12px;
+        border: 1px solid #e9ede8;
+        border-radius: 8px;
+        background: #fcfdfa;
+        color: #4d5b51;
+        font: inherit;
+        font-size: 10px;
+        line-height: 1.7;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .specification-source-preview details pre {
+        max-height: min(65vh, 520px);
+      }
+
+      .specification-source-preview details {
+        display: grid;
+        gap: 9px;
+      }
+
+      .specification-source-preview summary {
+        width: fit-content;
+        color: #496f4d;
+        cursor: pointer;
+        font-size: 10px;
+        font-weight: 680;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+      }
+
+      .specification-source-empty {
+        margin: 0;
+        padding: 15px;
+        border: 1px dashed #dfe6dd;
+        border-radius: 8px;
+        background: #fbfcfa;
+        color: #7c887f;
+        font-size: 10px;
+        line-height: 1.6;
+      }
+
+      .spec-comparison-handoff {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px 18px;
+        margin-top: 14px;
+        padding: 16px 18px;
+        border: 1px solid #dfe7dc;
+        border-radius: 10px;
+        background: #f7f9f5;
+      }
+
+      .spec-comparison-handoff p {
+        margin: 0;
+        color: #68766d;
+        font-size: 11px;
+        line-height: 1.65;
+      }
+
+      .spec-comparison-handoff .button-secondary {
+        min-height: 39px;
+        flex: 0 0 auto;
+      }
+
       .extraction-card {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -6548,27 +6624,6 @@
         margin-bottom: 13px;
       }
 
-      .comparison-update-preview-heading .button-secondary {
-        min-height: 39px;
-        flex: 0 0 auto;
-      }
-
-      .comparison-update-preview pre {
-        max-height: 460px;
-        overflow: auto;
-        margin: 0;
-        padding: 14px;
-        border: 1px solid #edf0eb;
-        border-radius: 8px;
-        background: #fbfcfa;
-        color: #48564c;
-        font: inherit;
-        font-size: 12px;
-        line-height: 1.8;
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-      }
-
       .comparison-update-citations {
         display: grid;
         gap: 7px;
@@ -7270,8 +7325,19 @@
           flex-direction: column;
         }
 
-        .comparison-update-preview-heading .button-secondary {
+        .spec-comparison-handoff {
+          align-items: stretch;
+          padding: 14px;
+        }
+
+        .spec-comparison-handoff .button-secondary,
+        .comparison-update-preview .spec-draft-actions .button-secondary {
           width: 100%;
+        }
+
+        .comparison-update-preview .spec-draft-actions {
+          align-items: stretch;
+          flex-direction: column;
         }
 
         .brand-row {
@@ -8244,7 +8310,7 @@
                   <div class="extraction-document-icon spec-icon" aria-hidden="true">SPEC</div>
                   <div>
                     <h2 id="spec-extraction-title">최종 기획서</h2>
-                    <p id="spec-extraction-file">기획서에 적힌 중요 요구사항</p>
+                    <p id="spec-extraction-file">저장된 기획서 원문</p>
                   </div>
                   <span class="requirement-count" id="spec-requirement-count">0개</span>
                 </header>
@@ -8266,19 +8332,9 @@
                   <button class="button-secondary" id="save-spec-draft" type="button">초안 저장</button>
                 </div>
               </section>
-              <section class="detail-panel spec-update-panel" id="spec-update-panel" hidden aria-labelledby="spec-update-title">
-                <div class="detail-panel-heading">
-                  <div>
-                    <h2 id="spec-update-title">기획서 업데이트안</h2>
-                    <p>기존 기획서와 새 요구사항을 바탕으로 생성한 검토용 제안입니다.</p>
-                  </div>
-                  <span class="status-badge review">검토용 제안</span>
-                </div>
-                <textarea class="spec-draft-content spec-draft-editable" id="spec-update-content" aria-label="기획서 업데이트안"></textarea>
-                <div class="spec-draft-actions">
-                  <span id="spec-update-save-state">업데이트안은 프로젝트에 저장됩니다.</span>
-                  <button class="button-secondary" id="save-spec-update" type="button">업데이트안 저장</button>
-                </div>
+              <section class="spec-comparison-handoff" aria-label="기획서 비교 및 업데이트안">
+                <p>기획서 비교와 업데이트안은 요구사항 확정 후 '기획서 비교' 화면에서 확인할 수 있습니다.</p>
+                <a class="button-secondary" id="spec-comparison-link" href="#">기획서 비교로 이동</a>
               </section>
 
               <section class="detail-panel template-review-panel" id="template-review-panel" hidden aria-labelledby="template-review-title">
@@ -8449,9 +8505,12 @@
                     <h2 id="comparison-update-preview-title">저장된 기획서 업데이트안</h2>
                     <p id="comparison-update-generated-at"></p>
                   </div>
-                  <a class="button-secondary" id="comparison-update-edit-link" href="#">업데이트안 확인·수정</a>
                 </div>
-                <pre id="comparison-update-preview-content"></pre>
+                <textarea class="spec-draft-content spec-draft-editable" id="comparison-update-preview-content" aria-label="저장된 기획서 업데이트안"></textarea>
+                <div class="spec-draft-actions">
+                  <span id="comparison-update-save-state">수정한 내용은 프로젝트에 저장됩니다.</span>
+                  <button class="button-secondary" id="save-comparison-update" type="button">업데이트안 저장</button>
+                </div>
                 <div class="comparison-update-citations" id="comparison-update-citations" aria-label="업데이트안 원문 근거"></div>
               </section>
             </div>
@@ -9106,10 +9165,7 @@
           specDraftContent: document.querySelector("#spec-draft-content"),
           specDraftSave: document.querySelector("#save-spec-draft"),
           specDraftSaveState: document.querySelector("#spec-draft-save-state"),
-          specUpdatePanel: document.querySelector("#spec-update-panel"),
-          specUpdateContent: document.querySelector("#spec-update-content"),
-          specUpdateSave: document.querySelector("#save-spec-update"),
-          specUpdateSaveState: document.querySelector("#spec-update-save-state"),
+          specComparisonLink: document.querySelector("#spec-comparison-link"),
           templateReviewPanel: document.querySelector("#template-review-panel"),
           templateReviewList: document.querySelector("#template-review-list"),
           detailContent: document.querySelector("#detail-content"),
@@ -9179,8 +9235,9 @@
           comparisonUpdatePreview: document.querySelector("#comparison-update-preview"),
           comparisonUpdateGeneratedAt: document.querySelector("#comparison-update-generated-at"),
           comparisonUpdatePreviewContent: document.querySelector("#comparison-update-preview-content"),
+          comparisonUpdateSave: document.querySelector("#save-comparison-update"),
+          comparisonUpdateSaveState: document.querySelector("#comparison-update-save-state"),
           comparisonUpdateCitations: document.querySelector("#comparison-update-citations"),
-          comparisonUpdateEditLink: document.querySelector("#comparison-update-edit-link"),
           deleteDialog: document.querySelector("#project-delete-dialog"),
           deleteProjectName: document.querySelector("#project-delete-name"),
           cancelProjectDelete: document.querySelector("#cancel-project-delete"),
@@ -10357,6 +10414,26 @@
             : `<div class="analysis-empty-state"><strong>입력 문서가 없습니다.</strong>새 프로젝트 화면에서 ${label} 내용을 입력하거나 문서를 업로드해 주세요.</div>`;
         }
 
+        function displaySpecificationText(content) {
+          return String(content ?? "").replace(/[^\S\r\n]+/gu, " ");
+        }
+
+        function renderSpecificationPreview(documentItem) {
+          const content = displaySpecificationText(documentItem?.content || "");
+          if (!content.trim()) {
+            return '<p class="specification-source-empty">저장된 기획서에서 표시할 원문 텍스트를 찾지 못했습니다.</p>';
+          }
+          const preview = content.split(/\r\n|\n|\r/u).slice(0, 10).join("\n");
+          return `
+            <div class="specification-source-preview">
+              <pre aria-label="최종 기획서 원문 미리보기">${escapeHtml(preview)}</pre>
+              <details>
+                <summary>전체 내용 보기</summary>
+                <pre aria-label="최종 기획서 전체 원문">${escapeHtml(content)}</pre>
+              </details>
+            </div>`;
+        }
+
         function appendSearchHighlight(parent, value, query, suppliedMatch = null) {
           const text = String(value ?? "").normalize("NFC");
           const match = suppliedMatch || window.SpecGuardExtractionSearch.findTextMatch(text, query);
@@ -10547,13 +10624,17 @@
             .filter((documentItem) => documentItem.kind === "source" && !documentItem.archivedAt)
             .sort((first, second) => Number(first.roundNumber || 0) - Number(second.roundNumber || 0)
               || meetingDateFor(first, project).localeCompare(meetingDateFor(second, project)));
-          const specDocument = [...(project.documents || [])].reverse().find((documentItem) => documentItem.kind === "spec" && !documentItem.archivedAt);
+          const specDocuments = (project.documents || []).filter((documentItem) => documentItem.kind === "spec" && !documentItem.archivedAt);
+          const specDocument = specDocuments.at(-1) || null;
           const allSourceRequirements = project.extractedRequirements?.source || [];
           const latestSourceRequirements = filterRequirementsByRound(project, allSourceRequirements, false);
           const sourceRequirements = filterRequirementsByRound(project, allSourceRequirements, showAllExtractionRounds);
           const specRequirements = project.extractedRequirements?.spec || [];
           const hasSourceText = sourceDocuments.some((documentItem) => Boolean(documentItem.content?.trim() || documentItem.stt?.transcript?.trim()));
+          const hasSpecDocument = Boolean(specDocument);
           const hasSpecText = Boolean(specDocument?.content?.trim());
+          const draft = typeof project.specDraft === "object" ? project.specDraft?.content || "" : String(project.specDraft || "");
+          const update = typeof project.specUpdateProposal === "object" ? project.specUpdateProposal?.content || "" : String(project.specUpdateProposal || "");
           const latestMeeting = sourceDocuments.at(-1);
           const extractedMeetingEvidence = allSourceRequirements.flatMap((requirement) => Array.isArray(requirement.evidence) ? requirement.evidence : []);
           const distinctExtractedMeetings = new Map(extractedMeetingEvidence.map((evidence) => [
@@ -10571,25 +10652,24 @@
           elements.extractionMeta.textContent = `${project.client} · ${project.summary || "요구사항 추출"}`;
           elements.extractionBack.href = `#/projects/${encodeURIComponent(project.id)}`;
           elements.reviewFromExtraction.href = `#/projects/${encodeURIComponent(project.id)}/review`;
+          elements.specComparisonLink.href = `#/projects/${encodeURIComponent(project.id)}/compare`;
+          elements.specComparisonLink.textContent = update ? "저장된 업데이트안 보기" : "기획서 비교로 이동";
           elements.sourceExtractionFile.textContent = sourceDateSummary;
           elements.specExtractionFile.textContent = specDocument?.name || "최종 기획서가 입력되지 않았습니다.";
           elements.sourceRequirementCount.textContent = `${sourceRequirements.length}개`;
-          elements.specRequirementCount.textContent = `${specRequirements.length}개`;
+          elements.specRequirementCount.textContent = hasSpecDocument ? `${specDocuments.length}개 등록` : `${specRequirements.length}개`;
           elements.extractionRoundToggle.textContent = showAllExtractionRounds ? "최근 회차만 보기" : "전체 보기";
           elements.extractionRoundToggle.setAttribute("aria-pressed", String(showAllExtractionRounds));
           elements.extractionRoundToggle.disabled = latestSourceRequirements.length === allSourceRequirements.length;
           elements.runAnalysisButton.dataset.projectId = project.id;
           elements.runAnalysisButton.disabled = !hasSourceText;
           renderExtractedList(elements.sourceExtractionList, sourceRequirements, hasSourceText, "회의록 또는 고객 메모", "source");
-          renderExtractedList(elements.specExtractionList, specRequirements, hasSpecText, "최종 기획서", "spec");
+          if (hasSpecDocument) elements.specExtractionList.innerHTML = renderSpecificationPreview(specDocument);
+          else renderExtractedList(elements.specExtractionList, specRequirements, false, "최종 기획서", "spec");
           runExtractionSearch(project);
 
-          const draft = typeof project.specDraft === "object" ? project.specDraft?.content || "" : String(project.specDraft || "");
-          const update = typeof project.specUpdateProposal === "object" ? project.specUpdateProposal?.content || "" : String(project.specUpdateProposal || "");
           elements.specDraftPanel.hidden = !draft;
           elements.specDraftContent.value = draft;
-          elements.specUpdatePanel.hidden = !update;
-          elements.specUpdateContent.value = update;
           const templateReview = project.specificationTemplateReview;
           const expectedTarget = hasSpecText ? "update" : "draft";
           const templateSections = Array.isArray(templateReview?.sections)
@@ -10605,7 +10685,10 @@
             </article>`).join("");
 
           if (project.extractionRun) {
-            elements.analysisState.textContent = `저장된 LLM 분석 결과 · ${formatDateTime(project.analysisRunAt || project.updatedAt)} · ${sourceRequirements.length}개 요구사항${hasSpecText ? `, 기획서 ${specRequirements.length}개` : ", 기획서 초안 생성"}. 이 결과를 이어서 확인할 수 있습니다.${project.analysisStale ? " 자료가 변경되어 다시 분석이 필요합니다." : ""}`;
+            const specificationSummary = hasSpecDocument
+              ? `기획서 ${specDocuments.length}개 등록`
+              : "기획서 초안 생성";
+            elements.analysisState.textContent = `저장된 LLM 분석 결과 · ${formatDateTime(project.analysisRunAt || project.updatedAt)} · ${sourceRequirements.length}개 요구사항 · ${specificationSummary}. 이 결과를 이어서 확인할 수 있습니다.${project.analysisStale ? " 자료가 변경되어 다시 분석이 필요합니다." : ""}`;
             elements.analysisState.dataset.state = "success";
             elements.runAnalysisButton.innerHTML = `
               <svg viewBox="0 0 20 20" fill="none" aria-hidden="true">
@@ -11167,7 +11250,7 @@
           elements.comparisonComparedAt.textContent = saved?.comparedAt ? `마지막 비교 · ${formatDateTime(saved.comparedAt)}` : "";
           elements.comparisonStale.hidden = !isStale;
           elements.comparisonEmpty.hidden = hasConfirmed;
-          elements.comparisonResults.hidden = !hasSavedResults;
+          elements.comparisonResults.hidden = !hasSavedResults && !hasUpdateProposal;
           elements.runComparison.disabled = !hasConfirmed || !hasSpecification;
           elements.runComparison.textContent = saved ? "다시 비교" : "기획서 비교";
           elements.comparisonFallbackNotice.hidden = !saved?.usedFallback;
@@ -11200,7 +11283,12 @@
           elements.comparisonUpdateGeneratedAt.textContent = updateProposal?.generatedAt
             ? `${formatDateTime(updateProposal.generatedAt)} 저장${updateMatchesComparison ? " · 현재 비교 결과 기준" : " · 이전 비교 기준"}`
             : "";
-          elements.comparisonUpdatePreviewContent.textContent = updateProposal?.content || "";
+          if (elements.comparisonUpdatePreviewContent.dataset.projectId !== project.id
+            || elements.comparisonUpdatePreviewContent.dataset.dirty !== "true") {
+            elements.comparisonUpdatePreviewContent.value = updateProposal?.content || "";
+            elements.comparisonUpdatePreviewContent.dataset.projectId = project.id;
+            elements.comparisonUpdatePreviewContent.dataset.dirty = "false";
+          }
           const updateCitations = Array.isArray(updateProposal?.citations) ? updateProposal.citations : [];
           elements.comparisonUpdateCitations.innerHTML = updateCitations.length
             ? updateCitations.map((citation) => {
@@ -11214,8 +11302,6 @@
                 </article>`;
             }).join("")
             : '<p class="comparison-update-citations-empty">업데이트안에 표시할 원문 인용이 없습니다. 기획서와 회의 원문을 함께 확인해 주세요.</p>';
-          elements.comparisonUpdateEditLink.href = `#/projects/${encodeURIComponent(project.id)}/extract`;
-
           if (!hasSavedResults) {
             elements.comparisonResultList.innerHTML = "";
             elements.comparisonEmptyResults.hidden = true;
@@ -12839,6 +12925,10 @@
           if (project) renderReviewPage(project);
         });
 
+        elements.comparisonUpdatePreviewContent.addEventListener("input", () => {
+          elements.comparisonUpdatePreviewContent.dataset.dirty = "true";
+        });
+
         elements.specDraftSave.addEventListener("click", async () => {
           const projectId = elements.extraction.dataset.projectId;
           const project = projects.find((item) => item.id === projectId);
@@ -12858,23 +12948,30 @@
           elements.specDraftSaveState.textContent = "초안을 저장했습니다.";
         });
 
-        elements.specUpdateSave.addEventListener("click", async () => {
-          const projectId = elements.extraction.dataset.projectId;
+        elements.comparisonUpdateSave.addEventListener("click", async () => {
+          const projectId = elements.comparison.dataset.projectId;
           const project = projects.find((item) => item.id === projectId);
           if (!project) return;
           const previous = project.specUpdateProposal;
           project.specUpdateProposal = {
             ...(typeof previous === "object" && previous ? previous : {}),
-            content: elements.specUpdateContent.value.trim(),
+            content: elements.comparisonUpdatePreviewContent.value.trim(),
             updatedAt: new Date().toISOString(),
             editedByUser: true,
           };
-          if (!await persistProjects()) {
+          if (!project.specUpdateProposal.content) {
             project.specUpdateProposal = previous;
-            elements.specUpdateSaveState.textContent = "서버에 저장하지 못했습니다. 다시 시도해 주세요.";
+            elements.comparisonUpdateSaveState.textContent = "업데이트안 내용을 입력해 주세요.";
             return;
           }
-          elements.specUpdateSaveState.textContent = "업데이트안을 저장했습니다.";
+          if (!await persistProjects()) {
+            project.specUpdateProposal = previous;
+            elements.comparisonUpdateSaveState.textContent = "서버에 저장하지 못했습니다. 다시 시도해 주세요.";
+            return;
+          }
+          elements.comparisonUpdatePreviewContent.value = project.specUpdateProposal.content;
+          elements.comparisonUpdatePreviewContent.dataset.dirty = "false";
+          elements.comparisonUpdateSaveState.textContent = "업데이트안을 저장했습니다.";
         });
 
         elements.meetingList.addEventListener("change", (event) => {
@@ -13022,7 +13119,7 @@
               liveProject.updatedAt = previousUpdatedAt;
               throw error;
             }
-            comparisonUpdateMessage = "기획서 업데이트안을 만들고 프로젝트에 저장했습니다. 아래 미리보기에서 확인하거나 추출 화면에서 수정할 수 있습니다.";
+                comparisonUpdateMessage = "기획서 업데이트안을 만들고 프로젝트에 저장했습니다. 아래에서 확인하고 수정할 수 있습니다.";
             comparisonUpdateHasError = false;
             renderProjectLists();
             renderComparisonPage(liveProject);

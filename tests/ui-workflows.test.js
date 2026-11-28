@@ -216,3 +216,44 @@ test("extraction search controls are labeled, ordered beside AI analysis, and us
   assert.match(html, /window\.setTimeout\(run, 160\)/u);
   assert.match(html, /event\.key !== "Escape"/u);
 });
+
+test("extraction shows saved specification text and links update proposals to comparison", async () => {
+  const html = await fs.readFile(indexPath, "utf8");
+  const rendererStart = html.indexOf("function displaySpecificationText");
+  const rendererEnd = html.indexOf("function appendSearchHighlight", rendererStart);
+  const specificationRenderer = html.slice(rendererStart, rendererEnd);
+  assert.match(specificationRenderer, /function displaySpecificationText\(content\)[\s\S]*?replace\(\/\[\^\\S\\r\\n\]\+\/gu, " "\)/u);
+  assert.match(specificationRenderer, /split\(\/\\r\\n\|\\n\|\\r\/u\)\.slice\(0, 10\)/u);
+  assert.match(specificationRenderer, /<summary>전체 내용 보기<\/summary>/u);
+  assert.match(specificationRenderer, /escapeHtml\(preview\)/u);
+  assert.match(specificationRenderer, /escapeHtml\(content\)/u);
+  const specificationHelpers = new Function("escapeHtml", `${specificationRenderer}; return { displaySpecificationText, renderSpecificationPreview };`)(
+    (value) => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#39;"),
+  );
+  const originalText = "청솔   빛축제\r\n두 번째 줄  이어쓰기\n<script>원문</script>";
+  assert.equal(specificationHelpers.displaySpecificationText(originalText), "청솔 빛축제\r\n두 번째 줄 이어쓰기\n<script>원문</script>");
+  const previewMarkup = specificationHelpers.renderSpecificationPreview({ name: "기획서.pdf", content: originalText });
+  assert.match(previewMarkup, /청솔 빛축제/u);
+  assert.match(previewMarkup, /&lt;script&gt;원문&lt;\/script&gt;/u);
+  assert.doesNotMatch(previewMarkup, /<script>/u, "specification text is displayed as escaped text");
+
+  const extractionStart = html.indexOf("function renderExtraction(project)");
+  const extractionEnd = html.indexOf("const reviewStatusLabels", extractionStart);
+  const extractionRenderer = html.slice(extractionStart, extractionEnd);
+  assert.match(extractionRenderer, /const specDocuments = .*kind === "spec"/u);
+  assert.match(extractionRenderer, /if \(hasSpecDocument\) elements\.specExtractionList\.innerHTML = renderSpecificationPreview\(specDocument\)/u);
+  assert.match(extractionRenderer, /hasSpecDocument \? `\$\{specDocuments\.length\}개 등록`/u);
+  assert.match(extractionRenderer, /기획서 \$\{specDocuments\.length\}개 등록/u);
+  assert.match(extractionRenderer, /elements\.specComparisonLink\.href = `#\/projects\/\$\{encodeURIComponent\(project\.id\)\}\/compare`/u);
+  assert.match(extractionRenderer, /update \? "저장된 업데이트안 보기" : "기획서 비교로 이동"/u);
+  assert.match(extractionRenderer, /elements\.specDraftPanel\.hidden = !draft/u, "projects without a specification retain the AI draft panel");
+
+  const extractionMarkup = html.match(/<section class="view" id="extraction-view"[\s\S]*?<section class="view" id="review-view"/u)?.[0];
+  assert.ok(extractionMarkup);
+  assert.match(extractionMarkup, /기획서 비교와 업데이트안은 요구사항 확정 후 '기획서 비교' 화면에서 확인할 수 있습니다\./u);
+  assert.match(extractionMarkup, /id="spec-comparison-link"/u);
+  assert.doesNotMatch(extractionMarkup, /spec-update-content|save-spec-update|아직 추출한 요구사항이 없습니다/u);
+  assert.match(html, /comparisonUpdatePreviewContent\.value = updateProposal\?\.content/u);
+  assert.match(html, /elements\.comparisonResults\.hidden = !hasSavedResults && !hasUpdateProposal/u);
+  assert.match(html, /elements\.comparisonUpdateSave\.addEventListener\("click"/u);
+});
