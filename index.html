@@ -1168,7 +1168,7 @@
       .notification-item {
         display: grid;
         width: 100%;
-        grid-template-columns: 10px minmax(0, 1fr) auto;
+        grid-template-columns: 10px 22px minmax(0, 1fr) auto;
         align-items: start;
         gap: 9px;
         padding: 13px 15px;
@@ -1205,6 +1205,24 @@
         background: transparent;
       }
 
+      .notification-type-icon {
+        display: grid;
+        width: 22px;
+        height: 22px;
+        place-items: center;
+        margin-top: -3px;
+        border-radius: 7px;
+        background: #f0f2ee;
+        color: #6e7b70;
+        font-size: 12px;
+      }
+
+      .notification-type-icon.invitation {
+        background: #edf4e8;
+        color: #42674c;
+        font-size: 14px;
+      }
+
       .notification-item-copy {
         display: grid;
         min-width: 0;
@@ -1232,6 +1250,26 @@
         font-size: 10px;
         line-height: 1.55;
         overflow-wrap: anywhere;
+      }
+
+      .notification-invitation-status {
+        width: fit-content;
+        padding: 3px 7px;
+        border: 1px solid #dce6d8;
+        border-radius: 999px;
+        background: #f5f8f3;
+        color: #526b55;
+        font-size: 9px;
+        font-weight: 680;
+        line-height: 1.3;
+      }
+
+      .notification-invitation-status[data-status="declined"],
+      .notification-invitation-status[data-status="revoked"],
+      .notification-invitation-status[data-status="project_deleted"] {
+        border-color: #eadbd7;
+        background: #fff7f4;
+        color: #9a5c50;
       }
 
       .notification-item time {
@@ -3615,7 +3653,8 @@
 
       .team-remove-button:disabled,
       .team-invite-form button:disabled,
-      .invitation-accept:disabled {
+      .invitation-accept:disabled,
+      .invitation-decline:disabled {
         cursor: wait;
         opacity: 0.58;
       }
@@ -3640,6 +3679,32 @@
         font-size: 11px;
         line-height: 1.55;
         overflow-wrap: anywhere;
+      }
+
+      .team-pending-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .team-invitation-cancel {
+        flex: 0 0 auto;
+        min-height: 30px;
+        padding: 0 9px;
+        border: 1px solid #ead8d4;
+        border-radius: 6px;
+        background: #fff8f6;
+        color: #a34e42;
+        cursor: pointer;
+        font: inherit;
+        font-size: 10px;
+        font-weight: 650;
+      }
+
+      .team-invitation-cancel:disabled {
+        cursor: wait;
+        opacity: 0.58;
       }
 
       .team-invite-form {
@@ -3878,6 +3943,13 @@
         border: 1px solid #e0e8dc;
         border-radius: 8px;
         background: #ffffff;
+        scroll-margin-top: 24px;
+      }
+
+      .invite-inbox-item.invitation-highlight {
+        border-color: #8cae7e;
+        background: #f5faef;
+        box-shadow: 0 0 0 3px rgba(117, 149, 79, 0.16);
       }
 
       .invite-inbox-item strong {
@@ -3908,6 +3980,57 @@
 
       .invitation-accept:hover:not(:disabled) {
         background: var(--forest-soft);
+      }
+
+      .invite-inbox-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 6px;
+      }
+
+      .invitation-decline,
+      .invitation-open {
+        min-height: 38px;
+        padding: 0 11px;
+        border: 1px solid #dbe4d9;
+        border-radius: 7px;
+        background: #ffffff;
+        color: #526457;
+        cursor: pointer;
+        font: inherit;
+        font-size: 11px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+
+      .invitation-decline:hover:not(:disabled),
+      .invitation-open:hover {
+        background: #f4f7f1;
+      }
+
+      .invitation-decline:disabled {
+        cursor: wait;
+        opacity: 0.58;
+      }
+
+      .invite-inbox-status {
+        padding: 5px 8px;
+        border: 1px solid #dce6d8;
+        border-radius: 999px;
+        background: #f5f8f3;
+        color: #526b55;
+        font-size: 10px;
+        font-weight: 680;
+        white-space: nowrap;
+      }
+
+      .invite-inbox-status[data-status="declined"],
+      .invite-inbox-status[data-status="revoked"],
+      .invite-inbox-status[data-status="project_deleted"] {
+        border-color: #eadbd7;
+        background: #fff7f4;
+        color: #9a5c50;
       }
 
       .invite-inbox-error {
@@ -7115,7 +7238,17 @@
           grid-template-columns: minmax(0, 1fr);
         }
 
-        .invite-inbox-item .invitation-accept {
+        .invite-inbox-actions {
+          justify-content: stretch;
+        }
+
+        .invite-inbox-actions > * {
+          flex: 1 1 auto;
+        }
+
+        .invite-inbox-item .invitation-accept,
+        .invite-inbox-item .invitation-decline,
+        .invite-inbox-item .invitation-open {
           width: 100%;
         }
 
@@ -7779,7 +7912,7 @@
                   <div class="invite-inbox-heading">
                     <div>
                       <h2 id="pending-invitations-title">받은 프로젝트 초대</h2>
-                      <p>초대를 수락하면 해당 프로젝트의 공동 편집자로 참여합니다.</p>
+                      <p>대기 중인 초대를 수락·거절하고, 처리된 초대 상태도 확인할 수 있습니다.</p>
                     </div>
                   </div>
                   <div class="invite-inbox-list" id="pending-invitations-list"></div>
@@ -9273,18 +9406,55 @@
           }
         }
 
+        function invitationStatusLabel(status) {
+          return ({
+            pending: "수락 대기",
+            accepted: "수락 완료",
+            declined: "거절한 초대",
+            revoked: "취소된 초대",
+            project_deleted: "삭제된 프로젝트의 초대",
+          })[status] || "초대 상태 확인 필요";
+        }
+
         function renderPendingInvitations() {
           const invitations = pendingInvitations;
           elements.pendingInvitationsPanel.hidden = false;
           elements.pendingInvitationsError.hidden = true;
           elements.pendingInvitationsList.innerHTML = invitations.length ? invitations.map((invitation) => {
-            const inviter = invitation.invitedBy ? accountDisplayName(invitation.invitedBy) : "프로젝트 소유자";
+            const inviter = invitation.invitedByName
+              || (invitation.invitedBy ? accountDisplayName(invitation.invitedBy) : "프로젝트 소유자");
+            const status = invitation.status || "pending";
+            const statusLabel = invitationStatusLabel(status);
+            const context = [invitation.client, inviter ? `${inviter}님` : "프로젝트 소유자", formatNotificationTime(invitation.createdAt)]
+              .filter(Boolean).join(" · ");
+            const actions = status === "pending" && invitation.canAccept
+              ? `<div class="invite-inbox-actions">
+                  <button class="invitation-accept" type="button" data-accept-invitation="${escapeHtml(invitation.id)}">초대 수락</button>
+                  <button class="invitation-decline" type="button" data-decline-invitation="${escapeHtml(invitation.id)}">거절</button>
+                </div>`
+              : status === "accepted" && invitation.canOpenProject
+                ? `<div class="invite-inbox-actions">
+                    <span class="invite-inbox-status" data-status="accepted">${statusLabel}</span>
+                    <button class="invitation-open" type="button" data-open-invited-project="${escapeHtml(invitation.projectId)}">프로젝트 열기</button>
+                  </div>`
+                : `<span class="invite-inbox-status" data-status="${escapeHtml(status)}">${statusLabel}</span>`;
             return `
-              <article class="invite-inbox-item">
-                <div><strong>${escapeHtml(invitation.projectName)}</strong><span>${escapeHtml(invitation.client || "")} · ${escapeHtml(inviter)}님이 초대했습니다.</span></div>
-                <button class="invitation-accept" type="button" data-accept-invitation="${escapeHtml(invitation.id)}" data-project-id="${escapeHtml(invitation.projectId)}">초대 수락</button>
+              <article class="invite-inbox-item" id="invitation-${escapeHtml(invitation.id)}" data-invitation-card="${escapeHtml(invitation.id)}" data-status="${escapeHtml(status)}" tabindex="-1">
+                <div><strong>${escapeHtml(invitation.projectName)}</strong><span>${escapeHtml(context)}</span></div>
+                ${actions}
               </article>`;
-          }).join("") : '<p class="mypage-empty">현재 수락 대기 중인 프로젝트 초대가 없습니다.</p>';
+          }).join("") : '<p class="mypage-empty">아직 프로젝트 초대 이력이 없습니다.</p>';
+        }
+
+        function focusWorkspaceInvitation(invitationId) {
+          if (!invitationId) return;
+          window.requestAnimationFrame(() => {
+            const invitation = document.getElementById(`invitation-${invitationId}`);
+            if (!invitation) return;
+            invitation.classList.add("invitation-highlight");
+            invitation.focus({ preventScroll: true });
+            invitation.scrollIntoView({ behavior: "smooth", block: "center" });
+          });
         }
 
         async function loadPendingInvitations() {
@@ -9323,7 +9493,7 @@
           const pendingMarkup = pending.length ? `
             <div class="team-pending-list">
               <strong>수락 대기 중</strong>
-              ${pending.map((member) => `<span>${escapeHtml(accountDisplayName(member))}</span>`).join("")}
+              ${pending.map((member) => `<div class="team-pending-row"><span>${escapeHtml(accountDisplayName(member))}</span><button class="team-invitation-cancel" type="button" data-cancel-invitation="${escapeHtml(member.id)}" data-project-id="${escapeHtml(project.id)}" data-invitation-name="${escapeHtml(accountDisplayName(member))}">초대 취소</button></div>`).join("")}
             </div>` : "";
 
           return `
@@ -9403,6 +9573,7 @@
           setMyPageNotice(myPageNoticeMessage, myPageNoticeIsError);
           await loadPendingInvitations();
           if (currentUser?.id !== userId || loadSequence !== myPageLoadSequence) return;
+          focusWorkspaceInvitation(options.focusInvitationId || "");
 
           elements.mypageOwnedProjectCount.textContent = `${ownedProjects.length}개 프로젝트`;
           elements.mypageOwnedProjects.innerHTML = ownedProjects.length
@@ -9703,7 +9874,7 @@
             empty.className = "notification-empty";
             empty.textContent = notificationFilter === "unread"
               ? "읽지 않은 알림이 없습니다."
-              : "아직 알림이 없습니다. 분석이나 비교 결과가 저장되면 여기에 표시됩니다.";
+              : "아직 알림이 없습니다. 초대나 분석·비교 결과를 확인할 수 있습니다.";
             elements.notificationList.append(empty);
             return;
           }
@@ -9711,11 +9882,15 @@
           visible.forEach((notification) => {
             const item = document.createElement("button");
             item.type = "button";
-            item.className = `notification-item${notification.readAt ? "" : " unread"}`;
+            item.className = `notification-item${notification.readAt ? "" : " unread"}${notification.type === "project_invitation" ? " invitation" : ""}`;
             item.dataset.notificationId = notification.id;
             const dot = document.createElement("span");
             dot.className = "notification-unread-dot";
             dot.setAttribute("aria-hidden", "true");
+            const typeIcon = document.createElement("span");
+            typeIcon.className = `notification-type-icon${notification.type === "project_invitation" ? " invitation" : ""}`;
+            typeIcon.setAttribute("aria-hidden", "true");
+            typeIcon.textContent = notification.type === "project_invitation" ? "✉" : "";
             const copy = document.createElement("span");
             copy.className = "notification-item-copy";
             const title = document.createElement("strong");
@@ -9728,10 +9903,17 @@
             body.className = "notification-item-body";
             body.textContent = notification.body;
             copy.append(title, project, body);
+            if (notification.type === "project_invitation") {
+              const status = document.createElement("span");
+              status.className = "notification-invitation-status";
+              status.dataset.status = notification.invitationStatus || "unavailable";
+              status.textContent = invitationStatusLabel(notification.invitationStatus);
+              copy.append(status);
+            }
             const time = document.createElement("time");
             time.dateTime = notification.createdAt || "";
             time.textContent = formatNotificationTime(notification.createdAt);
-            item.append(dot, copy, time);
+            item.append(dot, typeIcon, copy, time);
             elements.notificationList.append(item);
           });
         }
@@ -12161,7 +12343,10 @@
             elements.mypageProfilePanel.hidden = isWorkspaceRoute;
             elements.mypageTeamManagement.hidden = !isWorkspaceRoute;
             document.title = isWorkspaceRoute ? "프로젝트 초대 관리 | 스펙가드" : "마이페이지 | 스펙가드";
-            loadMyPageData({ manageTeams: isWorkspaceRoute });
+            const focusInvitationId = isWorkspaceRoute && anchor.startsWith("invitation-")
+              ? anchor.slice("invitation-".length)
+              : "";
+            loadMyPageData({ manageTeams: isWorkspaceRoute, focusInvitationId });
             return;
           }
 
@@ -12303,7 +12488,8 @@
           const notification = notifications.find((item) => item.id === button.dataset.notificationId);
           if (!notification) return;
           elements.notificationError.hidden = true;
-          if (!notification.readAt) {
+          let latestNotification = notification;
+          if (!notification.readAt || notification.type === "project_invitation") {
             button.disabled = true;
             try {
               const payload = await apiRequest(`/api/notifications/${encodeURIComponent(notification.id)}/read`, {
@@ -12311,7 +12497,8 @@
                 body: {},
               });
               if (payload.notification) {
-                notifications = notifications.map((item) => item.id === notification.id ? payload.notification : item);
+                latestNotification = payload.notification;
+                notifications = notifications.map((item) => item.id === notification.id ? latestNotification : item);
               }
               unreadNotificationCount = Math.max(0, Number(payload.unreadCount) || 0);
               renderNotificationBadge();
@@ -12323,6 +12510,14 @@
             }
           }
           setNotificationPanelOpen(false);
+          if (latestNotification.type === "project_invitation") {
+            if (latestNotification.invitationStatus === "accepted" && latestNotification.canOpenProject) {
+              setRoute(`/projects/${encodeURIComponent(latestNotification.projectId)}`);
+            } else {
+              setRoute(`/workspace#invitation-${encodeURIComponent(latestNotification.invitationId)}`);
+            }
+            return;
+          }
           const targetPath = String(notification.targetPath || "");
           if (/^\/projects\/[^/]+(?:\/(?:extract|compare|review))?$/u.test(targetPath)) setRoute(targetPath);
         });
@@ -12446,19 +12641,36 @@
         elements.logoutButton.addEventListener("click", logoutAndReturnToDashboard);
 
         elements.pendingInvitationsList.addEventListener("click", async (event) => {
-          const button = event.target.closest("[data-accept-invitation]");
+          const openButton = event.target.closest("[data-open-invited-project]");
+          if (openButton) {
+            const projectId = openButton.dataset.openInvitedProject;
+            if (projects.some((project) => project.id === projectId && project.memberRole === "editor")) {
+              setRoute(`/projects/${encodeURIComponent(projectId)}`);
+            }
+            return;
+          }
+          const acceptButton = event.target.closest("[data-accept-invitation]");
+          const declineButton = event.target.closest("[data-decline-invitation]");
+          const button = acceptButton || declineButton;
           if (!button) return;
           button.disabled = true;
-          const invitationId = button.dataset.acceptInvitation;
+          const invitationId = button.dataset.acceptInvitation || button.dataset.declineInvitation;
           const invitation = pendingInvitations.find((item) => item.id === invitationId);
           try {
-            await apiRequest(`/api/invitations/${encodeURIComponent(invitationId)}/accept`, { method: "POST", body: {} });
-            await loadProjectsFromDatabase();
+            if (acceptButton) {
+              await apiRequest(`/api/invitations/${encodeURIComponent(invitationId)}/accept`, { method: "POST", body: {} });
+              await loadProjectsFromDatabase();
+            } else {
+              await apiRequest(`/api/invitations/${encodeURIComponent(invitationId)}/decline`, { method: "POST", body: {} });
+            }
             await loadMyPageData();
-            setMyPageNotice(`${invitation?.projectName || "프로젝트"} 초대를 수락했습니다. 이제 공동 편집자로 참여합니다.`);
+            await refreshNotifications({ silent: true });
+            setMyPageNotice(acceptButton
+              ? `${invitation?.projectName || "프로젝트"} 초대를 수락했습니다. 이제 공동 편집자로 참여합니다.`
+              : `${invitation?.projectName || "프로젝트"} 초대를 거절했습니다.`);
           } catch (error) {
             button.disabled = false;
-            elements.pendingInvitationsError.textContent = error instanceof Error ? error.message : "초대를 수락하지 못했습니다.";
+            elements.pendingInvitationsError.textContent = error instanceof Error ? error.message : "초대 상태를 변경하지 못했습니다.";
             elements.pendingInvitationsError.hidden = false;
           }
         });
@@ -12489,6 +12701,27 @@
         });
 
         elements.mypageOwnedProjects.addEventListener("click", async (event) => {
+          const cancelInvitationButton = event.target.closest("[data-cancel-invitation]");
+          if (cancelInvitationButton) {
+            const projectId = cancelInvitationButton.dataset.projectId || "";
+            const invitationId = cancelInvitationButton.dataset.cancelInvitation || "";
+            const inviteeName = cancelInvitationButton.dataset.invitationName || "이 사용자";
+            if (!projectId || !invitationId || !projects.some((item) => item.id === projectId && item.memberRole === "owner")) return;
+            if (!window.confirm(`${inviteeName}님에게 보낸 수락 대기 초대를 취소할까요?`)) return;
+            cancelInvitationButton.disabled = true;
+            setMyPageProjectStatus(projectId, "초대를 취소하고 있습니다.");
+            try {
+              await apiRequest(`/api/projects/${encodeURIComponent(projectId)}/invitations/${encodeURIComponent(invitationId)}`, {
+                method: "DELETE",
+              });
+              await loadMyPageData();
+              setMyPageProjectStatus(projectId, `${inviteeName}님 초대를 취소했습니다.`);
+            } catch (error) {
+              setMyPageProjectStatus(projectId, error instanceof Error ? error.message : "초대를 취소하지 못했습니다.", true);
+              if (cancelInvitationButton.isConnected) cancelInvitationButton.disabled = false;
+            }
+            return;
+          }
           const removeButton = event.target.closest("[data-remove-member]");
           if (!removeButton) return;
           const card = removeButton.closest("[data-mypage-project]");

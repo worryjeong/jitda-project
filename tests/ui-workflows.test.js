@@ -121,7 +121,7 @@ test("notification dropdown is accessible, user-scoped, refreshes on supported t
   assert.match(html, /count > 99 \? "99\+"/u);
   assert.match(server, /CREATE TABLE IF NOT EXISTS project_notifications/u);
   assert.match(server, /function notificationRowsForUser\(userId\)/u);
-  assert.match(server, /n\.recipient_id = \? AND \(p\.owner_id = \? OR m\.user_id = \?\)/u);
+  assert.match(server, /n\.recipient_id = \? AND \([\s\S]*?n\.event_type = 'project_invitation'[\s\S]*?p\.owner_id = \? OR m\.user_id = \?/u);
   assert.match(server, /function insertNotificationsForSavedProject/u);
   assert.match(server, /function createDueReviewFollowupForUser/u);
   assert.match(server, /24 \* 60 \* 60 \* 1000/u);
@@ -131,6 +131,33 @@ test("notification dropdown is accessible, user-scoped, refreshes on supported t
   assert.match(html, /if \(shouldOpen\)\s*\{[\s\S]*?refreshNotifications\(\)/u);
   assert.match(html, /Number\(payload\.notificationsCreated\) > 0\) void refreshNotifications/u);
   assert.doesNotMatch(html, /setInterval\([^)]*notification/iu);
+});
+
+test("project invitation alerts reuse the dropdown and focus the matching invitation", async () => {
+  const html = await fs.readFile(indexPath, "utf8");
+  const server = await fs.readFile(path.join(__dirname, "..", "server.js"), "utf8");
+  assert.match(server, /event_type TEXT NOT NULL CHECK \(event_type IN \([^)]*project_invitation/u);
+  assert.match(server, /function createProjectInvitation\([\s\S]*?BEGIN IMMEDIATE[\s\S]*?INSERT INTO project_invitations[\s\S]*?INSERT INTO project_notifications[\s\S]*?COMMIT/u);
+  assert.match(server, /function declineProjectInvitation/u);
+  assert.match(server, /function revokeProjectInvitation/u);
+  assert.match(server, /function markInvitationNotificationsRead/u);
+  assert.match(server, /function notificationRowsForUser\([\s\S]*?i\.status AS invitation_status/u);
+  assert.match(server, /n\.event_type = 'project_invitation'/u);
+  assert.match(server, /event_type = 'project_invitation'\s+OR EXISTS/u);
+
+  assert.match(html, /notification-type-icon/u);
+  assert.match(html, /notification\.type === "project_invitation" \? "✉" : ""/u);
+  assert.match(html, /function invitationStatusLabel\([\s\S]*?수락 완료[\s\S]*?거절한 초대[\s\S]*?취소된 초대[\s\S]*?삭제된 프로젝트의 초대/u);
+  assert.match(html, /data-decline-invitation=/u);
+  assert.match(html, /data-cancel-invitation=/u);
+  assert.match(html, /function focusWorkspaceInvitation\([\s\S]*?invitation-highlight[\s\S]*?scrollIntoView/u);
+  assert.match(html, /setRoute\(`\/workspace#invitation-\$\{encodeURIComponent\(latestNotification\.invitationId\)\}`\)/u);
+  assert.match(html, /latestNotification\.invitationStatus === "accepted" && latestNotification\.canOpenProject/u);
+  const clickHandlerStart = html.indexOf('elements.notificationList.addEventListener("click"');
+  const clickHandlerEnd = html.indexOf('document.addEventListener("pointerdown"', clickHandlerStart);
+  const clickHandler = html.slice(clickHandlerStart, clickHandlerEnd);
+  assert.match(clickHandler, /\/api\/notifications\/\$\{encodeURIComponent\(notification\.id\)\}\/read/u);
+  assert.doesNotMatch(clickHandler, /\/api\/invitations\/[^\n]*\/accept/u, "opening an alert must not accept the invite");
 });
 
 test("public guide, account projects link, and overview copy keep only actual public information", async () => {

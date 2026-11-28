@@ -213,7 +213,8 @@ test("project notifications persist per user, enforce access, mark read, and cre
     assert.equal(ownerAfterAnalysis.payload.notifications[0].type, "analysis_completed");
     assert.equal(ownerAfterAnalysis.payload.notifications[0].projectName, "알림 테스트 프로젝트");
     assert.equal(ownerAfterAnalysis.payload.notifications[0].targetPath, `/projects/${projectId}/extract`);
-    assert.equal(editorAfterAnalysis.payload.notifications.length, 1, "accepted members see project notifications");
+    assert.equal(editorAfterAnalysis.payload.notifications.length, 2, "accepted members see project notifications and their invitation history");
+    assert.equal(editorAfterAnalysis.payload.notifications.some((item) => item.type === "project_invitation" && item.invitationStatus === "accepted" && item.readAt), true);
     assert.equal(outsiderAfterAnalysis.payload.notifications.length, 0, "unrelated users do not see project notifications");
     const failedComparison = await request("/api/compare", {
       method: "POST",
@@ -257,8 +258,10 @@ test("project notifications persist per user, enforce access, mark read, and cre
     });
     assert.equal(pendingAnalysis.response.status, 200);
     assert.equal(pendingAnalysis.payload.notificationsCreated, 1, "a pending invite is not a notification recipient");
-    assert.equal((await request("/api/notifications", { cookie: editor.cookie })).payload.notifications
-      .some((item) => item.projectId === "pending-notification-project"), false);
+    const editorPendingProjectAlerts = (await request("/api/notifications", { cookie: editor.cookie })).payload.notifications
+      .filter((item) => item.projectId === "pending-notification-project");
+    assert.equal(editorPendingProjectAlerts.some((item) => item.type !== "project_invitation"), false, "a pending invite receives its invitation notice but not project analysis alerts");
+    assert.equal(editorPendingProjectAlerts.some((item) => item.type === "project_invitation" && item.invitationStatus === "pending"), true);
     const deletePendingProject = await request("/api/projects/pending-notification-project", {
       method: "DELETE",
       cookie: owner.cookie,
@@ -472,7 +475,8 @@ test("project notifications persist per user, enforce access, mark read, and cre
     });
     assert.equal(removed.response.status, 200);
     const editorAfterRemoval = await request("/api/notifications", { cookie: editor.cookie });
-    assert.equal(editorAfterRemoval.payload.notifications.some((item) => item.projectId === projectId), false, "removed members cannot list notifications for that project");
+    assert.equal(editorAfterRemoval.payload.notifications.some((item) => item.projectId === projectId && item.type !== "project_invitation"), false, "removed members cannot list project activity notifications");
+    assert.equal(editorAfterRemoval.payload.notifications.some((item) => item.projectId === projectId && item.type === "project_invitation"), true, "recipients retain their own invitation history");
     assert.equal((await request(`/api/notifications/${encodeURIComponent(editorProjectNotice.id)}/read`, {
       method: "PATCH",
       cookie: editor.cookie,

@@ -73,9 +73,11 @@ projectsDatabase.exec(`
     project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
     invited_user_id TEXT NOT NULL,
     invited_by_user_id TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'revoked')),
+    status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'revoked')),
     created_at TEXT NOT NULL,
-    accepted_at TEXT
+    accepted_at TEXT,
+    declined_at TEXT,
+    revoked_at TEXT
   );
   CREATE UNIQUE INDEX IF NOT EXISTS project_invitations_pending_idx
     ON project_invitations(project_id, invited_user_id) WHERE status = 'pending';
@@ -97,14 +99,17 @@ projectsDatabase.exec(`
   CREATE TABLE IF NOT EXISTS project_notifications (
     id TEXT PRIMARY KEY,
     recipient_id TEXT NOT NULL,
-    project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+    project_id TEXT NOT NULL,
     event_key TEXT NOT NULL,
-    event_type TEXT NOT NULL CHECK (event_type IN ('analysis_completed', 'comparison_completed', 'review_followup')),
+    event_type TEXT NOT NULL CHECK (event_type IN ('analysis_completed', 'comparison_completed', 'review_followup', 'project_invitation')),
     title TEXT NOT NULL,
     body TEXT NOT NULL,
     target_path TEXT NOT NULL,
     created_at TEXT NOT NULL,
     read_at TEXT,
+    invitation_id TEXT,
+    inviter_name TEXT,
+    project_name TEXT,
     UNIQUE (recipient_id, event_key)
   );
   CREATE INDEX IF NOT EXISTS project_notifications_recipient_recent_idx
@@ -112,6 +117,107 @@ projectsDatabase.exec(`
   CREATE INDEX IF NOT EXISTS project_notifications_project_event_idx
     ON project_notifications(project_id, event_type, created_at DESC);
 `);
+
+function migrateInvitationNotificationSchema() {
+  const invitationColumns = new Set(projectsDatabase.prepare("PRAGMA table_info(project_invitations)").all().map((column) => column.name));
+  const invitationSql = projectsDatabase.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'project_invitations'").get()?.sql || "";
+  const migrateInvitations = !invitationColumns.has("declined_at")
+    || !invitationColumns.has("revoked_at")
+    || !invitationSql.includes("'declined'");
+
+  const notificationColumns = new Set(projectsDatabase.prepare("PRAGMA table_info(project_notifications)").all().map((column) => column.name));
+  const notificationSql = projectsDatabase.prepare("SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'project_notifications'").get()?.sql || "";
+  const hasProjectForeignKey = projectsDatabase.prepare("PRAGMA foreign_key_list(project_notifications)").all().length > 0;
+  const migrateNotifications = !notificationColumns.has("invitation_id")
+    || !notificationColumns.has("inviter_name")
+    || !notificationColumns.has("project_name")
+    || !notificationSql.includes("'project_invitation'")
+    || hasProjectForeignKey;
+
+  if (!migrateInvitations && !migrateNotifications) return;
+
+  projectsDatabase.exec("BEGIN IMMEDIATE");
+  try {
+    if (migrateInvitations) {
+      projectsDatabase.exec(`
+        CREATE TABLE project_invitations_migration (
+          id TEXT PRIMARY KEY,
+          project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+          invited_user_id TEXT NOT NULL,
+          invited_by_user_id TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined', 'revoked')),
+          created_at TEXT NOT NULL,
+          accepted_at TEXT,
+          declined_at TEXT,
+          revoked_at TEXT
+        );
+        INSERT INTO project_invitations_migration (
+          id, project_id, invited_user_id, invited_by_user_id, status, created_at,
+          accepted_at, declined_at, revoked_at
+        )
+        SELECT id, project_id, invited_user_id, invited_by_user_id, status, created_at,
+               accepted_at, NULL, CASE WHEN status = 'revoked' THEN created_at ELSE NULL END
+        FROM project_invitations;
+        DROP TABLE project_invitations;
+        ALTER TABLE project_invitations_migration RENAME TO project_invitations;
+        CREATE UNIQUE INDEX project_invitations_pending_idx
+          ON project_invitations(project_id, invited_user_id) WHERE status = 'pending';
+        CREATE INDEX project_invitations_user_idx
+          ON project_invitations(invited_user_id, status, created_at DESC);
+      `);
+    }
+
+    if (migrateNotifications) {
+      const invitationId = notificationColumns.has("invitation_id") ? "invitation_id" : "NULL";
+      const inviterName = notificationColumns.has("inviter_name") ? "inviter_name" : "NULL";
+      const projectName = notificationColumns.has("project_name") ? "project_name" : "NULL";
+      projectsDatabase.exec(`
+        CREATE TABLE project_notifications_migration (
+          id TEXT PRIMARY KEY,
+          recipient_id TEXT NOT NULL,
+          project_id TEXT NOT NULL,
+          event_key TEXT NOT NULL,
+          event_type TEXT NOT NULL CHECK (event_type IN ('analysis_completed', 'comparison_completed', 'review_followup', 'project_invitation')),
+          title TEXT NOT NULL,
+          body TEXT NOT NULL,
+          target_path TEXT NOT NULL,
+          created_at TEXT NOT NULL,
+          read_at TEXT,
+          invitation_id TEXT,
+          inviter_name TEXT,
+          project_name TEXT,
+          UNIQUE (recipient_id, event_key)
+        );
+        INSERT INTO project_notifications_migration (
+          id, recipient_id, project_id, event_key, event_type, title, body, target_path,
+          created_at, read_at, invitation_id, inviter_name, project_name
+        )
+        SELECT id, recipient_id, project_id, event_key, event_type, title, body, target_path,
+               created_at, read_at, ${invitationId}, ${inviterName}, ${projectName}
+        FROM project_notifications;
+        DROP TABLE project_notifications;
+        ALTER TABLE project_notifications_migration RENAME TO project_notifications;
+        CREATE INDEX project_notifications_recipient_recent_idx
+          ON project_notifications(recipient_id, created_at DESC);
+        CREATE INDEX project_notifications_project_event_idx
+          ON project_notifications(project_id, event_type, created_at DESC);
+        CREATE INDEX project_notifications_invitation_idx
+          ON project_notifications(invitation_id, recipient_id);
+      `);
+    }
+    projectsDatabase.exec("COMMIT");
+  } catch (error) {
+    projectsDatabase.exec("ROLLBACK");
+    throw error;
+  }
+}
+
+migrateInvitationNotificationSchema();
+projectsDatabase.exec(`CREATE INDEX IF NOT EXISTS project_notifications_invitation_idx
+  ON project_notifications(invitation_id, recipient_id);
+  CREATE UNIQUE INDEX IF NOT EXISTS project_notifications_invitation_recipient_idx
+  ON project_notifications(recipient_id, invitation_id)
+  WHERE event_type = 'project_invitation' AND invitation_id IS NOT NULL`);
 
 const model = "jitda-chat";
 const sttModel = "whisper-large-v3-turbo";
@@ -878,20 +984,36 @@ function refreshDueReviewFollowups(userId) {
 function notificationRowsForUser(userId) {
   return projectsDatabase.prepare(`
     SELECT n.id, n.project_id, n.event_type, n.title, n.body, n.target_path,
-           n.created_at, n.read_at, p.data_json
+           n.created_at, n.read_at, n.invitation_id, n.inviter_name, n.project_name,
+           p.id AS live_project_id, p.owner_id, p.data_json,
+           m.user_id AS member_user_id, i.id AS live_invitation_id, i.status AS invitation_status
     FROM project_notifications n
-    JOIN projects p ON p.id = n.project_id
+    LEFT JOIN projects p ON p.id = n.project_id
     LEFT JOIN project_memberships m ON m.project_id = p.id AND m.user_id = ? AND m.role = 'editor'
-    WHERE n.recipient_id = ? AND (p.owner_id = ? OR m.user_id = ?)
-    ORDER BY n.created_at DESC
+    LEFT JOIN project_invitations i ON i.id = n.invitation_id AND i.invited_user_id = n.recipient_id
+    WHERE n.recipient_id = ? AND (
+      n.event_type = 'project_invitation'
+      OR (p.id IS NOT NULL AND (p.owner_id = ? OR m.user_id = ?))
+    )
+    ORDER BY n.created_at DESC, n.rowid DESC
     LIMIT 200
   `).all(userId, userId, userId, userId).map((row) => {
-    let projectName = "프로젝트";
+    let projectName = row.project_name || "프로젝트";
     try {
-      projectName = JSON.parse(row.data_json)?.name || projectName;
+      projectName = row.project_name || JSON.parse(row.data_json || "{}")?.name || projectName;
     } catch {
       // Do not expose raw project storage if a legacy record is malformed.
     }
+    const isInvitation = row.event_type === "project_invitation";
+    const projectExists = Boolean(row.live_project_id);
+    const invitationStatus = !isInvitation
+      ? null
+      : !projectExists
+        ? "project_deleted"
+        : row.live_invitation_id
+          ? row.invitation_status
+          : "unavailable";
+    const canAccessProject = projectExists && (row.owner_id === userId || row.member_user_id === userId);
     return {
       id: row.id,
       projectId: row.project_id,
@@ -899,9 +1021,16 @@ function notificationRowsForUser(userId) {
       type: row.event_type,
       title: row.title,
       body: row.body,
-      targetPath: row.target_path,
+      targetPath: isInvitation ? "/workspace" : row.target_path,
       createdAt: row.created_at,
       readAt: row.read_at,
+      ...(isInvitation ? {
+        invitationId: row.invitation_id,
+        inviterName: row.inviter_name || "프로젝트 소유자",
+        invitationStatus,
+        canAccept: invitationStatus === "pending" && Boolean(row.live_invitation_id),
+        canOpenProject: invitationStatus === "accepted" && canAccessProject,
+      } : {}),
     };
   });
 }
@@ -910,9 +1039,12 @@ function unreadNotificationCountForUser(userId) {
   return Number(projectsDatabase.prepare(`
     SELECT COUNT(*) AS count
     FROM project_notifications n
-    JOIN projects p ON p.id = n.project_id
+    LEFT JOIN projects p ON p.id = n.project_id
     LEFT JOIN project_memberships m ON m.project_id = p.id AND m.user_id = ? AND m.role = 'editor'
-    WHERE n.recipient_id = ? AND n.read_at IS NULL AND (p.owner_id = ? OR m.user_id = ?)
+    WHERE n.recipient_id = ? AND n.read_at IS NULL AND (
+      n.event_type = 'project_invitation'
+      OR (p.id IS NOT NULL AND (p.owner_id = ? OR m.user_id = ?))
+    )
   `).get(userId, userId, userId, userId).count);
 }
 
@@ -1158,26 +1290,57 @@ function projectChangeHistoryForUser(userId, projectId) {
 }
 
 function createProjectInvitation(actor, projectId, requestedUsername) {
-  const project = requireOwnedProject(actor.id, projectId);
-  const username = typeof requestedUsername === "string" ? requestedUsername.trim() : "";
-  if (!/^[A-Za-z0-9_]{3,30}$/u.test(username)) {
-    throw new HttpError(400, "초대할 아이디를 올바르게 입력해 주세요.");
-  }
-  const invitee = usersDatabase.prepare("SELECT id, username FROM users WHERE username_key = ?").get(username.toLowerCase());
-  if (!invitee) throw new HttpError(404, "해당 아이디로 가입된 계정을 찾을 수 없습니다.");
-  if (invitee.id === project.owner_id) throw new HttpError(400, "프로젝트 소유자는 초대할 수 없습니다.");
-  if (projectsDatabase.prepare("SELECT 1 FROM project_memberships WHERE project_id = ? AND user_id = ?").get(projectId, invitee.id)) {
-    throw new HttpError(409, "이미 참여 중인 팀원입니다.");
-  }
-  const now = new Date().toISOString();
+  projectsDatabase.exec("BEGIN IMMEDIATE");
   try {
+    const project = requireOwnedProject(actor.id, projectId);
+    const username = typeof requestedUsername === "string" ? requestedUsername.trim() : "";
+    if (!/^[A-Za-z0-9_]{3,30}$/u.test(username)) {
+      throw new HttpError(400, "초대할 아이디를 올바르게 입력해 주세요.");
+    }
+    const invitee = usersDatabase.prepare("SELECT id, username FROM users WHERE username_key = ?").get(username.toLowerCase());
+    if (!invitee) throw new HttpError(404, "해당 아이디로 가입된 계정을 찾을 수 없습니다.");
+    if (invitee.id === project.owner_id) throw new HttpError(400, "프로젝트 소유자는 초대할 수 없습니다.");
+    if (projectsDatabase.prepare("SELECT 1 FROM project_memberships WHERE project_id = ? AND user_id = ?").get(projectId, invitee.id)) {
+      throw new HttpError(409, "이미 참여 중인 팀원입니다.");
+    }
+
+    let projectData = {};
+    try {
+      projectData = JSON.parse(project.data_json);
+    } catch {
+      throw new HttpError(500, "프로젝트 정보를 읽지 못해 초대를 만들 수 없습니다.");
+    }
+    const projectName = String(projectData.name || "이름 없는 프로젝트");
+    const inviter = userIdentity(actor.id);
+    const inviterName = String(inviter?.displayName || inviter?.username || "프로젝트 소유자").trim();
+    const now = new Date().toISOString();
     const id = crypto.randomUUID();
     projectsDatabase.prepare(`
       INSERT INTO project_invitations (id, project_id, invited_user_id, invited_by_user_id, status, created_at)
       VALUES (?, ?, ?, ?, 'pending', ?)
     `).run(id, projectId, invitee.id, actor.id, now);
-    return { id, username: invitee.username, createdAt: now };
+
+    projectsDatabase.prepare(`
+      INSERT INTO project_notifications (
+        id, recipient_id, project_id, event_key, event_type, title, body, target_path,
+        created_at, invitation_id, inviter_name, project_name
+      ) VALUES (?, ?, ?, ?, 'project_invitation', ?, ?, '/workspace', ?, ?, ?, ?)
+    `).run(
+      crypto.randomUUID(),
+      invitee.id,
+      projectId,
+      `invitation:${id}`,
+      "프로젝트 초대가 도착했습니다.",
+      `${inviterName}님이 ‘${projectName}’ 프로젝트에 초대했습니다.`,
+      now,
+      id,
+      inviterName,
+      projectName,
+    );
+    projectsDatabase.exec("COMMIT");
+    return { id, username: invitee.username, projectName, inviterName, createdAt: now };
   } catch (error) {
+    projectsDatabase.exec("ROLLBACK");
     if (/unique|constraint/i.test(String(error?.message || ""))) {
       throw new HttpError(409, "이미 수락 대기 중인 초대가 있습니다.");
     }
@@ -1185,30 +1348,79 @@ function createProjectInvitation(actor, projectId, requestedUsername) {
   }
 }
 
-function pendingInvitationsForUser(userId) {
+function invitationsForUser(userId) {
   const rows = projectsDatabase.prepare(`
-    SELECT i.id, i.project_id, i.invited_by_user_id, i.created_at, p.data_json
+    SELECT i.id, i.project_id, i.invited_by_user_id, i.created_at, i.status, p.id AS live_project_id,
+           p.owner_id, p.data_json, n.inviter_name, n.project_name, n.read_at
     FROM project_invitations i
-    JOIN projects p ON p.id = i.project_id
-    WHERE i.invited_user_id = ? AND i.status = 'pending'
-    ORDER BY i.created_at DESC
+    LEFT JOIN projects p ON p.id = i.project_id
+    LEFT JOIN project_notifications n ON n.invitation_id = i.id AND n.recipient_id = i.invited_user_id
+    WHERE i.invited_user_id = ?
+    ORDER BY i.created_at DESC, i.rowid DESC
+    LIMIT 200
   `).all(userId);
-  return rows.map((row) => {
+  const invitations = rows.map((row) => {
     let project = {};
     try {
-      project = JSON.parse(row.data_json);
+      project = JSON.parse(row.data_json || "{}");
     } catch {
       project = {};
     }
+    const status = row.live_project_id ? row.status : "project_deleted";
+    const inviter = userIdentity(row.invited_by_user_id);
     return {
       id: row.id,
       projectId: row.project_id,
-      projectName: project.name || "이름 없는 프로젝트",
+      projectName: row.project_name || project.name || "이름 없는 프로젝트",
       client: project.client || "",
-      invitedBy: userIdentity(row.invited_by_user_id),
+      invitedBy: inviter,
+      invitedByName: row.inviter_name || inviter?.displayName || inviter?.username || "프로젝트 소유자",
       createdAt: row.created_at,
+      status,
+      canAccept: status === "pending",
+      canOpenProject: status === "accepted" && Boolean(getAccessibleProject(userId, row.project_id)),
+      readAt: row.read_at || null,
     };
   });
+
+  const orphaned = projectsDatabase.prepare(`
+    SELECT n.invitation_id, n.project_id, n.created_at, n.inviter_name, n.project_name, n.read_at,
+           p.id AS live_project_id
+    FROM project_notifications n
+    LEFT JOIN project_invitations i ON i.id = n.invitation_id AND i.invited_user_id = n.recipient_id
+    LEFT JOIN projects p ON p.id = n.project_id
+    WHERE n.recipient_id = ? AND n.event_type = 'project_invitation'
+      AND (i.id IS NULL OR p.id IS NULL)
+    ORDER BY n.created_at DESC, n.rowid DESC
+    LIMIT 200
+  `).all(userId);
+  const seenIds = new Set(invitations.map((invitation) => invitation.id));
+  for (const row of orphaned) {
+    if (!row.invitation_id || seenIds.has(row.invitation_id)) continue;
+    seenIds.add(row.invitation_id);
+    invitations.push({
+      id: row.invitation_id,
+      projectId: row.project_id,
+      projectName: row.project_name || "이름 없는 프로젝트",
+      client: "",
+      invitedBy: null,
+      invitedByName: row.inviter_name || "프로젝트 소유자",
+      createdAt: row.created_at,
+      status: row.live_project_id ? "unavailable" : "project_deleted",
+      canAccept: false,
+      canOpenProject: false,
+      readAt: row.read_at || null,
+    });
+  }
+  return invitations.sort((left, right) => Date.parse(right.createdAt) - Date.parse(left.createdAt)).slice(0, 200);
+}
+
+function markInvitationNotificationsRead(userId, invitationId, readAt) {
+  projectsDatabase.prepare(`
+    UPDATE project_notifications
+    SET read_at = COALESCE(read_at, ?)
+    WHERE recipient_id = ? AND invitation_id = ? AND event_type = 'project_invitation'
+  `).run(readAt, userId, invitationId);
 }
 
 function acceptProjectInvitation(userId, invitationId) {
@@ -1230,10 +1442,61 @@ function acceptProjectInvitation(userId, invitationId) {
       VALUES (?, ?, 'editor', ?, ?)
       ON CONFLICT(project_id, user_id) DO NOTHING
     `).run(invitation.project_id, userId, invitation.invited_by_user_id, now);
-    projectsDatabase.prepare("UPDATE project_invitations SET status = 'accepted', accepted_at = ? WHERE id = ? AND status = 'pending'")
+    const updated = projectsDatabase.prepare("UPDATE project_invitations SET status = 'accepted', accepted_at = ? WHERE id = ? AND status = 'pending'")
       .run(now, invitationId);
+    if (Number(updated.changes) !== 1) throw new HttpError(409, "초대 상태가 바뀌었습니다. 목록을 새로고침해 주세요.");
+    markInvitationNotificationsRead(userId, invitationId, now);
     projectsDatabase.exec("COMMIT");
-    return { projectId: invitation.project_id, joinedAt: now };
+    return { invitationId, projectId: invitation.project_id, status: "accepted", joinedAt: now };
+  } catch (error) {
+    projectsDatabase.exec("ROLLBACK");
+    throw error;
+  }
+}
+
+function declineProjectInvitation(userId, invitationId) {
+  projectsDatabase.exec("BEGIN IMMEDIATE");
+  try {
+    const invitation = projectsDatabase.prepare(`
+      SELECT id, project_id, status FROM project_invitations WHERE id = ? AND invited_user_id = ?
+    `).get(invitationId, userId);
+    if (!invitation || invitation.status !== "pending") {
+      throw new HttpError(404, "거절할 수 있는 초대를 찾을 수 없습니다.");
+    }
+    if (!projectsDatabase.prepare("SELECT 1 FROM projects WHERE id = ?").get(invitation.project_id)) {
+      throw new HttpError(404, "초대된 프로젝트가 삭제되었습니다.");
+    }
+    const now = new Date().toISOString();
+    const updated = projectsDatabase.prepare("UPDATE project_invitations SET status = 'declined', declined_at = ? WHERE id = ? AND status = 'pending'")
+      .run(now, invitationId);
+    if (Number(updated.changes) !== 1) throw new HttpError(409, "초대 상태가 바뀌었습니다. 목록을 새로고침해 주세요.");
+    markInvitationNotificationsRead(userId, invitationId, now);
+    projectsDatabase.exec("COMMIT");
+    return { invitationId, projectId: invitation.project_id, status: "declined", declinedAt: now };
+  } catch (error) {
+    projectsDatabase.exec("ROLLBACK");
+    throw error;
+  }
+}
+
+function revokeProjectInvitation(ownerId, projectId, invitationId) {
+  projectsDatabase.exec("BEGIN IMMEDIATE");
+  try {
+    requireOwnedProject(ownerId, projectId);
+    const invitation = projectsDatabase.prepare(`
+      SELECT id, invited_user_id, status FROM project_invitations
+      WHERE id = ? AND project_id = ?
+    `).get(invitationId, projectId);
+    if (!invitation || invitation.status !== "pending") {
+      throw new HttpError(404, "취소할 수 있는 수락 대기 초대를 찾을 수 없습니다.");
+    }
+    const now = new Date().toISOString();
+    const updated = projectsDatabase.prepare("UPDATE project_invitations SET status = 'revoked', revoked_at = ? WHERE id = ? AND status = 'pending'")
+      .run(now, invitationId);
+    if (Number(updated.changes) !== 1) throw new HttpError(409, "초대 상태가 바뀌었습니다. 목록을 새로고침해 주세요.");
+    markInvitationNotificationsRead(invitation.invited_user_id, invitationId, now);
+    projectsDatabase.exec("COMMIT");
+    return { invitationId, projectId, status: "revoked", revokedAt: now };
   } catch (error) {
     projectsDatabase.exec("ROLLBACK");
     throw error;
@@ -1462,6 +1725,11 @@ async function handleProjectsApi(request, response, requestUrl, auth) {
       return true;
     }
 
+    if (resource === "invitations" && targetId && request.method === "DELETE") {
+      sendJson(response, 200, revokeProjectInvitation(auth.user.id, projectId, targetId));
+      return true;
+    }
+
     sendJson(response, 405, { error: "지원하지 않는 팀 관리 요청입니다." });
     return true;
   }
@@ -1503,14 +1771,28 @@ async function handleProjectsApi(request, response, requestUrl, auth) {
       if (!Number.isInteger(expectedVersion) || expectedVersion < 1) {
         throw new HttpError(400, "삭제 버전 정보가 없습니다. 프로젝트 목록을 새로고침해 주세요.");
       }
-      const current = requireOwnedProject(auth.user.id, projectId);
-      if (!current) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
-      if (current.version !== expectedVersion) {
-        throw new HttpError(409, "프로젝트가 다른 창에서 변경되었습니다. 새로고침 후 삭제를 다시 시도해 주세요.", { currentVersion: current.version });
+      projectsDatabase.exec("BEGIN IMMEDIATE");
+      try {
+        const current = requireOwnedProject(auth.user.id, projectId);
+        if (!current) throw new HttpError(404, "프로젝트를 찾을 수 없거나 접근 권한이 없습니다.");
+        if (current.version !== expectedVersion) {
+          throw new HttpError(409, "프로젝트가 다른 창에서 변경되었습니다. 새로고침 후 삭제를 다시 시도해 주세요.", { currentVersion: current.version });
+        }
+        const now = new Date().toISOString();
+        projectsDatabase.prepare("DELETE FROM project_notifications WHERE project_id = ? AND event_type <> 'project_invitation'")
+          .run(projectId);
+        projectsDatabase.prepare(`
+          UPDATE project_notifications SET read_at = COALESCE(read_at, ?)
+          WHERE project_id = ? AND event_type = 'project_invitation'
+        `).run(now, projectId);
+        const result = projectsDatabase.prepare("DELETE FROM projects WHERE id = ? AND owner_id = ? AND version = ?")
+          .run(projectId, auth.user.id, expectedVersion);
+        if (Number(result.changes) !== 1) throw new HttpError(409, "프로젝트가 변경되어 삭제하지 못했습니다. 새로고침해 주세요.");
+        projectsDatabase.exec("COMMIT");
+      } catch (error) {
+        projectsDatabase.exec("ROLLBACK");
+        throw error;
       }
-      const result = projectsDatabase.prepare("DELETE FROM projects WHERE id = ? AND owner_id = ? AND version = ?")
-        .run(projectId, auth.user.id, expectedVersion);
-      if (Number(result.changes) !== 1) throw new HttpError(409, "프로젝트가 변경되어 삭제하지 못했습니다. 새로고침해 주세요.");
       sendJson(response, 200, { deleted: true, id: projectId });
       return true;
     }
@@ -1526,7 +1808,7 @@ async function handleProjectsApi(request, response, requestUrl, auth) {
 async function handleInvitationsApi(request, response, requestUrl, auth) {
   rejectNoStore(response);
   if (requestUrl.pathname === "/api/invitations" && request.method === "GET") {
-    sendJson(response, 200, { invitations: pendingInvitationsForUser(auth.user.id) });
+    sendJson(response, 200, { invitations: invitationsForUser(auth.user.id) });
     return true;
   }
   const acceptMatch = requestUrl.pathname.match(/^\/api\/invitations\/([^/]+)\/accept$/u);
@@ -1538,6 +1820,18 @@ async function handleInvitationsApi(request, response, requestUrl, auth) {
       throw new HttpError(400, "초대 식별자 형식이 올바르지 않습니다.");
     }
     const result = acceptProjectInvitation(auth.user.id, invitationId);
+    sendJson(response, 200, result);
+    return true;
+  }
+  const declineMatch = requestUrl.pathname.match(/^\/api\/invitations\/([^/]+)\/decline$/u);
+  if (declineMatch && request.method === "POST") {
+    let invitationId;
+    try {
+      invitationId = decodeURIComponent(declineMatch[1]);
+    } catch {
+      throw new HttpError(400, "초대 식별자 형식이 올바르지 않습니다.");
+    }
+    const result = declineProjectInvitation(auth.user.id, invitationId);
     sendJson(response, 200, result);
     return true;
   }
@@ -1564,10 +1858,13 @@ async function handleNotificationsApi(request, response, requestUrl, auth) {
       UPDATE project_notifications
       SET read_at = ?
       WHERE recipient_id = ? AND read_at IS NULL
-        AND EXISTS (
+        AND (
+          event_type = 'project_invitation'
+          OR EXISTS (
           SELECT 1 FROM projects p
           LEFT JOIN project_memberships m ON m.project_id = p.id AND m.user_id = ? AND m.role = 'editor'
           WHERE p.id = project_notifications.project_id AND (p.owner_id = ? OR m.user_id = ?)
+          )
         )
     `).run(now, auth.user.id, auth.user.id, auth.user.id, auth.user.id);
     sendJson(response, 200, {
@@ -1587,10 +1884,11 @@ async function handleNotificationsApi(request, response, requestUrl, auth) {
       throw new HttpError(400, "알림 식별자 형식이 올바르지 않습니다.");
     }
     const notification = projectsDatabase.prepare(`
-      SELECT id, project_id FROM project_notifications WHERE id = ? AND recipient_id = ?
+      SELECT id, project_id, event_type, invitation_id
+      FROM project_notifications WHERE id = ? AND recipient_id = ?
     `).get(notificationId, auth.user.id);
     if (!notification) throw new HttpError(404, "알림을 찾을 수 없거나 접근 권한이 없습니다.");
-    if (!getAccessibleProject(auth.user.id, notification.project_id)) {
+    if (notification.event_type !== "project_invitation" && !getAccessibleProject(auth.user.id, notification.project_id)) {
       throw new HttpError(404, "알림을 찾을 수 없거나 접근 권한이 없습니다.");
     }
     const readAt = new Date().toISOString();
