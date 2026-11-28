@@ -13,6 +13,7 @@ test("project detail only displays team members; My Page owns team controls", as
   assert.ok(teamPanel, "project details include the team display panel");
   assert.match(teamPanel, /id="project-team-list"/u);
   assert.doesNotMatch(teamPanel, /<form|추방|초대 보내기|초대 수락/u);
+  assert.match(html, /memberList\.insertAdjacentHTML\("beforeend", '<p class="team-empty">아직 참여 중인 팀원이 없습니다\. <a href="#\/workspace">프로젝트 초대 관리에서 초대를 보내고 관리할 수 있습니다\.<\/a><\/p>'\)/u);
 
   assert.match(html, /id="mypage-view"/u);
   assert.match(html, /id="mypage-profile-panel"/u);
